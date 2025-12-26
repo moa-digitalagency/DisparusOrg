@@ -24,12 +24,37 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    // Handle query keys properly:
+    // - If first element is a string starting with '/', use it as the base URL
+    // - If there are additional elements that are objects, convert them to query params
+    const baseUrl = queryKey[0] as string;
+    
+    let url = baseUrl;
+    
+    // If there's a second element that's an object, treat it as query params
+    if (queryKey.length > 1 && typeof queryKey[1] === "object" && queryKey[1] !== null) {
+      const params = queryKey[1] as Record<string, unknown>;
+      const searchParams = new URLSearchParams();
+      
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null && value !== "" && value !== "all") {
+          searchParams.set(key, String(value));
+        }
+      }
+      
+      const qs = searchParams.toString();
+      if (qs) {
+        url = `${baseUrl}?${qs}`;
+      }
+    }
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

@@ -43,7 +43,7 @@
   --chart-3: 210 84% 35%;
   --chart-4: 280 65% 35%;
   --chart-5: 160 60% 35%;
-  --font-sans: Open Sans, sans-serif;
+  --font-sans: Inter, system-ui, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
@@ -285,4 +285,35 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+}
+
+/* Leaflet map overrides */
+.leaflet-container {
+  font-family: var(--font-sans);
+  z-index: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-popup-content {
+  margin: 0.75rem 1rem;
+}
+
+.custom-marker,
+.selected-marker {
+  background: transparent;
+  border: none;
+}
+
+/* Ensure map stays behind modals and dropdowns */
+.leaflet-pane {
+  z-index: 0;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1;
 }
