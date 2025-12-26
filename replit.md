@@ -65,3 +65,5 @@ python main.py        # Start Flask development server
 
 ## Recent Changes
 - 2025-12-26: Rebuilt with Python Flask/SQLAlchemy backend per user request
+- 2025-12-26: Added moderation dashboard (/moderation) for reviewing flagged content
+- 2025-12-26: Fixed service worker MIME type and DATABASE_URL validation
