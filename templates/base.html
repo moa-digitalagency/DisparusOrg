@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
-    <meta name="description" content="{% block description %}DISPARUS.ORG - Plateforme citoyenne de signalement de personnes disparues en Afrique{% endblock %}">
+    <meta name="description" content="DISPARUS.ORG - Plateforme citoyenne de signalement de personnes disparues en Afrique">
     <meta name="theme-color" content="#b91c1c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -31,6 +31,7 @@
                     colors: {
                         primary: {
                             DEFAULT: '#b91c1c',
+                            dark: '#991b1b',
                             foreground: '#ffffff',
                         },
                     },
@@ -48,133 +49,77 @@
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
-    <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between gap-4">
-                <a href="/" class="flex items-center gap-2">
-                    <span class="text-2xl font-bold text-primary">DISPARUS</span>
-                    <span class="text-xs bg-primary text-white px-2 py-0.5 rounded">.ORG</span>
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16 gap-4">
+                <a href="/" class="flex items-center gap-2 text-red-700 dark:text-red-500 font-bold text-xl" data-testid="link-home">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    DISPARUS.ORG
                 </a>
                 
-                <nav class="hidden md:flex items-center gap-6">
-                    <a href="/" class="text-sm font-medium hover:text-primary transition-colors" data-testid="link-home">
-                        {% if get_locale() == 'fr' %}Accueil{% else %}Home{% endif %}
-                    </a>
-                    <a href="/recherche" class="text-sm font-medium hover:text-primary transition-colors" data-testid="link-search">
-                        {% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}
-                    </a>
-                    <a href="/signaler" class="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors" data-testid="link-report">
+                <div class="hidden md:flex flex-1 max-w-xl">
+                    <form action="/recherche" method="GET" class="w-full">
+                        <div class="relative">
+                            <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Rechercher par nom, ID, ville...{% else %}Search by name, ID, city...{% endif %}" 
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-red-500"
+                                   data-testid="input-search-header">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2" data-testid="link-report">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         {% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}
                     </a>
-                </nav>
-                
-                <div class="flex items-center gap-2">
-                    <a href="/set-locale/fr" class="px-2 py-1 text-xs rounded {% if get_locale() == 'fr' %}bg-primary text-white{% else %}bg-gray-200 dark:bg-gray-700{% endif %}">FR</a>
-                    <a href="/set-locale/en" class="px-2 py-1 text-xs rounded {% if get_locale() == 'en' %}bg-primary text-white{% else %}bg-gray-200 dark:bg-gray-700{% endif %}">EN</a>
                     
-                    <button id="theme-toggle" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" data-testid="button-theme-toggle">
-                        <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
-                        <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
-                    </button>
+                    <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
+                        <a href="/set-locale/fr" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'fr' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-fr">FR</a>
+                        <a href="/set-locale/en" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'en' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-en">EN</a>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
-    
-    <div id="offline-banner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 p-4 rounded-lg shadow-lg bg-amber-600 text-white">
-        <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m-3.536-3.536a4 4 0 010-5.656m-3.536 3.536a1 1 0 010-1.414"/></svg>
-            <div>
-                <p class="font-medium">{% if get_locale() == 'fr' %}Mode hors-ligne{% else %}Offline Mode{% endif %}</p>
-                <p class="text-sm opacity-90">{% if get_locale() == 'fr' %}Certaines fonctions sont limitées{% else %}Some features are limited{% endif %}</p>
-            </div>
-        </div>
-    </div>
-    
+
     <main>
         {% block content %}{% endblock %}
     </main>
-    
-    <footer class="bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-        <div class="max-w-7xl mx-auto px-4 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div class="md:col-span-2">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="text-2xl font-bold text-primary">DISPARUS</span>
-                        <span class="text-xs bg-primary text-white px-2 py-0.5 rounded">.ORG</span>
-                    </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 max-w-md">
-                        {% if get_locale() == 'fr' %}
-                        Plateforme citoyenne de signalement et de recherche de personnes disparues en Afrique.
-                        {% else %}
-                        Citizen platform for reporting and searching for missing persons in Africa.
-                        {% endif %}
-                    </p>
-                </div>
-                
+
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h3 class="font-semibold mb-4">{% if get_locale() == 'fr' %}Navigation{% else %}Navigation{% endif %}</h3>
-                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                        <li><a href="/" class="hover:text-primary">{% if get_locale() == 'fr' %}Accueil{% else %}Home{% endif %}</a></li>
-                        <li><a href="/recherche" class="hover:text-primary">{% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}</a></li>
-                        <li><a href="/signaler" class="hover:text-primary">{% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}</a></li>
+                    <h3 class="text-white font-semibold mb-3">DISPARUS.ORG</h3>
+                    <p class="text-sm">{% if get_locale() == 'fr' %}Plateforme citoyenne de signalement de personnes disparues en Afrique{% else %}Citizen platform for reporting missing persons in Africa{% endif %}</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-semibold mb-3">{% if get_locale() == 'fr' %}Liens{% else %}Links{% endif %}</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/recherche" class="hover:text-white">{% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}</a></li>
+                        <li><a href="/signaler" class="hover:text-white">{% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}</a></li>
+                        <li><a href="/admin" class="hover:text-white">Admin</a></li>
                     </ul>
                 </div>
-                
                 <div>
-                    <h3 class="font-semibold mb-4">{% if get_locale() == 'fr' %}Contact{% else %}Contact{% endif %}</h3>
-                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                        <li>contact@disparus.org</li>
-                        <li>+237 6XX XXX XXX</li>
-                    </ul>
+                    <h3 class="text-white font-semibold mb-3">{% if get_locale() == 'fr' %}50+ Pays Africains{% else %}50+ African Countries{% endif %}</h3>
+                    <p class="text-sm">Nigeria, Cameroun, Senegal, Cote d'Ivoire, Ghana, Kenya...</p>
                 </div>
             </div>
-            
-            <div class="border-t border-gray-200 dark:border-gray-700 mt-8 pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                &copy; 2025 DISPARUS.ORG - {% if get_locale() == 'fr' %}Tous droits réservés{% else %}All rights reserved{% endif %}
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
+                <p>2025 DISPARUS.ORG</p>
             </div>
         </div>
     </footer>
-    
+
     <script>
-        // Theme toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        const html = document.documentElement;
-        
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            html.classList.add('dark');
-        }
-        
-        themeToggle?.addEventListener('click', () => {
-            html.classList.toggle('dark');
-            localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-        });
-        
-        // Offline detection
-        const offlineBanner = document.getElementById('offline-banner');
-        let debounceTimer;
-        
-        function updateOnlineStatus() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                if (!navigator.onLine) {
-                    offlineBanner?.classList.remove('hidden');
-                } else {
-                    offlineBanner?.classList.add('hidden');
-                }
-            }, 500);
-        }
-        
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
-        
-        // Register service worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                console.log('SW failed:', err);
+            });
         }
     </script>
-    
     {% block scripts %}{% endblock %}
 </body>
 </html>

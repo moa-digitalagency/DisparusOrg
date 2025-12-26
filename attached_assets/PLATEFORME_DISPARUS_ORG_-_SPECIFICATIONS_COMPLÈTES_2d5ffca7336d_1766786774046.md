@@ -1,0 +1,237 @@
+# PLATEFORME DISPARUS.ORG - SPECIFICATIONS COMPLÈTES
+
+**Domaine** : `disparus.org` | **Stack** : HTML/CSS Tailwind + JavaScript + OpenStreetMap + Flask/Python + PostgreSQL/PostGIS
+
+## 🏗 **ARCHITECTURE PROJET**
+
+`├── app.py (Flask principal)
+├── config.py
+├── requirements.txt
+│
+├── routes/          # Routes Flask
+│   ├── __init__.py
+│   ├── public.py    # /, /search, /disparu/:id
+│   ├── admin.py     # /admin/*
+│   └── api.py       # API JSON
+│
+├── models/          # SQLAlchemy models
+│   ├── __init__.py
+│   ├── disparu.py
+│   ├── contribution.py
+│   └── user.py
+│
+├── utils/           # Fonctions utilitaires
+│   ├── pdf_gen.py   # Génération PDF/QR
+│   ├── geo.py       # Géolocalisation
+│   └── search.py    # Indexation recherche
+│
+├── services/        # Logique métier
+│   ├── signalement.py
+│   ├── notifications.py
+│   └── analytics.py
+│
+├── security/        # Authentification
+│   ├── auth.py
+│   └── rate_limit.py
+│
+├── algorithms/      # IA/Analyses
+│   ├── clustering.py     # Hotspots
+│   └── matching.py       # Photos
+│
+├── statics/
+│   ├── css/         # Tailwind compilé
+│   ├── js/          # JS vanilla
+│   ├── img/         # Logos, icônes
+│   └── uploads/     # Photos disparus
+│
+├── templates/       # HTML Jinja2
+│   ├── base.html
+│   ├── landing.html
+│   ├── signalement.html
+│   ├── disparu.html
+│   └── admin.html
+│
+└── instance/
+    └── database.db`
+
+---
+
+## 🎯 **FORMULAIRE SIGNALEMENT INITIAL - COMPLET (14 champs)**
+
+`text1. [SELECT] Type de personne *
+   - Enfant (0-17 ans)
+   - Adulte jeune (18-59 ans)
+   - Personne âgée (60+ ans)
+
+2. [TEXT] Prénom *
+3. [TEXT] Nom de famille *
+4. [NUMBER] Âge exact *
+5. [SELECT] Sexe *
+   - Masculin / Féminin / Non spécifié
+
+6. [SELECT] Pays de disparition * [Détection IP auto]
+   - +50 pays africains (Algérie, Angola, Bénin, Botswana, Burkina Faso, Burundi, Cameroun, Cap-Vert, Centrafrique, Comores, Congo-Brazzaville, Congo-Kinshasa, Côte d'Ivoire, Djibouti, Égypte, Guinée équatoriale, Érythrée, Eswatini, Éthiopie, Gabon, Gambie, Ghana, Guinée, Guinée-Bissau, Kenya, Lesotho, Liberia, Libye, Madagascar, Malawi, Mali, Maroc, Maurice, Mauritanie, Mozambique, Namibie, Niger, Nigeria, Ouganda, Rwanda, São Tomé, Sénégal, Seychelles, Sierra Leone, Somalie, Afrique du Sud, Soudan, Soudan du Sud, Tanzanie, Tchad, Togo, Tunisie, Zambie, Zimbabwe)
+
+7. [SELECT] Ville/Commune * [Dynamique par pays]
+   - Ex: Cameroun → Yaoundé, Douala, Garoua, Bafoussam...
+   - Nigeria → Lagos, Kano, Ibadan, Abuja...
+
+8. [TEXTAREA] Description physique * (1,4m, mince, cicatrice joue gauche)
+9. [FILE] Photo (JPG/PNG, max 5Mo)
+
+10. [DATETIME-LOCAL] Date/Heure exacte disparition * [Aujourd'hui par défaut]
+11. [TEXTAREA] Circonstances exactes * (bus 14h marché Mfoundi)
+
+12. [MAP] Géolocalisation * [OpenStreetMap + GPS auto]
+13. [TEXT] Vêtements portés *
+14. [TEXTAREA] Objets emportés
+
+15. [CONTACTS] Référent(s) (répétable x3 max)
+    - Nom complet * | Téléphone * | Email | Relation
+
+16. [CHECKBOX] Autorisation publication * + RGPD`
+
+**ID généré** : `ABC123` (6 caractères alphanumériques aléatoires)
+
+---
+
+## 🔍 **FORMULAIRE RECHERCHE GLOBALE (landing page)**
+
+`text[BARRE RECHERCHE PRINCIPALE]
+Rechercher par : Nom / ID / Ville / Âge / Pays
+
+Filtres :
+- [SELECT] Statut : Tous | Disparu | Retrouvé | Décédé
+- [SELECT] Type : Enfant | Adulte | Senior
+- [SELECT] Pays
+- [DATE RANGE] Depuis
+- [CHECK] Avec photo
+
+[RÉSULTATS] : Grille cartes avec photo + nom + ID + dernière ville`
+
+---
+
+## 🔄 **FORMULAIRE CONTRIBUTION (page /disparu/ABC123)**
+
+`text1. [SELECT] Type contribution *
+   - 👁️ Vu la personne
+   - ℹ️ Info importante
+   - 👮 Signalé police
+   - ✅ PERSONNE RETROUVÉE
+   - ⚠️ Autre
+
+2. [MAP] Nouvelle géolocalisation (optionnel)
+3. [DATETIME-LOCAL] Date/Heure observation
+4. [TEXTAREA] Détails précis *
+5. [FILE] Preuve photo/vidéo
+
+SI "RETROUVÉE" :
+- [SELECT] État * : Sain | Blessé | Décédé
+- [TEXTAREA] Circonstances retour
+- [MAP] Lieu retour
+
+6. [CONTACT] Vos coordonnées (optionnel)`
+
+---
+
+## 📄 **DOCUMENTS GÉNÉRÉS (avec ID + QR)**
+
+## **1. FICHE PDF PUBLIQUE A4**
+
+`text🆘 DISPARUS.ORG 🆘
+ID: ABC123 [QR → disparus.org/disparu/ABC123]
+
+[PHOTO 20x25cm]
+
+MARTIN DUPONT • 8 ans • Masculin
+Disparu : 26/12/2025 14:30
+Yaoundé, Marché Mfoundi
+
+Vêtements : T-shirt bleu, short noir
+1,4m, cicatrice joue gauche
+
+📞 Marie Dupont +237 699 123 456
+
+#TrouveMartin #DisparusOrg`
+
+## **2. DOSSIER COMPLET PDF (Admin)**
+
+`textFiche publique + HISTORIQUE :
+- 27/12 16h : Vu à Nkoldongo (GPS)
+- 28/12 09h : Signalé police
+- Timeline contributions
+- Toutes géolocalisations`
+
+## **3. IMAGE RÉSEAUX SOCIAUX (1080x1080)**
+
+`textFond rouge urgence + PHOTO 60%
+"🚨 DISPARU 🚨
+Martin DUPONT 8 ans
+ID: ABC123
+Yaoundé 26/12 14h30
++237 699 123 456"
+
+[QR Code] disparus.org`
+
+---
+
+## 🌐 **CONTENU PAGES COMPLÈT**
+
+## **1. LANDING PAGE (/)**
+
+`textHEADER : Logo + Barre recherche + Btn "Signaler"
+
+HERO SECTION :
+"🆘 25 000+ enfants disparus en Afrique"
+Stats : Nigeria 300+ (2025) | Afrique 25k (CICR)
+
+SECTION 1 : CARTE INTERACTIVE OpenStreetMap
+Heatmap disparitions par pays/ville
+
+SECTION 2 : DERNIERS DISPARUS
+Grille 3xN : Photo + Nom + ID + Ville + Btn "Aider"
+
+SECTION 3 : COMMENT AIDER ?
+- Signaler disparition
+- Ajouter info existante
+- Partager réseaux
+
+FOOTER : Pays + Mentions légales + Contact`
+
+## **2. PAGE DISPARU (/disparu/ABC123)**
+
+`text[PHOTO HD] [Carte timeline géolocs]
+
+INFOS PRINCIPALES
+HISTORIQUE CONTRIBUTIONS (timeline)
+FORMULAIRE CONTRIBUTION
+FICHES TÉLÉCHARGEABLES`
+
+## **3. PAGE ADMIN**
+
+`textDashboard stats + Carte complète + Recherche avancée
+Export CSV + Gestion utilisateurs + Modération`
+
+---
+
+## 🗺 **LISTE PAYS + VILLES (extrait exhaustif)**
+
+`javascriptPAYS_VILLES = {
+  "Cameroun": ["Yaoundé", "Douala", "Garoua", "Bafoussam", "Bamenda", "Ngaoundéré"],
+  "Nigeria": ["Lagos", "Kano", "Ibadan", "Abuja", "Port Harcourt", "Benin City"],
+  "Côte d'Ivoire": ["Abidjan", "Bouaké", "Yamoussoukro", "Daloa", "Gagnoa"],
+  // +47 autres pays...
+}`
+
+**Détection auto** : `navigator.geolocation` + IP geolocation fallback.
+
+---
+
+## 🚀 **FLUX COMPLET**
+
+1. Landing → Recherche → Détail disparu
+2. Signalement → `ID:ABC123` → PDF/Image générés instantanément
+3. `/disparu/ABC123` → Contributions → Notifications auto
+4. Indexation recherche : Nom + ID + Ville (PostgreSQL full-text)
+
+backend Python Flask/SQLAlchemy pour DB (PostgreSQL + PostGIS pour géo), frontend HTML., CSS Tailwind et JavaScript Ajoutez modération (signalement de contenus faux), multilangue (français/anglais/locales), et offline-first (PWA pour zones à faible connectivité).

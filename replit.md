@@ -8,24 +8,24 @@ A humanitarian citizen platform for reporting and searching for missing persons 
 - **Database**: PostgreSQL
 - **Frontend**: HTML/Jinja2 + Tailwind CSS (CDN) + JavaScript
 - **Maps**: Leaflet with OpenStreetMap
-- **i18n**: Flask-Babel for French/English
+- **i18n**: Flask-Babel for French/English (cookie-based)
 
 ## Project Structure
 ```
-app/
-  __init__.py         # Flask app factory
-  models.py           # SQLAlchemy models
-  routes.py           # All routes and API endpoints
+app.py                # Flask app with models and routes
+main.py               # Entry point
 templates/
   base.html           # Base template with header/footer
-  index.html          # Landing page
-  search.html         # Search page
-  report.html         # Report form
-  detail.html         # Person detail page
+  index.html          # Landing page with hero, map, stats
+  search.html         # Search/filter page
+  report.html         # 14+ field report form
+  detail.html         # Person detail with contributions
+  moderation.html     # Moderation dashboard
+  admin.html          # Admin dashboard with stats
 static/
-  sw.js               # Service worker for offline
+  sw.js               # Service worker for offline PWA
   favicon.png         # App icon
-main.py               # Entry point
+  uploads/            # User-uploaded photos
 ```
 
 ## Database Schema
@@ -64,6 +64,8 @@ python main.py        # Start Flask development server
 - `SESSION_SECRET` - Session encryption key
 
 ## Recent Changes
-- 2025-12-26: Rebuilt with Python Flask/SQLAlchemy backend per user request
-- 2025-12-26: Added moderation dashboard (/moderation) for reviewing flagged content
-- 2025-12-26: Fixed service worker MIME type and DATABASE_URL validation
+- 2025-12-26: Complete rebuild with Python Flask/SQLAlchemy (removed all Node.js/React)
+- 2025-12-26: Added 50+ African countries with cities dynamic selection
+- 2025-12-26: Full 14+ field report form per specifications
+- 2025-12-26: Moderation dashboard (/moderation) and Admin dashboard (/admin)
+- 2025-12-26: PWA support with service worker and manifest.json
