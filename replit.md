@@ -12,28 +12,65 @@ A humanitarian citizen platform for reporting and searching for missing persons 
 
 ## Project Structure
 ```
-app.py                # Flask app with models and routes
+app.py                # Flask app factory
+config.py             # Configuration classes
 main.py               # Entry point
-templates/
-  base.html           # Base template with header/footer
-  index.html          # Landing page with hero, map, stats
-  search.html         # Search/filter page
-  report.html         # 14+ field report form
-  detail.html         # Person detail with contributions
+
+routes/               # Flask Blueprints
+  __init__.py         # Blueprint registration
+  public.py           # /, /recherche, /signaler, /disparu/:id
+  admin.py            # /admin/*
+  api.py              # /api/* JSON endpoints
+
+models/               # SQLAlchemy models
+  __init__.py         # db instance
+  disparu.py          # Missing person model
+  contribution.py     # Contribution/sighting model
+  user.py             # User and ModerationReport models
+
+utils/                # Utility functions
+  geo.py              # Countries/cities data, geolocation
+  pdf_gen.py          # PDF/QR code generation
+  search.py           # Search indexing
+
+services/             # Business logic
+  signalement.py      # Report creation/management
+  notifications.py    # Email/SMS notifications
+  analytics.py        # Platform statistics
+
+security/             # Authentication
+  auth.py             # Login decorators
+  rate_limit.py       # Rate limiting
+
+algorithms/           # AI/Analysis
+  clustering.py       # Geographic hotspots
+  matching.py         # Photo matching
+
+statics/              # Static assets
+  css/                # Tailwind CSS
+  js/                 # JavaScript
+  img/                # Images/icons
+  uploads/            # User uploads
+  sw.js               # Service worker
+
+templates/            # Jinja2 templates
+  base.html           # Base template
+  index.html          # Landing page
+  search.html         # Search page
+  report.html         # Report form
+  detail.html         # Person detail
   moderation.html     # Moderation dashboard
-  admin.html          # Admin dashboard with stats
-static/
-  sw.js               # Service worker for offline PWA
-  favicon.png         # App icon
-  uploads/            # User-uploaded photos
+  admin.html          # Admin dashboard
 ```
 
 ## Database Schema
 - **disparus_flask**: Missing persons with location, description, contacts
 - **contributions_flask**: Sightings and updates from citizens
 - **moderation_reports_flask**: Flagged content for review
+- **users_flask**: User accounts (future)
 
 ## Routes
+### Public Blueprint (routes/public.py)
 - `GET /` - Landing page with stats, map, recent cases
 - `GET /recherche` - Search/filter missing persons
 - `GET/POST /signaler` - Report form
@@ -41,10 +78,24 @@ static/
 - `POST /disparu/<id>/contribute` - Add contribution
 - `POST /disparu/<id>/report` - Report content
 - `GET /set-locale/<locale>` - Change language
-- `GET /api/disparus` - JSON API for missing persons
+
+### Admin Blueprint (routes/admin.py)
+- `GET /admin/` - Admin dashboard
+- `GET /admin/moderation` - Moderation dashboard
+- `POST /admin/moderation/<id>/resolve` - Resolve report
+
+### API Blueprint (routes/api.py)
+- `GET /api/disparus` - JSON list of missing persons
+- `GET /api/disparus/<id>` - Single person with contributions
 - `GET /api/stats` - Platform statistics
+- `GET /api/countries` - List of countries
+- `GET /api/cities/<country>` - Cities for country
+- `GET /api/search` - Search API
+
+### Utility Routes
 - `GET /manifest.json` - PWA manifest
 - `GET /sw.js` - Service worker
+- `GET /moderation` - Moderation page
 
 ## Key Features
 1. **Multi-section Report Form**: Identity, Location, Description, Contact
@@ -53,6 +104,7 @@ static/
 4. **Multilingual**: French and English with cookie-based preference
 5. **Offline-First**: PWA manifest, service worker with caching
 6. **Responsive**: Mobile-first design with Tailwind CSS
+7. **50+ African Countries**: Comprehensive city lists
 
 ## Running the Project
 ```bash
@@ -64,8 +116,8 @@ python main.py        # Start Flask development server
 - `SESSION_SECRET` - Session encryption key
 
 ## Recent Changes
-- 2025-12-26: Complete rebuild with Python Flask/SQLAlchemy (removed all Node.js/React)
-- 2025-12-26: Added 50+ African countries with cities dynamic selection
-- 2025-12-26: Full 14+ field report form per specifications
-- 2025-12-26: Moderation dashboard (/moderation) and Admin dashboard (/admin)
-- 2025-12-26: PWA support with service worker and manifest.json
+- 2025-12-26: Restructured to modular architecture with routes/, models/, services/, utils/, security/, algorithms/
+- 2025-12-26: Flask Blueprints for public, admin, and API routes
+- 2025-12-26: Added PDF/QR generation, clustering algorithms, photo matching stubs
+- 2025-12-26: Security module with auth decorators and rate limiting
+- 2025-12-26: Renamed static/ to statics/ per user request

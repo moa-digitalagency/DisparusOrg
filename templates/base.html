@@ -11,8 +11,8 @@
     
     <title>{% block title %}DISPARUS.ORG{% endblock %}</title>
     
-    <link rel="icon" type="image/png" href="/static/favicon.png">
-    <link rel="apple-touch-icon" href="/static/favicon.png">
+    <link rel="icon" type="image/png" href="/statics/favicon.png">
+    <link rel="apple-touch-icon" href="/statics/favicon.png">
     <link rel="manifest" href="/manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,8 +75,8 @@
                     </a>
                     
                     <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-                        <a href="/set-locale/fr" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'fr' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-fr">FR</a>
-                        <a href="/set-locale/en" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'en' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-en">EN</a>
+                        <a href="{{ url_for('public.set_locale', locale='fr') }}" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'fr' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-fr">FR</a>
+                        <a href="{{ url_for('public.set_locale', locale='en') }}" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'en' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-en">EN</a>
                     </div>
                 </div>
             </div>
@@ -99,7 +99,7 @@
                     <ul class="space-y-2 text-sm">
                         <li><a href="/recherche" class="hover:text-white">{% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}</a></li>
                         <li><a href="/signaler" class="hover:text-white">{% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}</a></li>
-                        <li><a href="/admin" class="hover:text-white">Admin</a></li>
+                        <li><a href="{{ url_for('admin.dashboard') }}" class="hover:text-white">Admin</a></li>
                     </ul>
                 </div>
                 <div>
