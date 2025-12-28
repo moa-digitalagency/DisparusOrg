@@ -54,14 +54,13 @@
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
     <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="max-w-7xl mx-auto px-4">
-            <!-- Top bar: Logo, Report, Lang -->
             <div class="flex items-center justify-between h-14 md:h-16 gap-2 md:gap-4">
                 <a href="/" class="flex items-center gap-1.5 text-red-700 dark:text-red-500 font-bold text-lg md:text-xl flex-shrink-0" data-testid="link-home">
                     <svg class="w-6 h-6 md:w-8 md:h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                     <span class="tracking-tighter leading-none">DISPARUS.ORG</span>
                 </a>
                 
-                <div class="hidden lg:flex flex-1 max-w-xl mx-4">
+                <div class="flex-1 max-w-xl mx-2 md:mx-4">
                     <form action="/recherche" method="GET" class="w-full">
                         <div class="relative group">
                             <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Rechercher...{% else %}Search...{% endif %}" 
@@ -84,18 +83,6 @@
                         <a href="{{ url_for('public.set_locale', locale='en') }}" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full text-[10px] md:text-xs font-bold {{ 'bg-white text-red-700 shadow-sm' if get_locale() == 'en' else 'text-gray-500' }}" data-testid="link-locale-en">EN</a>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Bottom bar: Search (only on mobile/tablet) -->
-            <div class="lg:hidden pb-3">
-                <form action="/recherche" method="GET" class="w-full">
-                    <div class="relative group">
-                        <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Rechercher un disparu...{% else %}Search for a person...{% endif %}" 
-                               class="w-full pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-red-500 focus:bg-white dark:focus:bg-gray-600 transition-all text-xs shadow-inner"
-                               data-testid="input-search-header-mobile">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                </form>
             </div>
         </div>
     </header>
