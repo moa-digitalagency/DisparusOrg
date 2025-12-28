@@ -7,11 +7,19 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight" data-testid="text-hero-title">
-                {% if get_locale() == 'fr' %}25 000+ enfants disparus en Afrique{% else %}25,000+ children missing in Africa{% endif %}
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight leading-tight" data-testid="text-hero-title">
+                {% if get_locale() == 'fr' %}
+                    Chaque vie compte : Agissons ensemble pour retrouver les milliers de disparus en Afrique
+                {% else %}
+                    Every Life Matters: Acting Together to Find Thousands of Missing Persons in Africa
+                {% endif %}
             </h1>
-            <p class="text-xl md:text-2xl text-red-100 mb-10 font-medium max-w-2xl mx-auto opacity-95">
-                {% if get_locale() == 'fr' %}Aidez-nous a les retrouver. Chaque signalement compte.{% else %}Help us find them. Every report matters.{% endif %}
+            <p class="text-lg md:text-xl text-red-100 mb-10 font-medium max-w-3xl mx-auto opacity-95 leading-relaxed">
+                {% if get_locale() == 'fr' %}
+                    Plus de 25 000 enfants sont actuellement portés disparus à travers le continent. Face à cette urgence humanitaire, DISPARUS.ORG mobilise la force du citoyen pour protéger nos plus vulnérables et apporter des réponses aux familles. Que ce soit pour un enfant, un adulte ou un aîné, votre vigilance et vos signalements sont les clés qui permettront de réunir les foyers brisés.
+                {% else %}
+                    Over 25,000 children are currently reported missing across the continent. Faced with this humanitarian emergency, DISPARUS.ORG mobilizes citizen power to protect our most vulnerable and provide answers to families. Whether for a child, an adult, or an elder, your vigilance and reports are the keys to reuniting broken homes.
+                {% endif %}
             </p>
             
             <form action="/recherche" method="GET" class="max-w-2xl mx-auto mb-8">
