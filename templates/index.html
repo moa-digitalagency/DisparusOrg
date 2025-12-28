@@ -7,10 +7,10 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4" data-testid="text-hero-title">
+            <h1 class="text-3xl md:text-4xl font-bold mb-3" data-testid="text-hero-title">
                 {% if get_locale() == 'fr' %}25 000+ enfants disparus en Afrique{% else %}25,000+ children missing in Africa{% endif %}
             </h1>
-            <p class="text-xl text-red-100 mb-8">
+            <p class="text-lg text-red-100 mb-6">
                 {% if get_locale() == 'fr' %}Aidez-nous a les retrouver. Chaque signalement compte.{% else %}Help us find them. Every report matters.{% endif %}
             </p>
             
@@ -49,11 +49,11 @@
 
 <section class="py-12">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold" data-testid="text-recent-title">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold" data-testid="text-recent-title">
                 {% if get_locale() == 'fr' %}Derniers signalements{% else %}Recent reports{% endif %}
             </h2>
-            <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium" data-testid="link-view-all">
+            <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium text-sm" data-testid="link-view-all">
                 {% if get_locale() == 'fr' %}Voir tout{% else %}View all{% endif %} &rarr;
             </a>
         </div>
@@ -75,8 +75,8 @@
                     </span>
                 </div>
                 <div class="p-4">
-                    <h3 class="font-semibold text-lg">{{ person.first_name }} {{ person.last_name }}</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">{{ person.age }} {% if get_locale() == 'fr' %}ans{% else %}years{% endif %} - {{ person.city }}, {{ person.country }}</p>
+                    <h3 class="font-semibold text-base">{{ person.first_name }} {{ person.last_name }}</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-xs">{{ person.age }} {% if get_locale() == 'fr' %}ans{% else %}years{% endif %} - {{ person.city }}, {{ person.country }}</p>
                     <div class="flex items-center justify-between mt-2">
                         <span class="text-xs text-gray-500 font-mono">ID: {{ person.public_id }}</span>
                         <span class="text-xs text-gray-500">{{ person.disappearance_date.strftime('%d/%m/%Y') if person.disappearance_date else '' }}</span>
@@ -100,16 +100,52 @@
 
 <section class="py-12 bg-white dark:bg-gray-800">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-2xl font-bold mb-6" data-testid="text-map-title">
+        <h2 class="text-xl font-bold mb-4" data-testid="text-map-title">
             {% if get_locale() == 'fr' %}Carte des disparitions{% else %}Missing persons map{% endif %}
         </h2>
         <div id="main-map" class="h-96 rounded-lg border border-gray-200 dark:border-gray-700" data-testid="map-main"></div>
     </div>
 </section>
 
+<section class="py-12 bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-xl font-bold text-center mb-8">{% if get_locale() == 'fr' %}Pourquoi agir maintenant ?{% else %}Why act now?{% endif %}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 font-bold">1</div>
+                    <div>
+                        <h3 class="font-bold">{% if get_locale() == 'fr' %}La force du réseau{% else %}The power of the network{% endif %}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}Plus il y a d'utilisateurs, plus les chances de retrouver une personne augmentent de façon exponentielle.{% else %}The more users there are, the more chances of finding a person increase exponentially.{% endif %}</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 font-bold">2</div>
+                    <div>
+                        <h3 class="font-bold">{% if get_locale() == 'fr' %}Vérification rigoureuse{% else %}Rigorous verification{% endif %}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}Chaque signalement est modéré pour garantir la fiabilité des informations partagées sur la plateforme.{% else %}Each report is moderated to ensure the reliability of the information shared on the platform.{% endif %}</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 font-bold">3</div>
+                    <div>
+                        <h3 class="font-bold">{% if get_locale() == 'fr' %}Accès gratuit pour tous{% else %}Free access for all{% endif %}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}DISPARUS.ORG est un service humanitaire gratuit dédié à la protection des familles africaines.{% else %}DISPARUS.ORG is a free humanitarian service dedicated to the protection of African families.{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-red-700 p-8 rounded-2xl text-white shadow-xl">
+                <h3 class="text-2xl font-bold mb-4">{% if get_locale() == 'fr' %}Devenir modérateur{% else %}Become a moderator{% endif %}</h3>
+                <p class="mb-6 opacity-90">{% if get_locale() == 'fr' %}Vous souhaitez aider bénévolement à la vérification des signalements ? Rejoignez notre équipe.{% else %}Would you like to volunteer to help verify reports? Join our team.{% endif %}</p>
+                <a href="#" class="inline-block bg-white text-red-700 px-6 py-2 rounded-full font-bold text-sm hover:bg-red-50 transition-colors">{% if get_locale() == 'fr' %}EN SAVOIR PLUS{% else %}LEARN MORE{% endif %}</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="py-12 bg-red-50 dark:bg-gray-800/50">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-2xl font-bold text-center mb-8">{% if get_locale() == 'fr' %}3 Conseils rapides pour être vigilant{% else %}3 Quick tips to stay vigilant{% endif %}</h2>
+        <h2 class="text-xl font-bold text-center mb-8">{% if get_locale() == 'fr' %}3 Conseils rapides pour être vigilant{% else %}3 Quick tips to stay vigilant{% endif %}</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm border-l-4 border-red-600">
                 <div class="text-red-600 font-bold text-xl mb-2">01</div>
@@ -132,7 +168,7 @@
 
 <section class="py-12 bg-gray-100 dark:bg-gray-800">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-2xl font-bold text-center mb-8" data-testid="text-how-title">
+        <h2 class="text-xl font-bold text-center mb-8" data-testid="text-how-title">
             {% if get_locale() == 'fr' %}Comment aider ?{% else %}How to help?{% endif %}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
