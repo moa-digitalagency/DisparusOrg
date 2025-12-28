@@ -54,29 +54,29 @@
             <div class="flex items-center justify-between h-16 gap-4">
                 <a href="/" class="flex items-center gap-2 text-red-700 dark:text-red-500 font-bold text-xl" data-testid="link-home">
                     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    DISPARUS.ORG
+                    <span class="tracking-tighter">DISPARUS.ORG</span>
                 </a>
                 
                 <div class="hidden md:flex flex-1 max-w-xl">
                     <form action="/recherche" method="GET" class="w-full">
                         <div class="relative">
                             <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Rechercher par nom, ID, ville...{% else %}Search by name, ID, city...{% endif %}" 
-                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-red-500"
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-red-500 transition-all text-sm"
                                    data-testid="input-search-header">
-                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                     </form>
                 </div>
                 
-                <div class="flex items-center gap-3">
-                    <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center gap-2" data-testid="link-report">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        {% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}
+                <div class="flex items-center gap-2">
+                    <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-5 rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm uppercase tracking-wider" data-testid="link-report">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        {% if get_locale() == 'fr' %}SIGNALER{% else %}REPORT{% endif %}
                     </a>
                     
-                    <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-                        <a href="{{ url_for('public.set_locale', locale='fr') }}" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'fr' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-fr">FR</a>
-                        <a href="{{ url_for('public.set_locale', locale='en') }}" class="px-2 py-1 text-sm {{ 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' if get_locale() == 'en' else 'hover:bg-gray-100 dark:hover:bg-gray-700' }}" data-testid="link-locale-en">EN</a>
+                    <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full p-1">
+                        <a href="{{ url_for('public.set_locale', locale='fr') }}" class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold {{ 'bg-white text-red-700 shadow-sm' if get_locale() == 'fr' else 'text-gray-500' }}" data-testid="link-locale-fr">FR</a>
+                        <a href="{{ url_for('public.set_locale', locale='en') }}" class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold {{ 'bg-white text-red-700 shadow-sm' if get_locale() == 'en' else 'text-gray-500' }}" data-testid="link-locale-en">EN</a>
                     </div>
                 </div>
             </div>
@@ -103,8 +103,8 @@
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-white font-semibold mb-3">{% if get_locale() == 'fr' %}50+ Pays Africains{% else %}50+ African Countries{% endif %}</h3>
-                    <p class="text-sm">Nigeria, Cameroun, Senegal, Cote d'Ivoire, Ghana, Kenya...</p>
+                    <h3 class="text-white font-semibold mb-3">{% if get_locale() == 'fr' %}54 Pays Africains{% else %}54 African Countries{% endif %}</h3>
+                    <p class="text-sm">{% if get_locale() == 'fr' %}Couverture complète du continent africain pour une efficacité maximale.{% else %}Full coverage of the African continent for maximum efficiency.{% endif %}</p>
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm">

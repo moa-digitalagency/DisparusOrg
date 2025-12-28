@@ -1,4 +1,5 @@
 COUNTRIES_CITIES = {
+    "Afrique du Sud": ["Johannesbourg", "Le Cap", "Durban", "Pretoria", "Port Elizabeth", "Bloemfontein", "Nelspruit", "Kimberley", "Polokwane", "Pietermaritzburg"],
     "Algerie": ["Alger", "Oran", "Constantine", "Annaba", "Blida", "Batna", "Setif", "Djelfa", "Biskra", "Tebessa"],
     "Angola": ["Luanda", "Huambo", "Lobito", "Benguela", "Lucapa", "Kuito", "Malanje", "Namibe", "Soyo", "Cabinda"],
     "Benin": ["Cotonou", "Porto-Novo", "Parakou", "Djougou", "Bohicon", "Kandi", "Abomey", "Natitingou", "Lokossa", "Ouidah"],

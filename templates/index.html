@@ -35,7 +35,7 @@
                     <div class="text-sm text-red-200">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
                 </div>
                 <div class="bg-white/10 rounded-lg p-4" data-testid="stat-countries">
-                    <div class="text-3xl font-bold">50+</div>
+                    <div class="text-3xl font-bold">54</div>
                     <div class="text-sm text-red-200">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
                 </div>
                 <div class="bg-white/10 rounded-lg p-4" data-testid="stat-contributions">
@@ -44,15 +44,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</section>
-
-<section class="py-12 bg-white dark:bg-gray-800">
-    <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-2xl font-bold mb-6" data-testid="text-map-title">
-            {% if get_locale() == 'fr' %}Carte des disparitions{% else %}Missing persons map{% endif %}
-        </h2>
-        <div id="main-map" class="h-96 rounded-lg border border-gray-200 dark:border-gray-700" data-testid="map-main"></div>
     </div>
 </section>
 
@@ -103,6 +94,38 @@
             </a>
         </div>
         {% endif %}
+    </div>
+</section>
+
+<section class="py-12 bg-white dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-2xl font-bold mb-6" data-testid="text-map-title">
+            {% if get_locale() == 'fr' %}Carte des disparitions{% else %}Missing persons map{% endif %}
+        </h2>
+        <div id="main-map" class="h-96 rounded-lg border border-gray-200 dark:border-gray-700" data-testid="map-main"></div>
+    </div>
+</section>
+
+<section class="py-12 bg-red-50 dark:bg-gray-800/50">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-2xl font-bold text-center mb-8">{% if get_locale() == 'fr' %}3 Conseils rapides pour être vigilant{% else %}3 Quick tips to stay vigilant{% endif %}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm border-l-4 border-red-600">
+                <div class="text-red-600 font-bold text-xl mb-2">01</div>
+                <h3 class="font-bold mb-2">{% if get_locale() == 'fr' %}Gardez des photos récentes{% else %}Keep recent photos{% endif %}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}Assurez-vous d'avoir des photos claires et récentes de vos proches en permanence.{% else %}Ensure you always have clear and recent photos of your loved ones.{% endif %}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm border-l-4 border-red-600">
+                <div class="text-red-600 font-bold text-xl mb-2">02</div>
+                <h3 class="font-bold mb-2">{% if get_locale() == 'fr' %}Apprenez les contacts d'urgence{% else %}Learn emergency contacts{% endif %}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}Les enfants doivent connaître au moins un numéro de téléphone et leur adresse.{% else %}Children should know at least one phone number and their address.{% endif %}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm border-l-4 border-red-600">
+                <div class="text-red-600 font-bold text-xl mb-2">03</div>
+                <h3 class="font-bold mb-2">{% if get_locale() == 'fr' %}Signalez immédiatement{% else %}Report immediately{% endif %}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}N'attendez pas 24h. Les premières heures sont cruciales pour les recherches.{% else %}Don't wait 24h. The first hours are crucial for the search.{% endif %}</p>
+            </div>
+        </div>
     </div>
 </section>
 
