@@ -15,11 +15,11 @@
             </p>
             
             <form action="/recherche" method="GET" class="max-w-2xl mx-auto mb-8">
-                <div class="flex gap-2">
+                <div class="flex flex-col sm:flex-row gap-2">
                     <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Nom, ID, ville ou pays...{% else %}Name, ID, city or country...{% endif %}" 
-                           class="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:ring-2 focus:ring-white"
+                           class="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:ring-2 focus:ring-white text-sm"
                            data-testid="input-hero-search">
-                    <button type="submit" class="bg-white text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors" data-testid="button-hero-search">
+                    <button type="submit" class="bg-white text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors text-sm" data-testid="button-hero-search">
                         {% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}
                     </button>
                 </div>
