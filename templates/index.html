@@ -7,20 +7,30 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight leading-tight" data-testid="text-hero-title">
+            <h1 class="text-5xl md:text-7xl font-black mb-8 tracking-tighter leading-none uppercase" data-testid="text-hero-title">
                 {% if get_locale() == 'fr' %}
-                    Chaque vie compte : Agissons ensemble pour retrouver les milliers de disparus en Afrique
+                    Urgence Humanitaire : Retrouvons les Disparus du Continent
                 {% else %}
-                    Every Life Matters: Acting Together to Find Thousands of Missing Persons in Africa
+                    Humanitarian Emergency: Finding the Continent's Missing
                 {% endif %}
             </h1>
-            <p class="text-lg md:text-xl text-red-100 mb-10 font-medium max-w-3xl mx-auto opacity-95 leading-relaxed">
+            <div class="max-w-4xl mx-auto space-y-6 text-xl md:text-2xl text-red-50 mb-12 font-medium leading-relaxed opacity-95">
                 {% if get_locale() == 'fr' %}
-                    Plus de 25 000 enfants sont actuellement portés disparus à travers le continent. Face à cette urgence humanitaire, DISPARUS.ORG mobilise la force du citoyen pour protéger nos plus vulnérables et apporter des réponses aux familles. Que ce soit pour un enfant, un adulte ou un aîné, votre vigilance et vos signalements sont les clés qui permettront de réunir les foyers brisés.
+                    <p>
+                        L'Afrique fait face à une crise invisible : des milliers de destins sont suspendus. Si la protection des **25 000+ enfants disparus** est notre priorité absolue, DISPARUS.ORG est la voix de chaque personne dont on a perdu la trace. 
+                    </p>
+                    <p>
+                        Que ce soit un enfant vulnérable, un adulte égaré ou un aîné en danger, chaque absence déchire une famille. Notre plateforme citoyenne unit les coeurs et les regards d'un bout à l'autre du continent. Votre vigilance, un simple partage ou un signalement précis sont des actes d'espoir concrets. Ensemble, brisons le silence et ramenons nos proches à la maison.
+                    </p>
                 {% else %}
-                    Over 25,000 children are currently reported missing across the continent. Faced with this humanitarian emergency, DISPARUS.ORG mobilizes citizen power to protect our most vulnerable and provide answers to families. Whether for a child, an adult, or an elder, your vigilance and reports are the keys to reuniting broken homes.
+                    <p>
+                        Africa faces an invisible crisis: thousands of destinies are suspended. While protecting the **25,000+ missing children** is our top priority, DISPARUS.ORG is the voice of every person whose trace has been lost.
+                    </p>
+                    <p>
+                        Whether a vulnerable child, a lost adult, or an elder in danger, every absence tears a family apart. Our citizen platform unites hearts and eyes from one end of the continent to the other. Your vigilance, a simple share, or a precise report are concrete acts of hope. Together, let's break the silence and bring our loved ones home.
+                    </p>
                 {% endif %}
-            </p>
+            </div>
             
             <form action="/recherche" method="GET" class="max-w-2xl mx-auto mb-8">
                 <div class="flex flex-col sm:flex-row gap-2">
