@@ -3,96 +3,64 @@
 {% block title %}{% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %} - DISPARUS.ORG{% endblock %}
 
 {% block content %}
-<div class="py-8 px-4">
+<div class="py-12 px-4">
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6" data-testid="text-search-title">
-            {% if get_locale() == 'fr' %}Rechercher une personne disparue{% else %}Search for a missing person{% endif %}
-        </h1>
-        
-        <form action="/recherche" method="GET" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="lg:col-span-2">
-                    <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Recherche{% else %}Search{% endif %}</label>
-                    <input type="text" name="q" value="{{ query }}" placeholder="{% if get_locale() == 'fr' %}Nom, ID, ville...{% else %}Name, ID, city...{% endif %}" 
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
-                           data-testid="input-search">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Statut{% else %}Status{% endif %}</label>
-                    <select name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-status">
-                        <option value="all">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
-                        <option value="missing" {{ 'selected' if status_filter == 'missing' }}>{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}</option>
-                        <option value="found" {{ 'selected' if status_filter == 'found' }}>{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}</option>
-                        <option value="deceased" {{ 'selected' if status_filter == 'deceased' }}>{% if get_locale() == 'fr' %}Decede{% else %}Deceased{% endif %}</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Type{% else %}Type{% endif %}</label>
-                    <select name="type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-type">
-                        <option value="all">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
-                        <option value="child" {{ 'selected' if person_type == 'child' }}>{% if get_locale() == 'fr' %}Enfant{% else %}Child{% endif %}</option>
-                        <option value="adult" {{ 'selected' if person_type == 'adult' }}>{% if get_locale() == 'fr' %}Adulte{% else %}Adult{% endif %}</option>
-                        <option value="elderly" {{ 'selected' if person_type == 'elderly' }}>{% if get_locale() == 'fr' %}Senior{% else %}Elderly{% endif %}</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
-                    <select name="country" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-country">
-                        <option value="">{% if get_locale() == 'fr' %}Tous les pays{% else %}All countries{% endif %}</option>
-                        {% for c in countries %}
-                        <option value="{{ c }}" {{ 'selected' if country == c }}>{{ c }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="photo" class="rounded" data-testid="checkbox-photo">
-                        <span class="text-sm">{% if get_locale() == 'fr' %}Avec photo{% else %}With photo{% endif %}</span>
-                    </label>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-md font-medium" data-testid="button-search">
-                        {% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}
-                    </button>
-                </div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+                <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight uppercase">{% if get_locale() == 'fr' %}RECHERCHE{% else %}SEARCH{% endif %}</h1>
+                <p class="text-gray-500 dark:text-gray-400 font-bold mt-2">{% if get_locale() == 'fr' %}Résultats pour{% else %}Results for{% endif %} "{{ query }}"</p>
             </div>
-        </form>
-        
-        <div class="mb-4 text-gray-600 dark:text-gray-400" data-testid="text-results-count">
-            {{ results|length }} {% if get_locale() == 'fr' %}resultat(s) trouve(s){% else %}result(s) found{% endif %}
+            <a href="/signaler" class="btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                {% if get_locale() == 'fr' %}SIGNALER UN DISPARU{% else %}REPORT MISSING{% endif %}
+            </a>
         </div>
-        
+
         {% if results %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {% for person in results %}
-            <a href="/disparu/{{ person.public_id }}" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow" data-testid="card-result-{{ person.public_id }}">
-                <div class="aspect-square bg-gray-200 dark:bg-gray-700 relative">
+            <a href="/disparu/{{ person.public_id }}" class="glass-card rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 group">
+                <div class="aspect-[4/5] relative overflow-hidden">
                     {% if person.photo_url %}
-                    <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover">
+                    <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     {% else %}
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <div class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
+                        <svg class="w-24 h-24 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                     </div>
                     {% endif %}
-                    <span class="absolute top-2 left-2 text-xs px-2 py-1 rounded font-medium 
-                        {% if person.status == 'missing' %}bg-red-600 text-white
-                        {% elif person.status == 'found' %}bg-green-600 text-white
-                        {% else %}bg-gray-600 text-white{% endif %}">
-                        {{ person.status|upper }}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                    <span class="absolute top-4 left-4 bg-red-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black tracking-widest shadow-lg">
+                        {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}DISPARU{% else %}MISSING{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}RETROUVE{% else %}FOUND{% endif %}{% else %}{{ person.status|upper }}{% endif %}
                     </span>
+                    <div class="absolute bottom-4 left-4 right-4 text-white">
+                        <h3 class="font-black text-xl leading-tight">{{ person.first_name }} {{ person.last_name }}</h3>
+                        <p class="text-red-200 text-xs font-bold uppercase tracking-wider mt-1">{{ person.city }}, {{ person.country }}</p>
+                    </div>
                 </div>
-                <div class="p-4">
-                    <h3 class="font-semibold">{{ person.first_name }} {{ person.last_name }}</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ person.age }} ans - {{ person.city }}</p>
-                    <p class="text-xs text-gray-500 font-mono mt-1">ID: {{ person.public_id }}</p>
+                <div class="p-5 flex items-center justify-between">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">ID Unique</span>
+                        <span class="text-sm font-black text-gray-900 dark:text-white">{{ person.public_id }}</span>
+                    </div>
+                    <div class="text-right flex flex-col">
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">{% if get_locale() == 'fr' %}Age{% else %}Age{% endif %}</span>
+                        <span class="text-sm font-black text-gray-900 dark:text-white">{{ person.age }} ans</span>
+                    </div>
                 </div>
             </a>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <p class="text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}Aucun resultat trouve{% else %}No results found{% endif %}</p>
+        <div class="glass-card rounded-3xl p-20 text-center max-w-2xl mx-auto">
+            <div class="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <h2 class="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-4">{% if get_locale() == 'fr' %}AUCUN RÉSULTAT{% else %}NO RESULTS FOUND{% endif %}</h2>
+            <p class="text-gray-500 dark:text-gray-400 font-bold leading-relaxed mb-10">{% if get_locale() == 'fr' %}Nous n'avons trouvé personne correspondant à votre recherche. N'hésitez pas à signaler toute information utile.{% else %}We couldn't find anyone matching your search. Feel free to report any useful information.{% endif %}</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/signaler" class="btn-primary">{% if get_locale() == 'fr' %}SIGNALER UNE DISPARITION{% else %}REPORT A DISAPPEARANCE{% endif %}</a>
+                <a href="/" class="btn-secondary">{% if get_locale() == 'fr' %}RETOUR À L'ACCUEIL{% else %}BACK TO HOME{% endif %}</a>
+            </div>
         </div>
         {% endif %}
     </div>
