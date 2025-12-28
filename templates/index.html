@@ -89,8 +89,9 @@
         <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             <p class="text-gray-600 dark:text-gray-400">{% if get_locale() == 'fr' %}Aucun signalement pour le moment{% else %}No reports yet{% endif %}</p>
-            <a href="/signaler" class="inline-block mt-4 bg-red-700 text-white px-6 py-2 rounded-md hover:bg-red-800" data-testid="button-first-report">
-                {% if get_locale() == 'fr' %}Faire le premier signalement{% else %}Make the first report{% endif %}
+            <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-5 rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm uppercase tracking-wider inline-flex" data-testid="button-first-report">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {% if get_locale() == 'fr' %}SIGNALER UNE DISPARITION{% else %}REPORT A DISAPPEARANCE{% endif %}
             </a>
         </div>
         {% endif %}
