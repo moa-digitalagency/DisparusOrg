@@ -113,6 +113,67 @@
     </div>
 </section>
 
+    <!-- Causes Section -->
+    <section class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-xl font-bold mb-8 text-center text-gray-800">
+                {% if get_locale() == 'fr' %}Comprendre les causes de disparition{% else %}Understanding causes of disappearance{% endif %}
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Enlèvements -->
+                <div class="p-5 border border-red-100 rounded-2xl bg-red-50/30">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-feather="alert-triangle" class="text-red-600 w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">
+                        {% if get_locale() == 'fr' %}Enlèvements et Rançons{% else %}Abductions and Ransoms{% endif %}
+                    </h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        {% if get_locale() == 'fr' %}
+                            Des réseaux criminels ciblent des individus, souvent des enfants, pour exiger des rançons financières auprès des familles.
+                        {% else %}
+                            Criminal networks target individuals, often children, to demand financial ransoms from families.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Crimes Rituels -->
+                <div class="p-5 border border-red-100 rounded-2xl bg-red-50/30">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-feather="shield-off" class="text-red-600 w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">
+                        {% if get_locale() == 'fr' %}Crimes Rituels{% else %}Ritual Crimes{% endif %}
+                    </h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        {% if get_locale() == 'fr' %}
+                            Une menace persistante liée à des croyances occultes, mettant en danger les personnes les plus vulnérables de nos communautés.
+                        {% else %}
+                            A persistent threat linked to occult beliefs, endangering the most vulnerable people in our communities.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Crises et Conflits -->
+                <div class="p-5 border border-red-100 rounded-2xl bg-red-50/30">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-feather="map" class="text-red-600 w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">
+                        {% if get_locale() == 'fr' %}Crises et Migrations{% else %}Crises and Migrations{% endif %}
+                    </h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        {% if get_locale() == 'fr' %}
+                            Les conflits armés et les déplacements forcés séparent brutalement les familles, laissant des milliers de personnes sans nouvelles.
+                        {% else %}
+                            Armed conflicts and forced displacements brutally separate families, leaving thousands without news.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
 <section class="py-12 bg-white dark:bg-gray-800">
     <div class="max-w-7xl mx-auto px-4">
         <h2 class="text-xl font-bold mb-4" data-testid="text-map-title">
