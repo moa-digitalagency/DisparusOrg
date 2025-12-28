@@ -46,79 +46,37 @@
     <style>
         [x-cloak] { display: none !important; }
         .leaflet-container { z-index: 0; }
-        
-        /* Glassmorphism effects */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .dark .glass {
-            background: rgba(31, 41, 55, 0.7);
-            border: 1px solid rgba(75, 85, 99, 0.2);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .dark .glass-card {
-            background: rgba(17, 24, 39, 0.6);
-            border: 1px solid rgba(75, 85, 99, 0.3);
-        }
-
-        /* Unified Button Style */
-        .btn-primary {
-            @apply bg-red-700 hover:bg-red-800 text-white font-bold py-2.5 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
-        }
-
-        .btn-secondary {
-            @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold py-2.5 px-6 rounded-full shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
-        }
-
-        .btn-glass {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(4px);
-            @apply text-white font-bold py-2.5 px-6 rounded-full border border-white/30 hover:bg-white/30 transition-all duration-300 flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
-        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
-    <header class="sticky top-0 z-50 glass border-b border-white/20 dark:border-gray-700/30 shadow-sm">
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="flex items-center justify-between h-20 gap-4">
-                <a href="/" class="flex items-center gap-3 text-red-700 dark:text-red-500 font-black text-2xl" data-testid="link-home">
-                    <div class="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center text-white shadow-lg rotate-3 hover:rotate-0 transition-all duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    </div>
-                    <span class="tracking-tighter">DISPARUS<span class="text-gray-900 dark:text-white">.ORG</span></span>
+            <div class="flex items-center justify-between h-16 gap-4">
+                <a href="/" class="flex items-center gap-2 text-red-700 dark:text-red-500 font-bold text-xl" data-testid="link-home">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span class="tracking-tighter">DISPARUS.ORG</span>
                 </a>
                 
-                <div class="hidden md:flex flex-1 max-w-xl mx-8">
+                <div class="hidden md:flex flex-1 max-w-xl">
                     <form action="/recherche" method="GET" class="w-full">
-                        <div class="relative group">
-                            <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Rechercher un proche...{% else %}Search for a loved one...{% endif %}" 
-                                   class="w-full pl-12 pr-4 py-3 border border-gray-200/50 dark:border-gray-600/30 rounded-2xl bg-white/50 dark:bg-gray-800/50 focus:ring-4 focus:ring-red-500/10 focus:border-red-500/50 backdrop-blur-md transition-all text-sm outline-none"
+                        <div class="relative">
+                            <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Rechercher par nom, ID, ville...{% else %}Search by name, ID, city...{% endif %}" 
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-full bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-red-500 transition-all text-sm"
                                    data-testid="input-search-header">
-                            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                     </form>
                 </div>
                 
-                <div class="flex items-center gap-4">
-                    <a href="/signaler" class="btn-primary" data-testid="link-report">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                <div class="flex items-center gap-2">
+                    <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-5 rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm uppercase tracking-wider" data-testid="link-report">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         {% if get_locale() == 'fr' %}SIGNALER{% else %}REPORT{% endif %}
                     </a>
                     
-                    <div class="flex items-center bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full p-1 border border-gray-200/50 dark:border-gray-700/50">
-                        <a href="{{ url_for('public.set_locale', locale='fr') }}" class="w-9 h-9 flex items-center justify-center rounded-full text-xs font-black {{ 'bg-white dark:bg-gray-700 text-red-700 shadow-md ring-1 ring-black/5' if get_locale() == 'fr' else 'text-gray-500 hover:text-gray-900 dark:hover:text-white' }}" data-testid="link-locale-fr">FR</a>
-                        <a href="{{ url_for('public.set_locale', locale='en') }}" class="w-9 h-9 flex items-center justify-center rounded-full text-xs font-black {{ 'bg-white dark:bg-gray-700 text-red-700 shadow-md ring-1 ring-black/5' if get_locale() == 'en' else 'text-gray-500 hover:text-gray-900 dark:hover:text-white' }}" data-testid="link-locale-en">EN</a>
+                    <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full p-1">
+                        <a href="{{ url_for('public.set_locale', locale='fr') }}" class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold {{ 'bg-white text-red-700 shadow-sm' if get_locale() == 'fr' else 'text-gray-500' }}" data-testid="link-locale-fr">FR</a>
+                        <a href="{{ url_for('public.set_locale', locale='en') }}" class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold {{ 'bg-white text-red-700 shadow-sm' if get_locale() == 'en' else 'text-gray-500' }}" data-testid="link-locale-en">EN</a>
                     </div>
                 </div>
             </div>

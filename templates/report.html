@@ -3,80 +3,75 @@
 {% block title %}{% if get_locale() == 'fr' %}Signaler une disparition{% else %}Report a disappearance{% endif %} - DISPARUS.ORG{% endblock %}
 
 {% block content %}
-<div class="py-12 px-4">
-    <div class="max-w-4xl mx-auto">
-        <div class="mb-12">
-            <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight uppercase">{% if get_locale() == 'fr' %}SIGNALER UNE DISPARITION{% else %}REPORT A DISAPPEARANCE{% endif %}</h1>
-            <p class="text-gray-500 dark:text-gray-400 font-bold mt-2">{% if get_locale() == 'fr' %}Chaque information peut sauver une vie. Merci de votre courage.{% else %}Every piece of information can save a life. Thank you for your courage.{% endif %}</p>
-        </div>
-
+<div class="py-8 px-4">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl font-bold mb-2" data-testid="text-report-title">
+            {% if get_locale() == 'fr' %}Signaler une disparition{% else %}Report a disappearance{% endif %}
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-8">
+            {% if get_locale() == 'fr' %}Remplissez ce formulaire avec toutes les informations disponibles{% else %}Fill this form with all available information{% endif %}
+        </p>
+        
         {% if error %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-8" data-testid="error-message">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" data-testid="error-message">
             {{ error }}
         </div>
         {% endif %}
-
+        
         <form action="/signaler" method="POST" enctype="multipart/form-data" class="space-y-8">
-            <!-- Identity -->
-            <div class="glass-card rounded-3xl p-8 border-t-8 border-red-600">
-                <h2 class="text-xl font-black mb-6 uppercase tracking-tight flex items-center gap-3">
-                    <span class="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
-                    {% if get_locale() == 'fr' %}Identité du disparu{% else %}Identity of the missing{% endif %}
+            <section class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 text-sm font-bold">1</span>
+                    {% if get_locale() == 'fr' %}Identite{% else %}Identity{% endif %}
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Type de personne{% else %}Person type{% endif %} *</label>
-                        <select name="person_type" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="select-person-type">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Type de personne{% else %}Person type{% endif %} *</label>
+                        <select name="person_type" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-person-type">
                             <option value="child">{% if get_locale() == 'fr' %}Enfant (0-17 ans){% else %}Child (0-17 years){% endif %}</option>
                             <option value="adult">{% if get_locale() == 'fr' %}Adulte (18-59 ans){% else %}Adult (18-59 years){% endif %}</option>
                             <option value="elderly">{% if get_locale() == 'fr' %}Personne agee (60+){% else %}Elderly (60+){% endif %}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Sexe{% else %}Sex{% endif %} *</label>
-                        <select name="sex" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="select-sex">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Sexe{% else %}Sex{% endif %} *</label>
+                        <select name="sex" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-sex">
                             <option value="male">{% if get_locale() == 'fr' %}Masculin{% else %}Male{% endif %}</option>
                             <option value="female">{% if get_locale() == 'fr' %}Feminin{% else %}Female{% endif %}</option>
                             <option value="unknown">{% if get_locale() == 'fr' %}Non specifie{% else %}Not specified{% endif %}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Prénom{% else %}First name{% endif %} *</label>
-                        <input type="text" name="first_name" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-first-name">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Prenom{% else %}First name{% endif %} *</label>
+                        <input type="text" name="first_name" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-first-name">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Nom de famille{% else %}Last name{% endif %} *</label>
-                        <input type="text" name="last_name" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-last-name">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Nom de famille{% else %}Last name{% endif %} *</label>
+                        <input type="text" name="last_name" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-last-name">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Âge exact{% else %}Exact age{% endif %} *</label>
-                        <input type="number" name="age" min="0" max="120" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-age">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Age exact{% else %}Exact age{% endif %} *</label>
+                        <input type="number" name="age" min="0" max="120" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-age">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Photo{% else %}Photo{% endif %}</label>
-                        <div class="relative group">
-                            <input type="file" name="photo" id="photo-upload" accept="image/*" class="hidden" data-testid="input-photo">
-                            <label for="photo-upload" class="flex items-center gap-3 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 cursor-pointer hover:border-red-500/50 transition-all group">
-                                <div class="w-8 h-8 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </div>
-                                <span class="text-sm font-bold text-gray-500 group-hover:text-red-600 transition-colors">{% if get_locale() == 'fr' %}Ajouter une photo{% else %}Add a photo{% endif %}</span>
-                            </label>
-                        </div>
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Photo{% else %}Photo{% endif %}</label>
+                        <input type="file" name="photo" accept="image/*" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-photo">
+                        <p class="text-xs text-gray-500 mt-1">JPG/PNG, max 5Mo</p>
                     </div>
                 </div>
-            </div>
-
-            <!-- Location -->
-            <div class="glass-card rounded-3xl p-8 border-t-8 border-blue-600">
-                <h2 class="text-xl font-black mb-6 uppercase tracking-tight flex items-center gap-3">
-                    <span class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
-                    {% if get_locale() == 'fr' %}Lieu de disparition{% else %}Location of disappearance{% endif %}
+            </section>
+            
+            <section class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 text-sm font-bold">2</span>
+                    {% if get_locale() == 'fr' %}Lieu de disparition{% else %}Disappearance location{% endif %}
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %} *</label>
-                        <select name="country" id="country-select" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="select-country">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %} *</label>
+                        <select name="country" id="country-select" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-country">
                             <option value="">{% if get_locale() == 'fr' %}Selectionnez un pays{% else %}Select a country{% endif %}</option>
                             {% for c in countries %}
                             <option value="{{ c }}">{{ c }}</option>
@@ -84,109 +79,99 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Ville/Commune{% else %}City{% endif %} *</label>
-                        <select name="city" id="city-select" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="select-city">
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Ville/Commune{% else %}City{% endif %} *</label>
+                        <select name="city" id="city-select" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="select-city">
                             <option value="">{% if get_locale() == 'fr' %}Selectionnez d'abord un pays{% else %}Select a country first{% endif %}</option>
                         </select>
                     </div>
                 </div>
+                
                 <div class="mb-4">
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Géolocalisation précise{% else %}Precise geolocation{% endif %} *</label>
-                    <div id="location-map" class="h-80 rounded-3xl border border-gray-200 dark:border-gray-700 mb-4 z-0"></div>
-                    <div class="flex items-center gap-4">
-                        <button type="button" onclick="getGeoLocation()" class="btn-secondary py-2 px-4 text-xs !shadow-none" data-testid="button-geolocate">
-                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            {% if get_locale() == 'fr' %}MA POSITION GPS{% else %}MY GPS LOCATION{% endif %}
+                    <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Geolocalisation{% else %}Geolocation{% endif %} *</label>
+                    <div id="location-map" class="h-64 rounded-lg border border-gray-300 dark:border-gray-600 mb-2"></div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="getGeoLocation()" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm" data-testid="button-geolocate">
+                            {% if get_locale() == 'fr' %}Ma position GPS{% else %}My GPS location{% endif %}
                         </button>
-                        <div class="flex flex-col">
-                            <span class="text-[10px] text-gray-400 font-black uppercase tracking-widest">Coordonnées</span>
-                            <span class="text-sm font-black text-gray-900 dark:text-white" id="coords-display">{% if get_locale() == 'fr' %}En attente du point...{% else %}Waiting for point...{% endif %}</span>
-                        </div>
+                        <span class="text-sm text-gray-500 flex items-center" id="coords-display">{% if get_locale() == 'fr' %}Cliquez sur la carte{% else %}Click on map{% endif %}</span>
                     </div>
                     <input type="hidden" name="latitude" id="latitude">
                     <input type="hidden" name="longitude" id="longitude">
                 </div>
-            </div>
-
-            <!-- Description -->
-            <div class="glass-card rounded-3xl p-8 border-t-8 border-amber-500">
-                <h2 class="text-xl font-black mb-6 uppercase tracking-tight flex items-center gap-3">
-                    <span class="w-8 h-8 bg-amber-500 text-white rounded-full flex items-center justify-center text-sm">3</span>
-                    {% if get_locale() == 'fr' %}Description détaillée{% else %}Detailed description{% endif %}
+            </section>
+            
+            <section class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 text-sm font-bold">3</span>
+                    {% if get_locale() == 'fr' %}Description{% else %}Description{% endif %}
                 </h2>
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Description physique{% else %}Physical description{% endif %} *</label>
-                        <textarea name="physical_description" rows="3" required placeholder="{% if get_locale() == 'fr' %}Taille, corpulence, signes particuliers...{% else %}Height, build, distinguishing marks...{% endif %}" class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="textarea-description"></textarea>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Vêtements portés{% else %}Clothing worn{% endif %} *</label>
-                            <input type="text" name="clothing" required placeholder="{% if get_locale() == 'fr' %}T-shirt bleu, jean noir...{% else %}Blue t-shirt, black jeans...{% endif %}" class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-clothing">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Objets emportés{% else %}Objects carried{% endif %}</label>
-                            <input type="text" name="objects" placeholder="{% if get_locale() == 'fr' %}Sac a dos, telephone...{% else %}Backpack, phone...{% endif %}" class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-objects">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Date/Heure de disparition{% else %}Disappearance date/time{% endif %} *</label>
-                            <input type="datetime-local" name="disappearance_date" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-date">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Circonstances exactes{% else %}Exact circumstances{% endif %} *</label>
-                        <textarea name="circumstances" rows="3" required placeholder="{% if get_locale() == 'fr' %}Dernier endroit vu, activité, personnes présentes...{% else %}Last seen location, activity, people present...{% endif %}" class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/50 dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="textarea-circumstances"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contacts -->
-            <div class="glass-card rounded-3xl p-8 border-t-8 border-green-600">
-                <h2 class="text-xl font-black mb-6 uppercase tracking-tight flex items-center gap-3">
-                    <span class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm">4</span>
-                    {% if get_locale() == 'fr' %}Contacts de référence{% else %}Reference contacts{% endif %}
-                </h2>
-                <div id="contacts-container" class="space-y-6">
-                    <div class="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Nom complet{% else %}Full name{% endif %} *</label>
-                                <input type="text" name="contact_name_0" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-contact-name-0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Téléphone{% else %}Phone{% endif %} *</label>
-                                <input type="tel" name="contact_phone_0" required class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-contact-phone-0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Email</label>
-                                <input type="email" name="contact_email_0" class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-contact-email-0">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{% if get_locale() == 'fr' %}Relation{% else %}Relationship{% endif %}</label>
-                                <input type="text" name="contact_relation_0" placeholder="{% if get_locale() == 'fr' %}Père, mère, ami...{% else %}Father, mother, friend...{% endif %}" class="w-full px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none" data-testid="input-contact-relation-0">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex flex-col items-start gap-4 pt-4">
-                <div class="flex items-start gap-3">
-                    <input type="checkbox" name="consent" required id="consent" class="mt-1.5 w-5 h-5 rounded-lg text-red-600 border-gray-300 focus:ring-red-500/20" data-testid="checkbox-consent">
-                    <label for="consent" class="text-sm font-bold text-gray-500 leading-relaxed cursor-pointer select-none">
-                        {% if get_locale() == 'fr' %}J'autorise la publication de ces informations sur DISPARUS.ORG et j'accepte les conditions d'utilisation pour aider aux recherches.{% else %}I authorize the publication of this information on DISPARUS.ORG and accept the terms of use to help with the search.{% endif %} *
-                    </label>
-                </div>
                 
-                <div class="flex w-full gap-4 pt-4">
-                    <a href="/" class="btn-secondary flex-1 py-4">{% if get_locale() == 'fr' %}ANNULER{% else %}CANCEL{% endif %}</a>
-                    <button type="submit" class="btn-primary flex-[2] py-4" data-testid="button-submit">
-                        {% if get_locale() == 'fr' %}PUBLIER LE SIGNALEMENT{% else %}PUBLISH REPORT{% endif %}
-                    </button>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Description physique{% else %}Physical description{% endif %} *</label>
+                        <textarea name="physical_description" rows="3" required placeholder="{% if get_locale() == 'fr' %}Taille, corpulence, signes particuliers...{% else %}Height, build, distinguishing marks...{% endif %}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="textarea-description"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Vetements portes{% else %}Clothing worn{% endif %} *</label>
+                        <input type="text" name="clothing" required placeholder="{% if get_locale() == 'fr' %}T-shirt bleu, jean noir...{% else %}Blue t-shirt, black jeans...{% endif %}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-clothing">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Objets emportes{% else %}Objects carried{% endif %}</label>
+                        <input type="text" name="objects" placeholder="{% if get_locale() == 'fr' %}Sac a dos, telephone...{% else %}Backpack, phone...{% endif %}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-objects">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Date/Heure disparition{% else %}Disappearance date/time{% endif %} *</label>
+                            <input type="datetime-local" name="disappearance_date" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-date">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Circonstances exactes{% else %}Exact circumstances{% endif %} *</label>
+                        <textarea name="circumstances" rows="3" required placeholder="{% if get_locale() == 'fr' %}Dernier endroit vu, activite, personnes presentes...{% else %}Last seen location, activity, people present...{% endif %}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="textarea-circumstances"></textarea>
+                    </div>
                 </div>
+            </section>
+            
+            <section class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-700 dark:text-red-400 text-sm font-bold">4</span>
+                    {% if get_locale() == 'fr' %}Contacts referents{% else %}Reference contacts{% endif %}
+                </h2>
+                
+                <div id="contacts-container" class="space-y-4">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Nom complet{% else %}Full name{% endif %} *</label>
+                                <input type="text" name="contact_name_0" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-contact-name-0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Telephone{% else %}Phone{% endif %} *</label>
+                                <input type="tel" name="contact_phone_0" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-contact-phone-0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Email</label>
+                                <input type="email" name="contact_email_0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-contact-email-0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">{% if get_locale() == 'fr' %}Relation{% else %}Relationship{% endif %}</label>
+                                <input type="text" name="contact_relation_0" placeholder="{% if get_locale() == 'fr' %}Pere, mere, ami...{% else %}Father, mother, friend...{% endif %}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" data-testid="input-contact-relation-0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="flex items-start gap-2">
+                <input type="checkbox" name="consent" required id="consent" class="mt-1 rounded" data-testid="checkbox-consent">
+                <label for="consent" class="text-sm text-gray-600 dark:text-gray-400">
+                    {% if get_locale() == 'fr' %}J'autorise la publication de ces informations sur DISPARUS.ORG et j'accepte les conditions d'utilisation.{% else %}I authorize the publication of this information on DISPARUS.ORG and accept the terms of use.{% endif %} *
+                </label>
             </div>
+            
+            <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-3 px-6 rounded-lg text-lg" data-testid="button-submit">
+                {% if get_locale() == 'fr' %}Publier le signalement{% else %}Publish report{% endif %}
+            </button>
         </form>
     </div>
 </div>

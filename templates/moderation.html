@@ -14,65 +14,61 @@
             </p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="glass-card rounded-2xl p-6 border-b-4 border-amber-500">
-                <div class="text-4xl font-black text-amber-600 tracking-tighter">{{ stats.pending }}</div>
-                <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">{% if get_locale() == 'fr' %}En attente{% else %}Pending{% endif %}</div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div class="text-3xl font-bold text-amber-600">{{ stats.pending }}</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% if get_locale() == 'fr' %}Signalements en attente{% else %}Pending Reports{% endif %}</div>
             </div>
-            <div class="glass-card rounded-2xl p-6 border-b-4 border-red-500">
-                <div class="text-4xl font-black text-red-600 tracking-tighter">{{ stats.flagged }}</div>
-                <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">{% if get_locale() == 'fr' %}Signalés{% else %}Flagged{% endif %}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div class="text-3xl font-bold text-red-600">{{ stats.flagged }}</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% if get_locale() == 'fr' %}Fiches signalees{% else %}Flagged Entries{% endif %}</div>
             </div>
-            <div class="glass-card rounded-2xl p-6 border-b-4 border-blue-500">
-                <div class="text-4xl font-black text-blue-600 tracking-tighter">{{ stats.total_disparus }}</div>
-                <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">{% if get_locale() == 'fr' %}Total disparus{% else %}Total Missing{% endif %}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div class="text-3xl font-bold text-blue-600">{{ stats.total_disparus }}</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% if get_locale() == 'fr' %}Total disparus{% else %}Total Missing{% endif %}</div>
             </div>
-            <div class="glass-card rounded-2xl p-6 border-b-4 border-green-500">
-                <div class="text-4xl font-black text-green-600 tracking-tighter">{{ stats.total_contributions }}</div>
-                <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">{% if get_locale() == 'fr' %}Contributions{% else %}Tips{% endif %}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div class="text-3xl font-bold text-green-600">{{ stats.total_contributions }}</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% if get_locale() == 'fr' %}Contributions{% else %}Contributions{% endif %}</div>
             </div>
         </div>
         
         <section>
-            <h2 class="text-2xl font-black mb-8 uppercase tracking-tight flex items-center gap-3">
-                <span class="w-2 h-8 bg-red-600 rounded-full"></span>
-                {% if get_locale() == 'fr' %}SIGNALEMENTS EN ATTENTE{% else %}PENDING REPORTS{% endif %}
-            </h2>
+            <h2 class="text-xl font-semibold mb-4">{% if get_locale() == 'fr' %}Signalements en attente{% else %}Pending Reports{% endif %}</h2>
             
             {% if reports %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {% for report in reports %}
-                <div class="glass-card rounded-3xl p-8 flex flex-col h-full hover:shadow-2xl transition-all duration-300 border-t-8 border-red-600/20" data-testid="card-report-{{ report.id }}">
+                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 flex flex-col h-full" data-testid="card-report-{{ report.id }}">
                     <div class="flex-1">
-                        <div class="flex items-center justify-between mb-6">
-                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm
-                                {% if report.reason == 'false_info' %}bg-red-600 text-white
-                                {% elif report.reason == 'duplicate' %}bg-blue-600 text-white
-                                {% elif report.reason == 'inappropriate' %}bg-amber-500 text-white
-                                {% else %}bg-gray-600 text-white{% endif %}">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider
+                                {% if report.reason == 'false_info' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+                                {% elif report.reason == 'duplicate' %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                {% elif report.reason == 'inappropriate' %}bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400
+                                {% else %}bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400{% endif %}">
                                 {{ report.reason }}
                             </span>
-                            <span class="text-[10px] text-gray-400 font-black uppercase tracking-widest">{{ report.created_at.strftime('%d %b %Y %H:%M') if report.created_at else '' }}</span>
+                            <span class="text-xs text-gray-500 font-mono">{{ report.created_at.strftime('%d/%m/%Y %H:%M') if report.created_at else '' }}</span>
                         </div>
                         
-                        <div class="mb-6">
-                            <div class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-1">{{ report.target_type }} #{{ report.target_id }}</div>
-                            <h3 class="font-black text-2xl text-gray-900 dark:text-white leading-tight">{% if get_locale() == 'fr' %}Vérification Requise{% else %}Verification Required{% endif %}</h3>
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 dark:text-white">{{ report.target_type|capitalize }} #{{ report.target_id }}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{% if get_locale() == 'fr' %}Signalé par un utilisateur anonyme{% else %}Reported by anonymous user{% endif %}</p>
                         </div>
 
                         {% if report.details %}
-                        <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl mb-6 italic text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 leading-relaxed relative">
-                            <svg class="w-8 h-8 text-gray-200 dark:text-gray-700 absolute -top-4 -left-2" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H14.017C13.4647 8 13.017 8.44772 13.017 9V15C13.017 15.5523 12.5693 16 12.017 16H11.017C10.4647 16 10.017 16.4477 10.017 17V21H14.017ZM4.017 21L4.017 18C4.017 16.8954 4.91243 16 6.017 16H9.017C9.56928 16 10.017 15.5523 10.017 15V9C10.017 8.44772 9.56928 8 9.017 8H4.017C3.46472 8 3.017 8.44772 3.017 9V15C3.017 15.5523 2.56928 16 2.017 16H1.017C0.464722 16 -0.017 16.4477 -0.017 17V21H4.017Z"/></svg>
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded mb-4 italic text-sm text-gray-700 dark:text-gray-300">
                             "{{ report.details }}"
                         </div>
                         {% endif %}
                     </div>
                     
-                    <form method="POST" action="/moderation/{{ report.id }}/resolve" class="grid grid-cols-2 gap-3 mt-auto pt-6 border-t border-gray-100 dark:border-gray-700">
-                        <button type="submit" name="action" value="unflag" class="btn-primary py-3">
+                    <form method="POST" action="/moderation/{{ report.id }}/resolve" class="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <button type="submit" name="action" value="unflag" class="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm font-bold hover:bg-green-700 transition-colors" data-testid="button-approve-{{ report.id }}">
                             {% if get_locale() == 'fr' %}APPROUVER{% else %}APPROVE{% endif %}
                         </button>
-                        <button type="submit" name="action" value="remove" class="btn-secondary py-3 !text-red-600 !border-red-100 dark:!border-red-900/30">
+                        <button type="submit" name="action" value="remove" class="flex-1 bg-red-600 text-white px-3 py-2 rounded text-sm font-bold hover:bg-red-700 transition-colors" data-testid="button-remove-{{ report.id }}">
                             {% if get_locale() == 'fr' %}SUPPRIMER{% else %}REMOVE{% endif %}
                         </button>
                     </form>
@@ -88,29 +84,26 @@
         </section>
         
         <section>
-            <h2 class="text-2xl font-black mb-8 uppercase tracking-tight flex items-center gap-3">
-                <span class="w-2 h-8 bg-amber-500 rounded-full"></span>
-                {% if get_locale() == 'fr' %}FICHES SIGNALÉES{% else %}FLAGGED ENTRIES{% endif %}
-            </h2>
+            <h2 class="text-xl font-semibold mb-4">{% if get_locale() == 'fr' %}Fiches signalees{% else %}Flagged Entries{% endif %}</h2>
             
             {% if flagged_disparus %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for person in flagged_disparus %}
-                <a href="/disparu/{{ person.public_id }}" class="glass-card rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-300 group border-2 border-amber-500/30" data-testid="card-flagged-{{ person.public_id }}">
-                    <div class="aspect-video relative overflow-hidden">
+                <a href="/disparu/{{ person.public_id }}" class="bg-white dark:bg-gray-800 rounded-lg border border-amber-400 overflow-hidden hover:shadow-lg transition-shadow" data-testid="card-flagged-{{ person.public_id }}">
+                    <div class="aspect-video bg-gray-200 dark:bg-gray-700 relative">
                         {% if person.photo_url %}
-                        <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover">
                         {% else %}
-                        <div class="absolute inset-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                            <svg class="w-16 h-16 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                         </div>
                         {% endif %}
-                        <div class="absolute top-4 left-4 bg-amber-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg tracking-widest uppercase">{% if get_locale() == 'fr' %}Signalé{% else %}Flagged{% endif %}</div>
+                        <span class="absolute top-2 left-2 bg-amber-500 text-white text-xs px-2 py-1 rounded">{% if get_locale() == 'fr' %}Signale{% else %}Flagged{% endif %}</span>
                     </div>
-                    <div class="p-6">
-                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{{ person.public_id }}</div>
-                        <h3 class="font-black text-lg text-gray-900 dark:text-white uppercase tracking-tighter">{{ person.first_name }} {{ person.last_name }}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-bold mt-1">{{ person.city }}, {{ person.country }}</p>
+                    <div class="p-4">
+                        <h3 class="font-semibold">{{ person.first_name }} {{ person.last_name }}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ person.city }}, {{ person.country }}</p>
+                        <span class="text-xs text-gray-500 font-mono">{{ person.public_id }}</span>
                     </div>
                 </a>
                 {% endfor %}
