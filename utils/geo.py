@@ -64,6 +64,14 @@ def get_cities(country):
     return COUNTRIES_CITIES.get(country, [])
 
 
+def get_total_cities():
+    return sum(len(cities) for cities in COUNTRIES_CITIES.values())
+
+
+def get_countries_count():
+    return len(COUNTRIES_CITIES)
+
+
 def get_coordinates_from_city(city, country):
     pass
 

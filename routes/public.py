@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, curren
 from werkzeug.utils import secure_filename
 
 from models import db, Disparu, Contribution, ModerationReport
-from utils.geo import get_countries, get_cities, COUNTRIES_CITIES
+from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cities
 from services.signalement import create_signalement, generate_public_id
 
 public_bp = Blueprint('public', __name__)
@@ -28,7 +28,8 @@ def index():
         'contributions': Contribution.query.count(),
     }
     all_disparus = Disparu.query.filter(Disparu.latitude.isnot(None)).all()
-    return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=all_disparus)
+    total_cities = get_total_cities()
+    return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=all_disparus, total_cities=total_cities)
 
 
 @public_bp.route('/recherche')
