@@ -160,6 +160,9 @@ def contributions():
 @admin_bp.route('/statistics')
 @admin_required
 def statistics():
+    total_views = db.session.query(db.func.sum(Disparu.view_count)).scalar() or 0
+    total_downloads = Download.query.count()
+    
     stats = {
         'total': Disparu.query.count(),
         'missing': Disparu.query.filter_by(status='missing').count(),
@@ -169,6 +172,8 @@ def statistics():
         'contributions': Contribution.query.count(),
         'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
         'pending_reports': ModerationReport.query.filter_by(status='pending').count(),
+        'total_views': total_views,
+        'total_downloads': total_downloads,
     }
     
     by_country = db.session.query(
@@ -181,10 +186,44 @@ def statistics():
         db.func.count(Disparu.id)
     ).group_by(Disparu.status).all()
     
+    by_city = db.session.query(
+        Disparu.city,
+        Disparu.country,
+        db.func.count(Disparu.id)
+    ).group_by(Disparu.city, Disparu.country).order_by(db.func.count(Disparu.id).desc()).limit(10).all()
+    
+    most_viewed = Disparu.query.order_by(Disparu.view_count.desc()).limit(5).all()
+    
+    most_downloaded = db.session.query(
+        Disparu.public_id,
+        Disparu.first_name,
+        Disparu.last_name,
+        Disparu.city,
+        Disparu.country,
+        db.func.count(Download.id).label('download_count')
+    ).join(Download, Download.disparu_public_id == Disparu.public_id).group_by(
+        Disparu.public_id, Disparu.first_name, Disparu.last_name, Disparu.city, Disparu.country
+    ).order_by(db.func.count(Download.id).desc()).limit(5).all()
+    
+    downloads_by_type = db.session.query(
+        Download.file_type,
+        db.func.count(Download.id)
+    ).group_by(Download.file_type).order_by(db.func.count(Download.id).desc()).all()
+    
+    downloads_by_country = db.session.query(
+        Download.country,
+        db.func.count(Download.id)
+    ).filter(Download.country.isnot(None)).group_by(Download.country).order_by(db.func.count(Download.id).desc()).limit(10).all()
+    
     return render_template('admin_statistics.html', 
                          stats=stats, 
                          by_country=by_country, 
-                         by_status=by_status)
+                         by_status=by_status,
+                         by_city=by_city,
+                         most_viewed=most_viewed,
+                         most_downloaded=most_downloaded,
+                         downloads_by_type=downloads_by_type,
+                         downloads_by_country=downloads_by_country)
 
 
 @admin_bp.route('/map')

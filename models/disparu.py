@@ -32,6 +32,7 @@ class Disparu(db.Model):
     
     status = db.Column(db.String(20), default='missing')
     is_flagged = db.Column(db.Boolean, default=False)
+    view_count = db.Column(db.Integer, default=0)
     
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
