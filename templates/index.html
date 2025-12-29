@@ -240,6 +240,87 @@
         <div class="flex items-center gap-3 mb-2">
             <div class="w-1 h-6 bg-red-600 rounded-full"></div>
             <h2 class="text-lg font-semibold text-gray-900">
+                {% if get_locale() == 'fr' %}Votre contribution peut sauver une vie{% else %}Your contribution can save a life{% endif %}
+            </h2>
+        </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div class="space-y-4">
+                <p class="text-gray-700 leading-relaxed">
+                    {% if get_locale() == 'fr' %}
+                        Chaque information compte. Un temoignage, une mise a jour, un simple partage sur les reseaux sociaux peut faire toute la difference. 
+                        <strong class="text-red-700">Vous pourriez etre le maillon decisif</strong> qui permet de retrouver une personne disparue.
+                    {% else %}
+                        Every piece of information matters. A testimony, an update, a simple share on social media can make all the difference. 
+                        <strong class="text-red-700">You could be the decisive link</strong> that helps find a missing person.
+                    {% endif %}
+                </p>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    {% if get_locale() == 'fr' %}
+                        Meme si vous n'etes pas certain de l'information, partagez-la. Les enqueteurs et les familles peuvent recouper les temoignages pour avancer dans leurs recherches.
+                    {% else %}
+                        Even if you're not sure about the information, share it. Investigators and families can cross-reference testimonies to advance their searches.
+                    {% endif %}
+                </p>
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <div class="inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-xl text-xs font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        {% if get_locale() == 'fr' %}Temoignage{% else %}Testimony{% endif %}
+                    </div>
+                    <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl text-xs font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        {% if get_locale() == 'fr' %}Mise a jour{% else %}Update{% endif %}
+                    </div>
+                    <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-xl text-xs font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                        {% if get_locale() == 'fr' %}Partage{% else %}Share{% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-xl p-6 border border-red-100">
+                <h3 class="font-semibold text-gray-900 mb-4 text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    {% if get_locale() == 'fr' %}Comment mettre a jour une fiche ?{% else %}How to update a file?{% endif %}
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-sm">1</div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 text-sm">{% if get_locale() == 'fr' %}Recherchez la personne{% else %}Search for the person{% endif %}</h4>
+                            <p class="text-xs text-gray-600 mt-0.5">{% if get_locale() == 'fr' %}Utilisez la recherche par nom, ID ou localisation pour trouver la fiche.{% else %}Use search by name, ID or location to find the file.{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-sm">2</div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 text-sm">{% if get_locale() == 'fr' %}Consultez la fiche{% else %}View the file{% endif %}</h4>
+                            <p class="text-xs text-gray-600 mt-0.5">{% if get_locale() == 'fr' %}Cliquez sur la fiche pour voir tous les details et les contributions existantes.{% else %}Click on the file to see all details and existing contributions.{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-sm">3</div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 text-sm">{% if get_locale() == 'fr' %}Ajoutez votre contribution{% else %}Add your contribution{% endif %}</h4>
+                            <p class="text-xs text-gray-600 mt-0.5">{% if get_locale() == 'fr' %}Remplissez le formulaire avec votre temoignage, observation ou nouvelle information.{% else %}Fill out the form with your testimony, observation or new information.{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="/recherche" class="mt-5 w-full inline-flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md transition-all text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    {% if get_locale() == 'fr' %}Rechercher et contribuer{% else %}Search and contribute{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-12 bg-gray-50/50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-gray-900">
                 {% if get_locale() == 'fr' %}Conseils de vigilance{% else %}Safety advice{% endif %}
             </h2>
         </div>
