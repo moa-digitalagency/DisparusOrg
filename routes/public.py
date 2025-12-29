@@ -22,7 +22,7 @@ def log_public_activity(action, action_type='view', target_type=None, target_id=
             target_name=target_name,
             ip_address=request.remote_addr,
             user_agent=request.headers.get('User-Agent', '')[:500],
-            severity='debug',
+            severity='info',
             is_security_event=False
         )
         db.session.add(log)

@@ -272,6 +272,8 @@ def map_view():
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 @admin_required
 def settings():
+    if request.method == 'GET':
+        log_activity('Consultation parametres', action_type='view', target_type='settings')
     if request.method == 'POST':
         for key in request.form:
             if key.startswith('setting_'):
@@ -417,6 +419,7 @@ def delete_user(user_id):
 @admin_bp.route('/roles')
 @admin_required
 def roles():
+    log_activity('Consultation roles', action_type='view', target_type='roles')
     roles = Role.query.order_by(Role.name).all()
     return render_template('admin_roles.html', roles=roles)
 
