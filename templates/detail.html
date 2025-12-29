@@ -7,7 +7,7 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4 shadow-sm
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-medium mb-4 shadow-sm
                 {% if person.status == 'missing' %}bg-white text-red-700
                 {% elif person.status == 'found' %}bg-green-500 text-white
                 {% else %}bg-gray-500 text-white{% endif %}" data-testid="badge-status">
@@ -21,7 +21,7 @@
             <p class="text-base text-red-100 opacity-90">
                 {{ person.age }} {% if get_locale() == 'fr' %}ans{% else %}years{% endif %} - {{ person.city }}, {{ person.country }}
             </p>
-            <span class="inline-block mt-3 text-xs font-mono bg-white/20 px-3 py-1 rounded-full" data-testid="text-id">ID: {{ person.public_id }}</span>
+            <span class="inline-block mt-3 text-xs font-mono bg-white/20 px-3 py-1 rounded-xl" data-testid="text-id">ID: {{ person.public_id }}</span>
         </div>
     </div>
 </section>
@@ -30,7 +30,7 @@
     <div class="max-w-6xl mx-auto px-4">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-5">
-                <div class="bg-white rounded-2xl border border-red-100 overflow-hidden shadow-sm">
+                <div class="bg-white rounded-xl border border-red-100 overflow-hidden shadow-sm">
                     <div class="aspect-video bg-gray-100 relative">
                         {% if person.photo_url %}
                         <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover">
@@ -40,7 +40,7 @@
                         </div>
                         {% endif %}
                         {% if person.is_flagged %}
-                        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold">
+                        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs px-2.5 py-1 rounded-xl font-semibold">
                             {% if get_locale() == 'fr' %}Signale{% else %}Flagged{% endif %}
                         </span>
                         {% endif %}
@@ -48,11 +48,11 @@
                     
                     <div class="p-5">
                         <div class="grid grid-cols-2 gap-4 mb-5 text-sm">
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                 <span class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Lieu{% else %}Location{% endif %}</span>
                                 <p class="font-semibold text-gray-900 mt-1">{{ person.city }}, {{ person.country }}</p>
                             </div>
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                 <span class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Date{% else %}Date{% endif %}</span>
                                 <p class="font-semibold text-gray-900 mt-1">{{ person.disappearance_date.strftime('%d/%m/%Y %H:%M') if person.disappearance_date else 'N/A' }}</p>
                             </div>
@@ -101,7 +101,7 @@
                             </h3>
                             <div class="space-y-2 pl-3">
                                 {% for contact in person.contacts %}
-                                <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                     <div>
                                         <p class="font-medium text-gray-900 text-sm">{{ contact.name }}</p>
                                         <p class="text-xs text-gray-600">{{ contact.phone }} {% if contact.relation %}({{ contact.relation }}){% endif %}</p>
@@ -115,31 +115,33 @@
                 </div>
                 
                 {% if person.latitude and person.longitude %}
-                <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
                         <div class="w-1 h-5 bg-red-600 rounded-full"></div>
                         <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Carte des localisations{% else %}Location map{% endif %}</h2>
                     </div>
-                    <div id="detail-map" class="h-56 rounded-lg border border-gray-200" data-testid="map-detail"></div>
+                    <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-4"></div>
+                    <div id="detail-map" class="h-56 rounded-xl border border-gray-200" data-testid="map-detail"></div>
                 </div>
                 {% endif %}
                 
-                <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
                         <div class="w-1 h-5 bg-red-600 rounded-full"></div>
                         <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Historique des contributions{% else %}Contribution history{% endif %} ({{ contributions|length }})</h2>
                     </div>
+                    <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-4"></div>
                     
                     {% if contributions %}
                     <div class="space-y-3">
                         {% for c in contributions %}
-                        <div class="p-4 bg-gray-50 rounded-lg border-l-4 
+                        <div class="p-4 bg-gray-50 rounded-xl border-l-4 
                             {% if c.contribution_type == 'seen' %}border-blue-500
                             {% elif c.contribution_type == 'found' %}border-green-500
                             {% elif c.contribution_type == 'police' %}border-purple-500
                             {% else %}border-gray-400{% endif %}" data-testid="card-contribution-{{ c.id }}">
                             <div class="flex items-start justify-between mb-2">
-                                <span class="text-xs font-medium px-2 py-0.5 rounded
+                                <span class="text-xs font-medium px-2 py-0.5 rounded-lg
                                     {% if c.contribution_type == 'seen' %}bg-blue-100 text-blue-700
                                     {% elif c.contribution_type == 'found' %}bg-green-100 text-green-700
                                     {% elif c.contribution_type == 'police' %}bg-purple-100 text-purple-700
@@ -156,7 +158,7 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="text-center py-10 bg-gray-50 rounded-lg border border-gray-100">
+                    <div class="text-center py-10 bg-gray-50 rounded-xl border border-gray-100">
                         <p class="text-gray-500 text-sm">{% if get_locale() == 'fr' %}Aucune contribution pour le moment{% else %}No contributions yet{% endif %}</p>
                     </div>
                     {% endif %}
@@ -164,16 +166,17 @@
             </div>
             
             <div class="space-y-5">
-                <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
                         <div class="w-1 h-5 bg-red-600 rounded-full"></div>
                         <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Ajouter une contribution{% else %}Add contribution{% endif %}</h2>
                     </div>
+                    <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-4"></div>
                     
                     <form action="/disparu/{{ person.public_id }}/contribute" method="POST" enctype="multipart/form-data" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Type{% else %}Type{% endif %} *</label>
-                            <select name="contribution_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="select-contribution-type">
+                            <select name="contribution_type" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="select-contribution-type">
                                 <option value="seen">{% if get_locale() == 'fr' %}Vu la personne{% else %}Seen the person{% endif %}</option>
                                 <option value="info">{% if get_locale() == 'fr' %}Info importante{% else %}Important info{% endif %}</option>
                                 <option value="police">{% if get_locale() == 'fr' %}Signale police{% else %}Reported to police{% endif %}</option>
@@ -184,28 +187,28 @@
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Details{% else %}Details{% endif %} *</label>
-                            <textarea name="details" rows="3" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="textarea-contribution-details"></textarea>
+                            <textarea name="details" rows="3" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="textarea-contribution-details"></textarea>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Lieu{% else %}Location{% endif %}</label>
-                            <input type="text" name="location_name" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-contribution-location">
+                            <input type="text" name="location_name" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-contribution-location">
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Date observation{% else %}Observation date{% endif %}</label>
-                            <input type="datetime-local" name="observation_date" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-contribution-date">
+                            <input type="datetime-local" name="observation_date" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-contribution-date">
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Preuve photo/video{% else %}Photo/video proof{% endif %}</label>
-                            <input type="file" name="proof" accept="image/*,video/*" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-contribution-proof">
+                            <input type="file" name="proof" accept="image/*,video/*" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-contribution-proof">
                         </div>
                         
                         <div id="found-fields" class="hidden space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Etat{% else %}State{% endif %}</label>
-                                <select name="person_state" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm">
+                                <select name="person_state" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm">
                                     <option value="safe">{% if get_locale() == 'fr' %}Sain et sauf{% else %}Safe{% endif %}</option>
                                     <option value="injured">{% if get_locale() == 'fr' %}Blesse{% else %}Injured{% endif %}</option>
                                     <option value="deceased">{% if get_locale() == 'fr' %}Decede{% else %}Deceased{% endif %}</option>
@@ -213,36 +216,37 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Circonstances retour{% else %}Return circumstances{% endif %}</label>
-                                <textarea name="return_circumstances" rows="2" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm"></textarea>
+                                <textarea name="return_circumstances" rows="2" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm"></textarea>
                             </div>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Votre nom{% else %}Your name{% endif %}</label>
-                            <input type="text" name="contact_name" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-your-name">
+                            <input type="text" name="contact_name" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-your-name">
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Votre telephone{% else %}Your phone{% endif %}</label>
-                            <input type="tel" name="contact_phone" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-your-phone">
+                            <input type="tel" name="contact_phone" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-your-phone">
                         </div>
                         
-                        <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md" data-testid="button-submit-contribution">
+                        <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md" data-testid="button-submit-contribution">
                             {% if get_locale() == 'fr' %}Envoyer{% else %}Submit{% endif %}
                         </button>
                     </form>
                 </div>
                 
-                <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
                         <div class="w-1 h-5 bg-amber-500 rounded-full"></div>
                         <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Signaler un probleme{% else %}Report a problem{% endif %}</h2>
                     </div>
+                    <div class="h-0.5 w-full bg-gradient-to-r from-amber-500 via-amber-300 to-transparent rounded-full mb-4"></div>
                     
                     <form action="/disparu/{{ person.public_id }}/report" method="POST" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Raison{% else %}Reason{% endif %} *</label>
-                            <select name="reason" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="select-report-reason">
+                            <select name="reason" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="select-report-reason">
                                 <option value="false_info">{% if get_locale() == 'fr' %}Information fausse{% else %}False information{% endif %}</option>
                                 <option value="duplicate">{% if get_locale() == 'fr' %}Doublon{% else %}Duplicate{% endif %}</option>
                                 <option value="inappropriate">{% if get_locale() == 'fr' %}Contenu inapproprie{% else %}Inappropriate content{% endif %}</option>
@@ -251,9 +255,9 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Details{% else %}Details{% endif %}</label>
-                            <textarea name="details" rows="3" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="textarea-report-details"></textarea>
+                            <textarea name="details" rows="3" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="textarea-report-details"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md" data-testid="button-submit-report">
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 px-4 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md" data-testid="button-submit-report">
                             {% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}
                         </button>
                     </form>

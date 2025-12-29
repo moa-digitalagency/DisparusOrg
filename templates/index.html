@@ -7,7 +7,7 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-xl text-sm font-medium mb-4">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                 54 {% if get_locale() == 'fr' %}pays africains{% else %}African countries{% endif %}
             </div>
@@ -37,30 +37,30 @@
             <form action="/recherche" method="GET" class="max-w-2xl mx-auto mb-8">
                 <div class="flex flex-col sm:flex-row gap-2">
                     <input type="text" name="q" placeholder="{% if get_locale() == 'fr' %}Nom, ID, ville ou pays...{% else %}Name, ID, city or country...{% endif %}" 
-                           class="flex-1 px-4 py-3 rounded-lg text-gray-900 border border-red-100 focus:ring-2 focus:ring-white text-sm shadow-sm"
+                           class="flex-1 px-4 py-3 rounded-xl text-gray-900 border border-red-100 focus:ring-2 focus:ring-white text-sm shadow-sm"
                            data-testid="input-hero-search">
-                    <button type="submit" class="bg-white text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-red-50 transition-all text-sm shadow-sm" data-testid="button-hero-search">
+                    <button type="submit" class="bg-white text-red-700 px-6 py-3 rounded-xl font-semibold hover:bg-red-50 transition-all text-sm shadow-sm" data-testid="button-hero-search">
                         {% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}
                     </button>
                 </div>
             </form>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm" data-testid="stat-total">
-                    <div class="text-3xl font-bold text-red-700">{{ stats.total or 0 }}</div>
-                    <div class="text-xs text-gray-600 font-medium">{% if get_locale() == 'fr' %}Signalements{% else %}Reports{% endif %}</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-white/20 shadow-sm" data-testid="stat-total">
+                    <div class="text-2xl font-bold text-red-700">{{ stats.total or 0 }}</div>
+                    <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Signalements{% else %}Reports{% endif %}</div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm" data-testid="stat-found">
-                    <div class="text-3xl font-bold text-green-600">{{ stats.found or 0 }}</div>
-                    <div class="text-xs text-gray-600 font-medium">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
+                <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-white/20 shadow-sm" data-testid="stat-found">
+                    <div class="text-2xl font-bold text-green-600">{{ stats.found or 0 }}</div>
+                    <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm" data-testid="stat-countries">
-                    <div class="text-3xl font-bold text-blue-600">54</div>
-                    <div class="text-xs text-gray-600 font-medium">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
+                <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-white/20 shadow-sm" data-testid="stat-countries">
+                    <div class="text-2xl font-bold text-blue-600">54</div>
+                    <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm" data-testid="stat-contributions">
-                    <div class="text-3xl font-bold text-purple-600">{{ stats.contributions or 0 }}</div>
-                    <div class="text-xs text-gray-600 font-medium">{% if get_locale() == 'fr' %}Contributions{% else %}Tips{% endif %}</div>
+                <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-white/20 shadow-sm" data-testid="stat-contributions">
+                    <div class="text-2xl font-bold text-purple-600">{{ stats.contributions or 0 }}</div>
+                    <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Contributions{% else %}Tips{% endif %}</div>
                 </div>
             </div>
         </div>
@@ -69,7 +69,7 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-3">
                 <div class="w-1 h-6 bg-red-600 rounded-full"></div>
                 <h2 class="text-lg font-semibold text-gray-900" data-testid="text-recent-title">
@@ -81,11 +81,12 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
         
         {% if recent %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for person in recent %}
-            <a href="/disparu/{{ person.public_id }}" class="bg-white rounded-2xl border border-red-100 overflow-hidden hover:shadow-lg transition-all group shadow-sm" data-testid="card-person-{{ person.public_id }}">
+            <a href="/disparu/{{ person.public_id }}" class="bg-white rounded-xl border border-red-100 overflow-hidden hover:shadow-lg transition-all group shadow-sm" data-testid="card-person-{{ person.public_id }}">
                 <div class="aspect-video bg-gray-100 relative">
                     {% if person.photo_url %}
                     <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
@@ -95,7 +96,7 @@
                     </div>
                     {% endif %}
                     <div class="absolute top-4 left-4">
-                        <span class="bg-red-600 text-white text-[10px] px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide shadow-sm">
+                        <span class="bg-red-600 text-white text-[10px] px-3 py-1.5 rounded-xl font-semibold uppercase tracking-wide shadow-sm">
                             {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}{% else %}{{ person.status }}{% endif %}
                         </span>
                     </div>
@@ -115,10 +116,10 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-16 bg-white rounded-2xl border border-red-100 shadow-sm">
+        <div class="text-center py-16 bg-white rounded-xl border border-red-100 shadow-sm">
             <svg class="w-16 h-16 mx-auto mb-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <p class="text-gray-500 text-sm mb-6">{% if get_locale() == 'fr' %}Aucun signalement pour le moment{% else %}No reports yet{% endif %}</p>
-            <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-semibold py-3 px-6 rounded-full shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2 text-sm" data-testid="button-first-report">
+            <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-semibold py-3 px-6 rounded-xl shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2 text-sm" data-testid="button-first-report">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 {% if get_locale() == 'fr' %}Signaler une disparition{% else %}Report a disappearance{% endif %}
             </a>
@@ -129,15 +130,16 @@
 
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 mb-2">
             <div class="w-1 h-6 bg-red-600 rounded-full"></div>
             <h2 class="text-lg font-semibold text-gray-900" data-testid="text-causes-title">
                 {% if get_locale() == 'fr' %}Comprendre les causes{% else %}Understanding causes{% endif %}
             </h2>
         </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
-                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mb-4">
                     <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">
@@ -152,8 +154,8 @@
                 </p>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
-                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mb-4">
                     <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">
@@ -168,8 +170,8 @@
                 </p>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
-                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mb-4">
                     <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">
@@ -189,42 +191,44 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 mb-2">
             <div class="w-1 h-6 bg-red-600 rounded-full"></div>
             <h2 class="text-lg font-semibold text-gray-900" data-testid="text-map-title">
                 {% if get_locale() == 'fr' %}Carte des disparitions{% else %}Missing persons map{% endif %}
             </h2>
         </div>
-        <div id="main-map" class="h-[400px] rounded-2xl border border-red-100 shadow-sm overflow-hidden" data-testid="map-main"></div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
+        <div id="main-map" class="h-[400px] rounded-xl border border-red-100 shadow-sm overflow-hidden" data-testid="map-main"></div>
     </div>
 </section>
 
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 mb-2">
             <div class="w-1 h-6 bg-red-600 rounded-full"></div>
             <h2 class="text-lg font-semibold text-gray-900">
                 {% if get_locale() == 'fr' %}Conseils de vigilance{% else %}Safety advice{% endif %}
             </h2>
         </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
+            <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-sm">01</div>
+                    <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-sm">01</div>
                     <h3 class="font-semibold text-gray-900 text-sm">{% if get_locale() == 'fr' %}Photos recentes{% else %}Recent photos{% endif %}</h3>
                 </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}Assurez-vous d'avoir des photos claires et recentes de vos proches en permanence.{% else %}Ensure you always have clear and recent photos of your loved ones.{% endif %}</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
+            <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-sm">02</div>
+                    <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-sm">02</div>
                     <h3 class="font-semibold text-gray-900 text-sm">{% if get_locale() == 'fr' %}Contacts d'urgence{% else %}Emergency contacts{% endif %}</h3>
                 </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}Les enfants doivent connaitre au moins un numero de telephone et leur adresse.{% else %}Children should know at least one phone number and their address.{% endif %}</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
+            <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-sm">03</div>
+                    <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-sm">03</div>
                     <h3 class="font-semibold text-gray-900 text-sm">{% if get_locale() == 'fr' %}Signalement immediat{% else %}Report immediately{% endif %}</h3>
                 </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}N'attendez pas 24h. Les premieres heures sont cruciales pour les recherches.{% else %}Don't wait 24h. The first hours are crucial for the search.{% endif %}</p>
@@ -235,38 +239,39 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 mb-2">
             <div class="w-1 h-6 bg-red-600 rounded-full"></div>
             <h2 class="text-lg font-semibold text-gray-900">{% if get_locale() == 'fr' %}Pourquoi agir maintenant ?{% else %}Why act now?{% endif %}</h2>
         </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             <div class="space-y-4">
-                <div class="flex gap-4 p-4 rounded-2xl border border-red-100 bg-white shadow-sm">
-                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">1</div>
+                <div class="flex gap-4 p-4 rounded-xl border border-red-100 bg-white shadow-sm">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-semibold text-sm">1</div>
                     <div>
                         <h3 class="font-semibold text-gray-900 text-sm mb-1">{% if get_locale() == 'fr' %}La force du reseau{% else %}The power of the network{% endif %}</h3>
                         <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}Plus il y a d'utilisateurs, plus les chances de retrouver une personne augmentent.{% else %}The more users there are, the more chances of finding a person increase.{% endif %}</p>
                     </div>
                 </div>
-                <div class="flex gap-4 p-4 rounded-2xl border border-red-100 bg-white shadow-sm">
-                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">2</div>
+                <div class="flex gap-4 p-4 rounded-xl border border-red-100 bg-white shadow-sm">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-semibold text-sm">2</div>
                     <div>
                         <h3 class="font-semibold text-gray-900 text-sm mb-1">{% if get_locale() == 'fr' %}Verification rigoureuse{% else %}Rigorous verification{% endif %}</h3>
                         <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}Chaque signalement est modere pour garantir la fiabilite des informations.{% else %}Each report is moderated to ensure the reliability of the information.{% endif %}</p>
                     </div>
                 </div>
-                <div class="flex gap-4 p-4 rounded-2xl border border-red-100 bg-white shadow-sm">
-                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">3</div>
+                <div class="flex gap-4 p-4 rounded-xl border border-red-100 bg-white shadow-sm">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-semibold text-sm">3</div>
                     <div>
                         <h3 class="font-semibold text-gray-900 text-sm mb-1">{% if get_locale() == 'fr' %}Acces gratuit pour tous{% else %}Free access for all{% endif %}</h3>
                         <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}DISPARUS.ORG est un service humanitaire gratuit dedie a la protection des familles africaines.{% else %}DISPARUS.ORG is a free humanitarian service dedicated to the protection of African families.{% endif %}</p>
                     </div>
                 </div>
             </div>
-            <div class="bg-red-700 p-6 rounded-2xl text-white shadow-sm flex flex-col justify-center">
+            <div class="bg-red-700 p-6 rounded-xl text-white shadow-sm flex flex-col justify-center">
                 <h3 class="text-xl font-bold mb-3">{% if get_locale() == 'fr' %}Devenir moderateur{% else %}Become a moderator{% endif %}</h3>
                 <p class="mb-5 opacity-90 leading-relaxed text-sm">{% if get_locale() == 'fr' %}Vous souhaitez aider benevolement a la verification des signalements ? Rejoignez notre equipe.{% else %}Would you like to volunteer to help verify reports? Join our team.{% endif %}</p>
-                <a href="#" class="inline-block bg-white text-red-700 px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-red-50 transition-all w-fit shadow-sm">{% if get_locale() == 'fr' %}Rejoindre l'equipe{% else %}Join the team{% endif %}</a>
+                <a href="#" class="inline-block bg-white text-red-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all w-fit shadow-sm">{% if get_locale() == 'fr' %}Rejoindre l'equipe{% else %}Join the team{% endif %}</a>
             </div>
         </div>
     </div>
@@ -274,29 +279,30 @@
 
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 mb-2">
             <div class="w-1 h-6 bg-red-600 rounded-full"></div>
             <h2 class="text-lg font-semibold text-gray-900" data-testid="text-how-title">
                 {% if get_locale() == 'fr' %}Comment aider ?{% else %}How to help?{% endif %}
             </h2>
         </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-2xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
-                <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">{% if get_locale() == 'fr' %}Remplissez le formulaire avec toutes les informations disponibles.{% else %}Fill the form with all available information.{% endif %}</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
-                <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Temoigner{% else %}Witness{% endif %}</h3>
                 <p class="text-gray-600 text-sm leading-relaxed">{% if get_locale() == 'fr' %}Vous avez vu quelqu'un ? Ajoutez une contribution precieuse.{% else %}Seen someone? Add a valuable contribution.{% endif %}</p>
             </div>
-            <div class="bg-white rounded-2xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
-                <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
+                <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                 </div>
                 <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Diffuser{% else %}Spread{% endif %}</h3>

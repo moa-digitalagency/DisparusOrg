@@ -7,7 +7,7 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-xl text-sm font-medium mb-4">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 {% if get_locale() == 'fr' %}Administration{% else %}Administration{% endif %}
             </div>
@@ -18,7 +18,7 @@
             <p class="text-sm text-red-100 opacity-90 mb-4">
                 {% if get_locale() == 'fr' %}Gestion de la plateforme{% else %}Platform management{% endif %}
             </p>
-            <a href="/moderation" class="inline-flex items-center gap-2 bg-white text-red-700 hover:bg-red-50 px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm" data-testid="link-moderation">
+            <a href="/moderation" class="inline-flex items-center gap-2 bg-white text-red-700 hover:bg-red-50 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm" data-testid="link-moderation">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 {% if get_locale() == 'fr' %}Moderation{% else %}Moderation{% endif %}
             </a>
@@ -28,51 +28,53 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4 space-y-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
-                <div class="text-xs text-gray-500 font-medium">Total</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-gray-900">{{ stats.total }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Total</div>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-red-600">{{ stats.missing }}</div>
-                <div class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Disparus{% else %}Missing{% endif %}</div>
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-red-600">{{ stats.missing }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Disparus{% else %}Missing{% endif %}</div>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-green-600">{{ stats.found }}</div>
-                <div class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-green-600">{{ stats.found }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-gray-600">{{ stats.deceased }}</div>
-                <div class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Decedes{% else %}Deceased{% endif %}</div>
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-gray-600">{{ stats.deceased }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Decedes{% else %}Deceased{% endif %}</div>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-amber-600">{{ stats.flagged }}</div>
-                <div class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Signales{% else %}Flagged{% endif %}</div>
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-amber-600">{{ stats.flagged }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Signales{% else %}Flagged{% endif %}</div>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-blue-600">{{ stats.contributions }}</div>
-                <div class="text-xs text-gray-500 font-medium">Contributions</div>
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-blue-600">{{ stats.contributions }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Contributions</div>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-red-100 shadow-sm">
-                <div class="text-2xl font-bold text-purple-600">{{ stats.countries }}</div>
-                <div class="text-xs text-gray-500 font-medium">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
+            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
+                <div class="text-xl font-bold text-purple-600">{{ stats.countries }}</div>
+                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
             </div>
         </div>
         
-        <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-            <div class="flex items-center gap-3 mb-4">
+        <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
                 <div class="w-1 h-5 bg-red-600 rounded-full"></div>
                 <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Carte complete{% else %}Complete map{% endif %}</h2>
             </div>
-            <div id="admin-map" class="h-80 rounded-lg border border-gray-200" data-testid="map-admin"></div>
+            <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-4"></div>
+            <div id="admin-map" class="h-80 rounded-xl border border-gray-200" data-testid="map-admin"></div>
         </div>
         
-        <div class="bg-white rounded-2xl border border-red-100 overflow-hidden shadow-sm">
+        <div class="bg-white rounded-xl border border-red-100 overflow-hidden shadow-sm">
             <div class="p-5 border-b border-red-100">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 mb-2">
                     <div class="w-1 h-5 bg-red-600 rounded-full"></div>
                     <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Tous les signalements{% else %}All reports{% endif %} ({{ disparus|length }})</h2>
                 </div>
+                <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full"></div>
             </div>
             
             <div class="overflow-x-auto">
@@ -95,15 +97,15 @@
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-2">
                                     {% if person.photo_url %}
-                                    <img src="{{ person.photo_url }}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
+                                    <img src="{{ person.photo_url }}" class="w-8 h-8 rounded-xl object-cover border border-gray-200">
                                     {% else %}
-                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                    <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
                                         <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                     </div>
                                     {% endif %}
                                     <span class="font-medium text-gray-900 text-sm">{{ person.first_name }} {{ person.last_name }}</span>
                                     {% if person.is_flagged %}
-                                    <span class="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded font-medium">!</span>
+                                    <span class="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-lg font-medium">!</span>
                                     {% endif %}
                                 </div>
                             </td>
@@ -111,7 +113,7 @@
                             <td class="px-4 py-3 text-sm text-gray-600">{{ person.city }}, {{ person.country }}</td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ person.disappearance_date.strftime('%d/%m/%Y') if person.disappearance_date else '-' }}</td>
                             <td class="px-4 py-3">
-                                <span class="text-xs px-2 py-1 rounded-full font-medium
+                                <span class="text-xs px-2 py-1 rounded-lg font-medium
                                     {% if person.status == 'missing' %}bg-red-100 text-red-700
                                     {% elif person.status == 'found' %}bg-green-100 text-green-700
                                     {% else %}bg-gray-100 text-gray-700{% endif %}">
