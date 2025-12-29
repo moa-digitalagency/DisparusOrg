@@ -202,18 +202,34 @@ def settings():
             if key.startswith('setting_'):
                 setting_key = key[8:]
                 value = request.form[key]
-                SiteSetting.set(setting_key, value, updated_by=session.get('admin_username'))
+                existing = SiteSetting.query.filter_by(key=setting_key).first()
+                if existing:
+                    existing.value = value
+                    existing.updated_by = session.get('admin_username')
+                else:
+                    category = 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
+                    value_type = 'boolean' if value in ['true', 'false'] else 'text' if setting_key.endswith('_scripts') else 'string'
+                    new_setting = SiteSetting(
+                        key=setting_key,
+                        value=value,
+                        value_type=value_type,
+                        category=category,
+                        updated_by=session.get('admin_username')
+                    )
+                    db.session.add(new_setting)
+        db.session.commit()
         flash('Parametres sauvegardes', 'success')
         return redirect(url_for('admin.settings'))
     
     settings_list = SiteSetting.query.order_by(SiteSetting.category, SiteSetting.key).all()
+    settings_dict = {s.key: s.value for s in settings_list}
     settings_by_category = {}
     for s in settings_list:
         if s.category not in settings_by_category:
             settings_by_category[s.category] = []
         settings_by_category[s.category].append(s)
     
-    return render_template('admin_settings.html', settings_by_category=settings_by_category)
+    return render_template('admin_settings.html', settings_by_category=settings_by_category, settings=settings_dict)
 
 
 @admin_bp.route('/users')

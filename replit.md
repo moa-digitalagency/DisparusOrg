@@ -68,9 +68,13 @@ templates/            # Jinja2 templates
 
 ## Database Schema
 - **disparus_flask**: Missing persons with location, description, contacts
-- **contributions_flask**: Sightings and updates from citizens
+- **contributions_flask**: Sightings and updates from citizens (with is_approved validation)
 - **moderation_reports_flask**: Flagged content for review
-- **users_flask**: User accounts (future)
+- **users_flask**: User accounts with role-based access
+- **roles_flask**: Role definitions with permissions and menu access
+- **activity_logs_flask**: Activity logging for all user actions
+- **downloads_flask**: Download tracking for PDFs, images, exports
+- **site_settings_flask**: Platform configuration (SEO, security, general)
 
 ## Routes
 ### Public Blueprint (routes/public.py)
@@ -88,10 +92,16 @@ templates/            # Jinja2 templates
 - `GET /admin/` - Admin dashboard with sidebar
 - `GET /admin/reports` - All reports with pagination/filters
 - `GET /admin/moderation` - Moderation dashboard
-- `GET /admin/contributions` - All contributions
+- `GET /admin/contributions` - All contributions with approve/reject
 - `GET /admin/statistics` - Platform statistics
 - `GET /admin/map` - Interactive map view
-- `GET /admin/settings` - Settings page
+- `GET /admin/users` - User management (CRUD)
+- `GET /admin/roles` - Role management with permissions
+- `GET /admin/logs` - Activity logs with filters
+- `GET /admin/downloads` - Download tracking
+- `GET /admin/settings` - SEO, security, general settings
+- `POST /admin/contributions/<id>/approve` - Approve contribution
+- `POST /admin/contributions/<id>/reject` - Reject contribution
 - `POST /admin/moderation/<id>/resolve` - Resolve report
 - `POST /admin/disparu/<id>/status` - Update status
 - `POST /admin/disparu/<id>/delete` - Delete record
@@ -117,6 +127,18 @@ templates/            # Jinja2 templates
 5. **Offline-First**: PWA manifest, service worker with caching
 6. **Responsive**: Mobile-first design with Tailwind CSS
 7. **50+ African Countries**: Comprehensive city lists
+8. **Role-Based Access Control**: 4 system roles (admin, moderator, ngo, secours)
+9. **Activity Logging**: Track all actions, IP addresses, security events
+10. **Download Tracking**: Monitor PDF/image downloads
+11. **Contribution Validation**: Approve/reject workflow for contributions
+12. **SEO Configuration**: Meta tags, OpenGraph, Google Analytics/GTM
+13. **Custom Script Injection**: Head/body scripts for tracking
+
+## User Roles
+- **admin**: Full access to all features
+- **moderator**: Content moderation, contribution validation
+- **ngo**: Reports, statistics, exports
+- **secours**: Reports, map access
 
 ## Running the Project
 ```bash
@@ -128,6 +150,13 @@ python main.py        # Start Flask development server
 - `SESSION_SECRET` - Session encryption key
 
 ## Recent Changes
+- 2025-12-29: Added user management with CRUD, role assignment
+- 2025-12-29: Added role management with permissions and menu access control
+- 2025-12-29: Added activity logging system with severity levels and security events
+- 2025-12-29: Added download tracking for all file downloads
+- 2025-12-29: Enhanced settings with SEO (meta tags, GA, GTM, OpenGraph), security, custom scripts
+- 2025-12-29: Added contribution validation workflow (approve/reject)
+- 2025-12-29: Admin sidebar now has 3 sections: Main menu, Management, System
 - 2025-12-29: Admin panel redesigned with left sidebar navigation menu
 - 2025-12-29: Added admin pages: reports, contributions, statistics, map, settings
 - 2025-12-29: Admin authentication with login/logout and session-based security

@@ -37,6 +37,9 @@ def create_app(config_name='default'):
     
     with app.app_context():
         db.create_all()
+        from models.settings import init_default_settings, init_default_roles
+        init_default_settings()
+        init_default_roles()
     
     app.jinja_env.globals['get_locale'] = get_locale
     
