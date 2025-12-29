@@ -275,6 +275,55 @@ def settings():
     if request.method == 'GET':
         log_activity('Consultation parametres', action_type='view', target_type='settings')
     if request.method == 'POST':
+        import os
+        from werkzeug.utils import secure_filename
+        
+        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico'}
+        ALLOWED_MIMETYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/x-icon', 'image/vnd.microsoft.icon'}
+        
+        def allowed_file(filename, file_obj):
+            if '.' not in filename:
+                return False
+            ext = filename.rsplit('.', 1)[1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                return False
+            if file_obj.content_type and file_obj.content_type not in ALLOWED_MIMETYPES:
+                return False
+            return True
+        
+        upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'statics', 'uploads', 'settings')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        image_fields = ['og_image', 'favicon', 'logo']
+        for field in image_fields:
+            file_key = f'upload_{field}'
+            if file_key in request.files:
+                file = request.files[file_key]
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    if not allowed_file(filename, file):
+                        continue
+                    ext = filename.rsplit('.', 1)[-1].lower()
+                    new_filename = f'{field}.{ext}'
+                    file_path = os.path.join(upload_folder, new_filename)
+                    file.save(file_path)
+                    
+                    setting_key = f'seo_{field}' if field == 'og_image' else field
+                    existing = SiteSetting.query.filter_by(key=setting_key).first()
+                    value = f'/statics/uploads/settings/{new_filename}'
+                    if existing:
+                        existing.value = value
+                        existing.updated_by = session.get('admin_username')
+                    else:
+                        new_setting = SiteSetting(
+                            key=setting_key,
+                            value=value,
+                            value_type='string',
+                            category='seo' if field == 'og_image' else 'general',
+                            updated_by=session.get('admin_username')
+                        )
+                        db.session.add(new_setting)
+        
         for key in request.form:
             if key.startswith('setting_'):
                 setting_key = key[8:]
@@ -284,8 +333,8 @@ def settings():
                     existing.value = value
                     existing.updated_by = session.get('admin_username')
                 else:
-                    category = 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
-                    value_type = 'boolean' if value in ['true', 'false'] else 'text' if setting_key.endswith('_scripts') else 'string'
+                    category = 'footer' if setting_key.startswith('footer_') else 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
+                    value_type = 'boolean' if value in ['true', 'false'] else 'text' if setting_key.endswith('_scripts') or setting_key.endswith('_description') else 'string'
                     new_setting = SiteSetting(
                         key=setting_key,
                         value=value,

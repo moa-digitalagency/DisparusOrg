@@ -43,6 +43,24 @@ def create_app(config_name='default'):
     
     app.jinja_env.globals['get_locale'] = get_locale
     
+    @app.context_processor
+    def inject_site_settings():
+        from models.settings import SiteSetting
+        import json
+        settings_list = SiteSetting.query.all()
+        site_settings = {s.key: s.value for s in settings_list}
+        
+        def parse_json_links(json_str):
+            try:
+                return json.loads(json_str) if json_str else []
+            except:
+                return []
+        
+        return {
+            'site_settings': site_settings,
+            'parse_json_links': parse_json_links
+        }
+    
     register_blueprints(app)
     
     register_utility_routes(app)
