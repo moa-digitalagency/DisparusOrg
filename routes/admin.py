@@ -9,6 +9,27 @@ from services.analytics import get_platform_stats
 admin_bp = Blueprint('admin', __name__)
 
 
+def log_activity(action, action_type='admin', target_type=None, target_id=None, target_name=None, severity='info', is_security=False):
+    """Helper function to log admin activities"""
+    try:
+        log = ActivityLog(
+            username=session.get('admin_username', 'system'),
+            action=action,
+            action_type=action_type,
+            target_type=target_type,
+            target_id=str(target_id) if target_id else None,
+            target_name=target_name,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500],
+            severity=severity,
+            is_security_event=is_security
+        )
+        db.session.add(log)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -34,8 +55,10 @@ def login():
         if username == admin_username and password == admin_password and admin_password:
             session['admin_logged_in'] = True
             session['admin_username'] = username
+            log_activity('Connexion admin reussie', action_type='auth', severity='info', is_security=True)
             return redirect(url_for('admin.dashboard'))
         else:
+            log_activity(f'Tentative de connexion echouee pour: {username}', action_type='auth', severity='warning', is_security=True)
             error = 'Identifiants invalides'
     
     return render_template('admin_login.html', error=error)
@@ -43,6 +66,7 @@ def login():
 
 @admin_bp.route('/logout')
 def logout():
+    log_activity('Deconnexion admin', action_type='auth', severity='info', is_security=True)
     session.pop('admin_logged_in', None)
     session.pop('admin_username', None)
     return redirect(url_for('public.index'))
@@ -93,6 +117,7 @@ def resolve_report(report_id):
         if report.target_type == 'disparu':
             disparu = Disparu.query.get(report.target_id)
             if disparu:
+                log_activity(f'Suppression fiche suite a moderation', action_type='delete', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}', severity='warning')
                 db.session.delete(disparu)
     elif action == 'unflag':
         if report.target_type == 'disparu':
@@ -100,6 +125,7 @@ def resolve_report(report_id):
             if disparu:
                 disparu.is_flagged = False
     
+    log_activity(f'Resolution signalement #{report_id} - Action: {action}', action_type='update', target_type='moderation', target_id=report_id, severity='info')
     db.session.commit()
     return redirect(url_for('admin.moderation'))
 
@@ -109,8 +135,10 @@ def resolve_report(report_id):
 def update_status(disparu_id):
     disparu = Disparu.query.get_or_404(disparu_id)
     new_status = request.form.get('status')
+    old_status = disparu.status
     if new_status in ['missing', 'found', 'deceased']:
         disparu.status = new_status
+        log_activity(f'Changement statut: {old_status} -> {new_status}', action_type='update', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
         db.session.commit()
     return redirect(url_for('admin.dashboard'))
 
@@ -119,6 +147,8 @@ def update_status(disparu_id):
 @admin_required
 def delete_disparu(disparu_id):
     disparu = Disparu.query.get_or_404(disparu_id)
+    name = f'{disparu.first_name} {disparu.last_name}'
+    log_activity(f'Suppression fiche disparu', action_type='delete', target_type='disparu', target_id=disparu.id, target_name=name, severity='warning')
     db.session.delete(disparu)
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
@@ -256,6 +286,7 @@ def settings():
                         updated_by=session.get('admin_username')
                     )
                     db.session.add(new_setting)
+        log_activity(f'Modification parametres', action_type='update', target_type='settings', severity='info')
         db.session.commit()
         flash('Parametres sauvegardes', 'success')
         return redirect(url_for('admin.settings'))
@@ -330,6 +361,7 @@ def add_user():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+        log_activity(f'Creation utilisateur', action_type='create', target_type='user', target_id=user.id, target_name=email)
         
         flash('Utilisateur cree avec succes', 'success')
         return redirect(url_for('admin.users'))
@@ -355,6 +387,7 @@ def edit_user(user_id):
         if request.form.get('password'):
             user.set_password(request.form.get('password'))
         
+        log_activity(f'Modification utilisateur', action_type='update', target_type='user', target_id=user.id, target_name=user.email)
         db.session.commit()
         flash('Utilisateur mis a jour', 'success')
         return redirect(url_for('admin.users'))
@@ -367,6 +400,7 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
+    log_activity(f'Suppression utilisateur', action_type='delete', target_type='user', target_id=user.id, target_name=user.email, severity='warning')
     db.session.delete(user)
     db.session.commit()
     flash('Utilisateur supprime', 'success')
@@ -405,6 +439,7 @@ def add_role():
         )
         db.session.add(role)
         db.session.commit()
+        log_activity(f'Creation role', action_type='create', target_type='role', target_id=role.id, target_name=name)
         
         flash('Role cree avec succes', 'success')
         return redirect(url_for('admin.roles'))
@@ -431,6 +466,7 @@ def edit_role(role_id):
         
         role.menu_access = request.form.getlist('menu_access')
         
+        log_activity(f'Modification role', action_type='update', target_type='role', target_id=role.id, target_name=role.name)
         db.session.commit()
         flash('Role mis a jour', 'success')
         return redirect(url_for('admin.roles'))
@@ -516,6 +552,7 @@ def approve_contribution(contrib_id):
     contribution.is_approved = True
     contribution.approved_by = session.get('admin_username')
     contribution.approved_at = datetime.utcnow()
+    log_activity(f'Approbation contribution', action_type='update', target_type='contribution', target_id=contrib_id, target_name=contribution.contributor_name)
     db.session.commit()
     flash('Contribution approuvee', 'success')
     return redirect(url_for('admin.contributions'))
@@ -525,6 +562,7 @@ def approve_contribution(contrib_id):
 @admin_required
 def reject_contribution(contrib_id):
     contribution = Contribution.query.get_or_404(contrib_id)
+    log_activity(f'Rejet contribution', action_type='delete', target_type='contribution', target_id=contrib_id, target_name=contribution.contributor_name, severity='warning')
     db.session.delete(contribution)
     db.session.commit()
     flash('Contribution rejetee', 'success')
