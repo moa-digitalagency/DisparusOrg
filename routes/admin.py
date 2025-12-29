@@ -1,5 +1,7 @@
+import os
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for
+from functools import wraps
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 
 from models import db, Disparu, Contribution, ModerationReport
 from services.analytics import get_platform_stats
@@ -7,7 +9,47 @@ from services.analytics import get_platform_stats
 admin_bp = Blueprint('admin', __name__)
 
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            return redirect(url_for('admin.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@admin_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if session.get('admin_logged_in'):
+        return redirect(url_for('admin.dashboard'))
+    
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
+        
+        admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+        admin_password = os.environ.get('ADMIN_PASSWORD', '')
+        
+        if username == admin_username and password == admin_password and admin_password:
+            session['admin_logged_in'] = True
+            session['admin_username'] = username
+            return redirect(url_for('admin.dashboard'))
+        else:
+            error = 'Identifiants invalides'
+    
+    return render_template('admin_login.html', error=error)
+
+
+@admin_bp.route('/logout')
+def logout():
+    session.pop('admin_logged_in', None)
+    session.pop('admin_username', None)
+    return redirect(url_for('public.index'))
+
+
 @admin_bp.route('/')
+@admin_required
 def dashboard():
     stats = {
         'total': Disparu.query.count(),
@@ -23,6 +65,7 @@ def dashboard():
 
 
 @admin_bp.route('/moderation')
+@admin_required
 def moderation():
     reports = ModerationReport.query.filter_by(status='pending').order_by(ModerationReport.created_at.desc()).all()
     flagged = Disparu.query.filter_by(is_flagged=True).all()
@@ -36,11 +79,12 @@ def moderation():
 
 
 @admin_bp.route('/moderation/<int:report_id>/resolve', methods=['POST'])
+@admin_required
 def resolve_report(report_id):
     report = ModerationReport.query.get_or_404(report_id)
     
     report.status = 'resolved'
-    report.reviewed_by = 'admin'
+    report.reviewed_by = session.get('admin_username', 'admin')
     report.reviewed_at = datetime.utcnow()
     
     action = request.form.get('action')
@@ -61,6 +105,7 @@ def resolve_report(report_id):
 
 
 @admin_bp.route('/disparu/<int:disparu_id>/status', methods=['POST'])
+@admin_required
 def update_status(disparu_id):
     disparu = Disparu.query.get_or_404(disparu_id)
     new_status = request.form.get('status')
@@ -71,6 +116,7 @@ def update_status(disparu_id):
 
 
 @admin_bp.route('/disparu/<int:disparu_id>/delete', methods=['POST'])
+@admin_required
 def delete_disparu(disparu_id):
     disparu = Disparu.query.get_or_404(disparu_id)
     db.session.delete(disparu)
