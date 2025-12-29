@@ -145,6 +145,14 @@ def report():
 @public_bp.route('/disparu/<public_id>')
 def detail(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    try:
+        db.session.execute(
+            db.text("UPDATE disparus_flask SET view_count = COALESCE(view_count, 0) + 1 WHERE id = :id"),
+            {"id": disparu.id}
+        )
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
     contributions = Contribution.query.filter_by(disparu_id=disparu.id).order_by(Contribution.created_at.desc()).all()
     return render_template('detail.html', person=disparu, contributions=contributions)
 
