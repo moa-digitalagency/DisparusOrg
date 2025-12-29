@@ -46,6 +46,10 @@ algorithms/           # AI/Analysis
   clustering.py       # Geographic hotspots
   matching.py         # Photo matching
 
+lang/                 # Translation files
+  fr.json             # French translations
+  en.json             # English translations
+
 statics/              # Static assets (unique folder)
   css/                # Stylesheets
   js/                 # JavaScript (includes sw.js)
