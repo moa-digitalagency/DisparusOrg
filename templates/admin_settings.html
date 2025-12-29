@@ -1,6 +1,6 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Reglages - Admin DISPARUS.ORG{% endblock %}
+{% block title %}{% if get_locale() == 'fr' %}Reglages{% else %}Settings{% endif %} - Admin DISPARUS.ORG{% endblock %}
 
 {% block page_title %}{% if get_locale() == 'fr' %}Reglages{% else %}Settings{% endif %}{% endblock %}
 {% block page_subtitle %}{% if get_locale() == 'fr' %}Configuration de la plateforme{% else %}Platform configuration{% endif %}{% endblock %}
@@ -8,77 +8,68 @@
 {% block admin_content %}
 <form method="POST" class="space-y-6">
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 bg-gray-50">
-            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                {% if get_locale() == 'fr' %}Parametres generaux{% else %}General settings{% endif %}
-            </h2>
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                    <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Parametres generaux{% else %}General Settings{% endif %}</h2>
+                    <p class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Configuration de base du site{% else %}Basic site configuration{% endif %}</p>
+                </div>
+            </div>
         </div>
-        <div class="p-5 space-y-4">
-            {% if settings_by_category and settings_by_category.get('general') %}
-            {% for setting in settings_by_category.get('general', []) %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ setting.key }}</label>
-                {% if setting.value_type == 'boolean' %}
-                <select name="setting_{{ setting.key }}" class="w-full rounded-xl border-gray-200 text-sm">
-                    <option value="true" {% if setting.value == 'true' %}selected{% endif %}>{% if get_locale() == 'fr' %}Oui{% else %}Yes{% endif %}</option>
-                    <option value="false" {% if setting.value == 'false' %}selected{% endif %}>{% if get_locale() == 'fr' %}Non{% else %}No{% endif %}</option>
-                </select>
-                {% elif setting.value_type == 'text' %}
-                <textarea name="setting_{{ setting.key }}" rows="3" class="w-full rounded-xl border-gray-200 text-sm">{{ setting.value or '' }}</textarea>
-                {% else %}
-                <input type="text" name="setting_{{ setting.key }}" value="{{ setting.value or '' }}" class="w-full rounded-xl border-gray-200 text-sm">
-                {% endif %}
-                {% if setting.description %}
-                <p class="text-xs text-gray-500 mt-1">{{ setting.description }}</p>
-                {% endif %}
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Nom du site{% else %}Site name{% endif %}</label>
-                    <input type="text" name="setting_site_name" value="DISPARUS.ORG" class="w-full rounded-xl border-gray-200 text-sm">
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Nom du site{% else %}Site name{% endif %}</label>
+                    <input type="text" name="setting_site_name" value="{{ settings.get('site_name', 'DISPARUS.ORG') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-sm transition-colors">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Email de contact{% else %}Contact email{% endif %}</label>
-                    <input type="email" name="setting_contact_email" value="contact@disparus.org" class="w-full rounded-xl border-gray-200 text-sm">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Email de contact{% else %}Contact email{% endif %}</label>
+                    <input type="email" name="setting_contact_email" value="{{ settings.get('contact_email', 'contact@disparus.org') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-sm transition-colors">
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Description du site{% else %}Site description{% endif %}</label>
-                <textarea name="setting_site_description" rows="2" class="w-full rounded-xl border-gray-200 text-sm">Plateforme humanitaire citoyenne pour signaler et rechercher les personnes disparues en Afrique</textarea>
+            <div class="mt-6 space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Description du site{% else %}Site description{% endif %}</label>
+                <textarea name="setting_site_description" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-sm transition-colors">{{ settings.get('site_description', 'Plateforme humanitaire citoyenne pour signaler et rechercher les personnes disparues en Afrique') }}</textarea>
             </div>
-            <div class="flex items-center gap-4">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="setting_require_contribution_validation" checked class="rounded border-gray-300">
-                    <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Validation des contributions requise{% else %}Require contribution validation{% endif %}</span>
+            <div class="mt-6 flex flex-wrap gap-6">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="setting_require_contribution_validation" {% if settings.get('require_contribution_validation', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Validation des contributions requise{% else %}Require contribution validation{% endif %}</span>
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="setting_allow_anonymous_reports" checked class="rounded border-gray-300">
-                    <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Signalements anonymes{% else %}Anonymous reports{% endif %}</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="setting_allow_anonymous_reports" {% if settings.get('allow_anonymous_reports', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Signalements anonymes{% else %}Anonymous reports{% endif %}</span>
                 </label>
             </div>
-            {% endif %}
         </div>
     </div>
     
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 bg-blue-50">
-            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                {% if get_locale() == 'fr' %}SEO / Referencement{% else %}SEO / Search Engine Optimization{% endif %}
-            </h2>
-        </div>
-        <div class="p-5 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Titre SEO{% else %}SEO Title{% endif %}</label>
-                    <input type="text" name="setting_seo_title" value="{{ settings.get('seo_title', 'DISPARUS.ORG - Retrouver les personnes disparues') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="Titre pour les moteurs de recherche">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Robots{% else %}Robots{% endif %}</label>
-                    <select name="setting_seo_robots" class="w-full rounded-xl border-gray-200 text-sm">
+                    <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}SEO / Referencement{% else %}SEO / Search Engine Optimization{% endif %}</h2>
+                    <p class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Optimisez votre visibilite{% else %}Optimize your visibility{% endif %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Titre SEO{% else %}SEO Title{% endif %}</label>
+                    <input type="text" name="setting_seo_title" value="{{ settings.get('seo_title', 'DISPARUS.ORG - Retrouver les personnes disparues') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="{% if get_locale() == 'fr' %}Titre pour les moteurs de recherche{% else %}Title for search engines{% endif %}">
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Robots</label>
+                    <select name="setting_seo_robots" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors">
                         <option value="index, follow" {% if settings.get('seo_robots') == 'index, follow' %}selected{% endif %}>index, follow</option>
                         <option value="noindex, follow" {% if settings.get('seo_robots') == 'noindex, follow' %}selected{% endif %}>noindex, follow</option>
                         <option value="index, nofollow" {% if settings.get('seo_robots') == 'index, nofollow' %}selected{% endif %}>index, nofollow</option>
@@ -86,129 +77,153 @@
                     </select>
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Meta Description{% else %}Meta Description{% endif %}</label>
-                <textarea name="setting_seo_description" rows="2" class="w-full rounded-xl border-gray-200 text-sm" placeholder="Description pour les resultats de recherche (max 160 caracteres)">{{ settings.get('seo_description', 'Plateforme humanitaire citoyenne pour signaler et rechercher les personnes disparues en Afrique') }}</textarea>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Meta Description{% else %}Meta Description{% endif %}</label>
+                <textarea name="setting_seo_description" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="{% if get_locale() == 'fr' %}Description pour les resultats de recherche (max 160 caracteres){% else %}Description for search results (max 160 characters){% endif %}">{{ settings.get('seo_description', 'Plateforme humanitaire citoyenne pour signaler et rechercher les personnes disparues en Afrique') }}</textarea>
+                <p class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Maximum 160 caracteres recommande{% else %}Maximum 160 characters recommended{% endif %}</p>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Mots-cles{% else %}Keywords{% endif %}</label>
-                <input type="text" name="setting_seo_keywords" value="{{ settings.get('seo_keywords', 'disparus, personnes disparues, Afrique, recherche, signalement') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="Mots-cles separes par des virgules">
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Mots-cles{% else %}Keywords{% endif %}</label>
+                <input type="text" name="setting_seo_keywords" value="{{ settings.get('seo_keywords', 'disparus, personnes disparues, Afrique, recherche, signalement') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="{% if get_locale() == 'fr' %}Mots-cles separes par des virgules{% else %}Keywords separated by commas{% endif %}">
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}URL canonique{% else %}Canonical URL{% endif %}</label>
-                    <input type="url" name="setting_seo_canonical_url" value="{{ settings.get('seo_canonical_url', '') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="https://disparus.org">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}URL canonique{% else %}Canonical URL{% endif %}</label>
+                    <input type="url" name="setting_seo_canonical_url" value="{{ settings.get('seo_canonical_url', '') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="https://disparus.org">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Image OpenGraph{% else %}OpenGraph Image{% endif %}</label>
-                    <input type="url" name="setting_seo_og_image" value="{{ settings.get('seo_og_image', '') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="https://disparus.org/og-image.jpg">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Google Analytics ID</label>
-                    <input type="text" name="setting_seo_google_analytics" value="{{ settings.get('seo_google_analytics', '') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="GA-XXXXXXXXX">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Google Tag Manager ID</label>
-                    <input type="text" name="setting_seo_google_tag_manager" value="{{ settings.get('seo_google_tag_manager', '') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="GTM-XXXXXXX">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Image OpenGraph{% else %}OpenGraph Image{% endif %}</label>
+                    <input type="url" name="setting_seo_og_image" value="{{ settings.get('seo_og_image', '') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="https://disparus.org/og-image.jpg">
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Twitter / X Handle{% else %}Twitter / X Handle{% endif %}</label>
-                <input type="text" name="setting_seo_twitter_handle" value="{{ settings.get('seo_twitter_handle', '') }}" class="w-full rounded-xl border-gray-200 text-sm" placeholder="@disparus_org">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Google Analytics ID</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </span>
+                        <input type="text" name="setting_seo_google_analytics" value="{{ settings.get('seo_google_analytics', '') }}" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="GA-XXXXXXXXX">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Google Tag Manager ID</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </span>
+                        <input type="text" name="setting_seo_google_tag_manager" value="{{ settings.get('seo_google_tag_manager', '') }}" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="GTM-XXXXXXX">
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">Twitter / X Handle</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                    <input type="text" name="setting_seo_twitter_handle" value="{{ settings.get('seo_twitter_handle', '') }}" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-colors" placeholder="disparus_org">
+                </div>
             </div>
         </div>
     </div>
     
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 bg-purple-50">
-            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                {% if get_locale() == 'fr' %}Scripts personnalises{% else %}Custom Scripts{% endif %}
-            </h2>
-        </div>
-        <div class="p-5 space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Code dans &lt;head&gt;{% else %}Code in &lt;head&gt;{% endif %}</label>
-                <textarea name="setting_seo_head_scripts" rows="4" class="w-full rounded-xl border-gray-200 text-sm font-mono text-xs" placeholder="<!-- Scripts, meta tags, CSS a inserer dans le head -->">{{ settings.get('seo_head_scripts', '') }}</textarea>
-                <p class="text-xs text-gray-500 mt-1">{% if get_locale() == 'fr' %}Ce code sera insere avant &lt;/head&gt;{% else %}This code will be inserted before &lt;/head&gt;{% endif %}</p>
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                </div>
+                <div>
+                    <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Scripts personnalises{% else %}Custom Scripts{% endif %}</h2>
+                    <p class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Code personnalise pour le suivi{% else %}Custom tracking code{% endif %}</p>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Code dans &lt;body&gt;{% else %}Code in &lt;body&gt;{% endif %}</label>
-                <textarea name="setting_seo_body_scripts" rows="4" class="w-full rounded-xl border-gray-200 text-sm font-mono text-xs" placeholder="<!-- Scripts a inserer avant </body> -->">{{ settings.get('seo_body_scripts', '') }}</textarea>
-                <p class="text-xs text-gray-500 mt-1">{% if get_locale() == 'fr' %}Ce code sera insere avant &lt;/body&gt;{% else %}This code will be inserted before &lt;/body&gt;{% endif %}</p>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Code dans &lt;head&gt;{% else %}Code in &lt;head&gt;{% endif %}</label>
+                <textarea name="setting_seo_head_scripts" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-sm font-mono transition-colors" placeholder="<!-- Scripts, meta tags, CSS -->">{{ settings.get('seo_head_scripts', '') }}</textarea>
+                <p class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Ce code sera insere avant &lt;/head&gt;{% else %}This code will be inserted before &lt;/head&gt;{% endif %}</p>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Code dans &lt;body&gt;{% else %}Code in &lt;body&gt;{% endif %}</label>
+                <textarea name="setting_seo_body_scripts" rows="4" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-sm font-mono transition-colors" placeholder="<!-- Scripts avant </body> -->">{{ settings.get('seo_body_scripts', '') }}</textarea>
+                <p class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Ce code sera insere avant &lt;/body&gt;{% else %}This code will be inserted before &lt;/body&gt;{% endif %}</p>
             </div>
         </div>
     </div>
     
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100 bg-amber-50">
-            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
-                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                {% if get_locale() == 'fr' %}Securite{% else %}Security{% endif %}
-            </h2>
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <div>
+                    <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Securite{% else %}Security{% endif %}</h2>
+                    <p class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Protection et limites{% else %}Protection and limits{% endif %}</p>
+                </div>
+            </div>
         </div>
-        <div class="p-5 space-y-4">
-            <div class="flex items-center gap-6">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="setting_enable_rate_limiting" checked class="rounded border-gray-300">
-                    <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Limiter le taux de requetes{% else %}Enable rate limiting{% endif %}</span>
+        <div class="p-6 space-y-6">
+            <div class="flex flex-wrap gap-6">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="setting_enable_rate_limiting" {% if settings.get('enable_rate_limiting', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                    <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Limiter le taux de requetes{% else %}Enable rate limiting{% endif %}</span>
                 </label>
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="setting_enable_ip_logging" checked class="rounded border-gray-300">
-                    <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Journaliser les IP{% else %}Log IP addresses{% endif %}</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="setting_enable_ip_logging" {% if settings.get('enable_ip_logging', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                    <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Journaliser les IP{% else %}Log IP addresses{% endif %}</span>
                 </label>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Limite par minute{% else %}Rate limit per minute{% endif %}</label>
-                    <input type="number" name="setting_rate_limit_per_minute" value="60" class="w-full rounded-xl border-gray-200 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Limite par minute{% else %}Rate limit per minute{% endif %}</label>
+                    <input type="number" name="setting_rate_limit_per_minute" value="{{ settings.get('rate_limit_per_minute', '60') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-sm transition-colors">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Taille max upload (Mo){% else %}Max upload size (MB){% endif %}</label>
-                    <input type="number" name="setting_max_upload_size_mb" value="5" class="w-full rounded-xl border-gray-200 text-sm">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Taille max upload (Mo){% else %}Max upload size (MB){% endif %}</label>
+                    <input type="number" name="setting_max_upload_size_mb" value="{{ settings.get('max_upload_size_mb', '5') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-sm transition-colors">
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}IPs bloquees{% else %}Blocked IPs{% endif %}</label>
-                <textarea name="setting_blocked_ips" rows="2" class="w-full rounded-xl border-gray-200 text-sm font-mono text-xs" placeholder="Une IP par ligne"></textarea>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}IPs bloquees{% else %}Blocked IPs{% endif %}</label>
+                <textarea name="setting_blocked_ips" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-sm font-mono transition-colors" placeholder="{% if get_locale() == 'fr' %}Une IP par ligne{% else %}One IP per line{% endif %}">{{ settings.get('blocked_ips', '') }}</textarea>
             </div>
         </div>
     </div>
     
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Informations systeme{% else %}System information{% endif %}</h2>
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Informations systeme{% else %}System Information{% endif %}</h2>
         </div>
-        <div class="p-5 space-y-3">
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-gray-600">{% if get_locale() == 'fr' %}Version{% else %}Version{% endif %}</span>
-                <span class="font-medium text-gray-900">1.0.0</span>
-            </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-gray-600">{% if get_locale() == 'fr' %}Plateforme{% else %}Platform{% endif %}</span>
-                <span class="font-medium text-gray-900">Flask + PostgreSQL</span>
-            </div>
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-gray-600">{% if get_locale() == 'fr' %}Langues supportees{% else %}Supported languages{% endif %}</span>
-                <span class="font-medium text-gray-900">Francais, English</span>
-            </div>
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">{% if get_locale() == 'fr' %}Pays couverts{% else %}Countries covered{% endif %}</span>
-                <span class="font-medium text-gray-900">54</span>
+        <div class="p-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 rounded-xl bg-gray-50">
+                    <div class="text-2xl font-bold text-gray-900">1.0.0</div>
+                    <div class="text-sm text-gray-500">Version</div>
+                </div>
+                <div class="text-center p-4 rounded-xl bg-gray-50">
+                    <div class="text-2xl font-bold text-gray-900">Flask</div>
+                    <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Plateforme{% else %}Platform{% endif %}</div>
+                </div>
+                <div class="text-center p-4 rounded-xl bg-gray-50">
+                    <div class="text-2xl font-bold text-gray-900">2</div>
+                    <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Langues{% else %}Languages{% endif %}</div>
+                </div>
+                <div class="text-center p-4 rounded-xl bg-gray-50">
+                    <div class="text-2xl font-bold text-gray-900">54</div>
+                    <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="flex items-center justify-between">
-        <a href="{{ url_for('admin.logout') }}" class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            {% if get_locale() == 'fr' %}Se deconnecter{% else %}Logout{% endif %}
-        </a>
-        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            {% if get_locale() == 'fr' %}Sauvegarder{% else %}Save{% endif %}
+    <div class="flex items-center justify-end gap-4">
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            {% if get_locale() == 'fr' %}Sauvegarder les modifications{% else %}Save Changes{% endif %}
         </button>
     </div>
 </form>

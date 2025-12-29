@@ -21,6 +21,8 @@ class Download(db.Model):
     
     ip_address = db.Column(db.String(50))
     user_agent = db.Column(db.Text)
+    country = db.Column(db.String(100))
+    city = db.Column(db.String(100))
     
     created_at = db.Column(db.DateTime, default=db.func.now())
     
@@ -42,5 +44,7 @@ class Download(db.Model):
             'file_size': self.file_size,
             'download_type': self.download_type,
             'ip_address': self.ip_address,
+            'country': self.country,
+            'city': self.city,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }

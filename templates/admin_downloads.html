@@ -1,6 +1,6 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Telechargements - Admin DISPARUS.ORG{% endblock %}
+{% block title %}{% if get_locale() == 'fr' %}Telechargements{% else %}Downloads{% endif %} - Admin DISPARUS.ORG{% endblock %}
 
 {% block page_title %}{% if get_locale() == 'fr' %}Telechargements{% else %}Downloads{% endif %}{% endblock %}
 {% block page_subtitle %}{% if get_locale() == 'fr' %}Historique des fichiers telecharges{% else %}Download history{% endif %}{% endblock %}
@@ -8,28 +8,34 @@
 {% block admin_content %}
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
     <div class="p-4 border-b border-gray-100">
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Type de fichier{% else %}File type{% endif %}</label>
-                <select name="file_type" class="rounded-xl border-gray-200 text-sm px-3 py-2">
-                    <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
+            <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Type de fichier{% else %}File type{% endif %}</label>
+                <select name="file_type" class="rounded-xl border-gray-200 text-sm px-4 py-2.5 focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                    <option value="">{% if get_locale() == 'fr' %}Tous les types{% else %}All types{% endif %}</option>
                     {% for type in file_types %}
                     <option value="{{ type }}" {% if file_type == type %}selected{% endif %}>{{ type|upper }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Type de telechargement{% else %}Download type{% endif %}</label>
-                <select name="download_type" class="rounded-xl border-gray-200 text-sm px-3 py-2">
+            <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Type de telechargement{% else %}Download type{% endif %}</label>
+                <select name="download_type" class="rounded-xl border-gray-200 text-sm px-4 py-2.5 focus:border-red-500 focus:ring-2 focus:ring-red-200">
                     <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
                     {% for type in download_types %}
                     <option value="{{ type }}" {% if download_type == type %}selected{% endif %}>{{ type }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                 {% if get_locale() == 'fr' %}Filtrer{% else %}Filter{% endif %}
             </button>
+            {% if file_type or download_type %}
+            <a href="{{ url_for('admin.downloads') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                {% if get_locale() == 'fr' %}Reinitialiser{% else %}Reset{% endif %}
+            </a>
+            {% endif %}
         </form>
     </div>
 </div>
@@ -39,43 +45,53 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Date{% else %}Date{% endif %}</th>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Fichier{% else %}File{% endif %}</th>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Fiche{% else %}Record{% endif %}</th>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Type{% else %}Type{% endif %}</th>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Taille{% else %}Size{% endif %}</th>
-                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">IP</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">{% if get_locale() == 'fr' %}Date{% else %}Date{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">{% if get_locale() == 'fr' %}Fichier{% else %}File{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">{% if get_locale() == 'fr' %}Fiche{% else %}Record{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">{% if get_locale() == 'fr' %}Type{% else %}Type{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">{% if get_locale() == 'fr' %}Localisation{% else %}Location{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">IP</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 {% for dl in downloads.items %}
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-4 py-3 text-gray-500 font-mono text-xs">
-                        {{ dl.created_at.strftime('%d/%m/%Y %H:%M') if dl.created_at else '-' }}
+                    <td class="px-4 py-3">
+                        <div class="text-gray-900 font-medium">{{ dl.created_at.strftime('%d/%m/%Y') if dl.created_at else '-' }}</div>
+                        <div class="text-xs text-gray-500">{{ dl.created_at.strftime('%H:%M') if dl.created_at else '' }}</div>
                     </td>
                     <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center
                                 {% if dl.file_type == 'pdf' %}bg-red-100
                                 {% elif dl.file_type in ['png', 'jpg'] %}bg-blue-100
+                                {% elif dl.file_type == 'csv' %}bg-green-100
+                                {% elif dl.file_type == 'json' %}bg-amber-100
                                 {% else %}bg-gray-100{% endif %}">
                                 {% if dl.file_type == 'pdf' %}
-                                <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/></svg>
+                                <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/></svg>
                                 {% elif dl.file_type in ['png', 'jpg'] %}
-                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {% elif dl.file_type == 'csv' %}
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 {% else %}
-                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                 {% endif %}
                             </div>
                             <div>
-                                <div class="font-medium text-gray-900 truncate max-w-xs">{{ dl.file_name }}</div>
-                                <div class="text-xs text-gray-500 uppercase">{{ dl.file_type }}</div>
+                                <div class="font-medium text-gray-900 truncate max-w-[200px]">{{ dl.file_name }}</div>
+                                <div class="text-xs text-gray-500">
+                                    {{ dl.file_type|upper }}
+                                    {% if dl.file_size %}
+                                    - {{ (dl.file_size / 1024)|round(1) }} Ko
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </td>
                     <td class="px-4 py-3">
                         {% if dl.disparu_public_id %}
-                        <a href="/disparu/{{ dl.disparu_public_id }}" class="text-red-600 hover:text-red-700 font-medium">
+                        <a href="/disparu/{{ dl.disparu_public_id }}" class="text-red-600 hover:text-red-700 font-medium hover:underline">
                             {{ dl.disparu_name or dl.disparu_public_id }}
                         </a>
                         {% else %}
@@ -83,23 +99,41 @@
                         {% endif %}
                     </td>
                     <td class="px-4 py-3">
-                        <span class="text-xs px-2 py-0.5 rounded-lg font-medium bg-gray-100 text-gray-700">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
+                            {% if 'pdf' in dl.download_type %}bg-red-50 text-red-700
+                            {% elif 'image' in dl.download_type %}bg-blue-50 text-blue-700
+                            {% elif 'csv' in dl.download_type or 'json' in dl.download_type %}bg-green-50 text-green-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
                             {{ dl.download_type }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-gray-600">
-                        {% if dl.file_size %}
-                        {{ (dl.file_size / 1024)|round(1) }} Ko
+                    <td class="px-4 py-3">
+                        {% if dl.country or dl.city %}
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <div>
+                                <div class="text-gray-900 text-sm">{{ dl.city or '' }}</div>
+                                <div class="text-xs text-gray-500">{{ dl.country or '' }}</div>
+                            </div>
+                        </div>
                         {% else %}
-                        -
+                        <span class="text-gray-400 text-sm">{% if get_locale() == 'fr' %}Non disponible{% else %}Not available{% endif %}</span>
                         {% endif %}
                     </td>
-                    <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ dl.ip_address or '-' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">{{ dl.ip_address or '-' }}</span>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-gray-500">
-                        {% if get_locale() == 'fr' %}Aucun telechargement{% else %}No downloads{% endif %}
+                    <td colspan="6" class="px-4 py-16 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            </div>
+                            <p class="text-gray-500 font-medium">{% if get_locale() == 'fr' %}Aucun telechargement{% else %}No downloads{% endif %}</p>
+                            <p class="text-gray-400 text-sm">{% if get_locale() == 'fr' %}Les telechargements apparaitront ici{% else %}Downloads will appear here{% endif %}</p>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -109,13 +143,19 @@
     
     {% if downloads.pages > 1 %}
     <div class="p-4 border-t border-gray-100 flex items-center justify-between">
-        <div class="text-sm text-gray-500">Page {{ downloads.page }} / {{ downloads.pages }}</div>
+        <div class="text-sm text-gray-500">
+            {% if get_locale() == 'fr' %}Page{% else %}Page{% endif %} {{ downloads.page }} / {{ downloads.pages }}
+        </div>
         <div class="flex gap-2">
             {% if downloads.has_prev %}
-            <a href="{{ url_for('admin.downloads', page=downloads.prev_num, file_type=file_type, download_type=download_type) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700">Precedent</a>
+            <a href="{{ url_for('admin.downloads', page=downloads.prev_num, file_type=file_type, download_type=download_type) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors">
+                {% if get_locale() == 'fr' %}Precedent{% else %}Previous{% endif %}
+            </a>
             {% endif %}
             {% if downloads.has_next %}
-            <a href="{{ url_for('admin.downloads', page=downloads.next_num, file_type=file_type, download_type=download_type) }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white">Suivant</a>
+            <a href="{{ url_for('admin.downloads', page=downloads.next_num, file_type=file_type, download_type=download_type) }}" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-sm font-medium text-white transition-colors">
+                {% if get_locale() == 'fr' %}Suivant{% else %}Next{% endif %}
+            </a>
             {% endif %}
         </div>
     </div>
