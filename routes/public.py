@@ -3,11 +3,32 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from werkzeug.utils import secure_filename
 
-from models import db, Disparu, Contribution, ModerationReport
+from models import db, Disparu, Contribution, ModerationReport, ActivityLog
 from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cities
 from services.signalement import create_signalement, generate_public_id
 
 public_bp = Blueprint('public', __name__)
+
+
+def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None):
+    """Log public page views"""
+    try:
+        log = ActivityLog(
+            username='visiteur',
+            action=action,
+            action_type=action_type,
+            target_type=target_type,
+            target_id=str(target_id) if target_id else None,
+            target_name=target_name,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500],
+            severity='debug',
+            is_security_event=False
+        )
+        db.session.add(log)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 def get_locale():
@@ -20,6 +41,7 @@ def get_locale():
 
 @public_bp.route('/')
 def index():
+    log_public_activity('Page accueil', target_type='home')
     recent = Disparu.query.filter_by(status='missing').order_by(Disparu.created_at.desc()).limit(6).all()
     stats = {
         'total': Disparu.query.count(),
@@ -34,6 +56,7 @@ def index():
 
 @public_bp.route('/recherche')
 def search():
+    log_public_activity('Page recherche', target_type='search')
     query = request.args.get('q', '')
     status_filter = request.args.get('status', 'all')
     person_type = request.args.get('type', 'all')
@@ -78,6 +101,8 @@ def search():
 
 @public_bp.route('/signaler', methods=['GET', 'POST'])
 def report():
+    if request.method == 'GET':
+        log_public_activity('Page signaler', target_type='report')
     if request.method == 'POST':
         try:
             photo_url = None
@@ -145,6 +170,7 @@ def report():
 @public_bp.route('/disparu/<public_id>')
 def detail(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    log_public_activity('Fiche disparu', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
     try:
         db.session.execute(
             db.text("UPDATE disparus_flask SET view_count = COALESCE(view_count, 0) + 1 WHERE id = :id"),
@@ -160,6 +186,7 @@ def detail(public_id):
 @public_bp.route('/disparu/<public_id>/contribute', methods=['POST'])
 def contribute(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    log_public_activity('Contribution ajoutee', action_type='create', target_type='contribution', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
     
     try:
         proof_url = None
@@ -207,6 +234,7 @@ def contribute(public_id):
 @public_bp.route('/disparu/<public_id>/report', methods=['POST'])
 def report_content(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    log_public_activity('Signalement contenu', action_type='create', target_type='moderation', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
     
     try:
         report = ModerationReport(
