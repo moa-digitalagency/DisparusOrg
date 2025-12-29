@@ -46,12 +46,11 @@ algorithms/           # AI/Analysis
   clustering.py       # Geographic hotspots
   matching.py         # Photo matching
 
-statics/              # Static assets
-  css/                # Tailwind CSS
-  js/                 # JavaScript
-  img/                # Images/icons
+statics/              # Static assets (unique folder)
+  css/                # Stylesheets
+  js/                 # JavaScript (includes sw.js)
+  img/                # Images/icons (includes favicon.png)
   uploads/            # User uploads
-  sw.js               # Service worker
 
 templates/            # Jinja2 templates
   base.html           # Base template

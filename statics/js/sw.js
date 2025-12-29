@@ -2,7 +2,7 @@ const CACHE_NAME = 'disparus-v1';
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
-    '/static/favicon.png',
+    '/statics/img/favicon.png',
 ];
 
 self.addEventListener('install', (event) => {

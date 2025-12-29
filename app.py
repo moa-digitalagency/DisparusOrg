@@ -103,14 +103,14 @@ def register_utility_routes(app):
             "background_color": "#ffffff",
             "theme_color": "#b91c1c",
             "icons": [
-                {"src": "/statics/favicon.png", "sizes": "192x192", "type": "image/png"},
-                {"src": "/statics/favicon.png", "sizes": "512x512", "type": "image/png"}
+                {"src": "/statics/img/favicon.png", "sizes": "192x192", "type": "image/png"},
+                {"src": "/statics/img/favicon.png", "sizes": "512x512", "type": "image/png"}
             ]
         })
     
     @app.route('/sw.js')
     def service_worker():
-        return send_from_directory('statics', 'sw.js', mimetype='application/javascript')
+        return send_from_directory('statics/js', 'sw.js', mimetype='application/javascript')
     
     @app.route('/statics/<path:filename>')
     def serve_statics(filename):
