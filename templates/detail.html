@@ -7,15 +7,17 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <span class="inline-block text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wide mb-3 shadow-sm
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4 shadow-sm
                 {% if person.status == 'missing' %}bg-white text-red-700
                 {% elif person.status == 'found' %}bg-green-500 text-white
                 {% else %}bg-gray-500 text-white{% endif %}" data-testid="badge-status">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}{% else %}{{ person.status }}{% endif %}
             </span>
-            <h1 class="text-xl md:text-2xl font-bold mb-2 tracking-tight leading-tight" data-testid="text-person-name">
+            <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-person-name">
                 {{ person.first_name }} {{ person.last_name }}
             </h1>
+            <div class="w-16 h-1 bg-white/50 rounded-full mx-auto mb-4"></div>
             <p class="text-base text-red-100 opacity-90">
                 {{ person.age }} {% if get_locale() == 'fr' %}ans{% else %}years{% endif %} - {{ person.city }}, {{ person.country }}
             </p>
@@ -58,31 +60,46 @@
                         
                         <div class="space-y-4">
                             <div>
-                                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Description physique{% else %}Physical description{% endif %}</h3>
-                                <p class="text-gray-600 text-sm leading-relaxed">{{ person.physical_description }}</p>
+                                <h3 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+                                    <div class="w-1 h-4 bg-red-600 rounded-full"></div>
+                                    {% if get_locale() == 'fr' %}Description physique{% else %}Physical description{% endif %}
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed pl-3">{{ person.physical_description }}</p>
                             </div>
                             {% if person.clothing %}
                             <div>
-                                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Vetements{% else %}Clothing{% endif %}</h3>
-                                <p class="text-gray-600 text-sm leading-relaxed">{{ person.clothing }}</p>
+                                <h3 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+                                    <div class="w-1 h-4 bg-red-600 rounded-full"></div>
+                                    {% if get_locale() == 'fr' %}Vetements{% else %}Clothing{% endif %}
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed pl-3">{{ person.clothing }}</p>
                             </div>
                             {% endif %}
                             {% if person.objects %}
                             <div>
-                                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Objets{% else %}Objects{% endif %}</h3>
-                                <p class="text-gray-600 text-sm leading-relaxed">{{ person.objects }}</p>
+                                <h3 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+                                    <div class="w-1 h-4 bg-red-600 rounded-full"></div>
+                                    {% if get_locale() == 'fr' %}Objets{% else %}Objects{% endif %}
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed pl-3">{{ person.objects }}</p>
                             </div>
                             {% endif %}
                             <div>
-                                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Circonstances{% else %}Circumstances{% endif %}</h3>
-                                <p class="text-gray-600 text-sm leading-relaxed">{{ person.circumstances }}</p>
+                                <h3 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+                                    <div class="w-1 h-4 bg-red-600 rounded-full"></div>
+                                    {% if get_locale() == 'fr' %}Circonstances{% else %}Circumstances{% endif %}
+                                </h3>
+                                <p class="text-gray-600 text-sm leading-relaxed pl-3">{{ person.circumstances }}</p>
                             </div>
                         </div>
                         
                         {% if person.contacts %}
                         <div class="mt-5 pt-5 border-t border-gray-100">
-                            <h3 class="font-semibold text-gray-900 mb-3 text-sm">{% if get_locale() == 'fr' %}Contacts{% else %}Contacts{% endif %}</h3>
-                            <div class="space-y-2">
+                            <h3 class="font-semibold text-gray-900 mb-3 text-sm flex items-center gap-2">
+                                <div class="w-1 h-4 bg-red-600 rounded-full"></div>
+                                {% if get_locale() == 'fr' %}Contacts{% else %}Contacts{% endif %}
+                            </h3>
+                            <div class="space-y-2 pl-3">
                                 {% for contact in person.contacts %}
                                 <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
                                     <div>
@@ -99,13 +116,19 @@
                 
                 {% if person.latitude and person.longitude %}
                 <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <h2 class="text-base font-semibold mb-4 text-gray-900">{% if get_locale() == 'fr' %}Carte des localisations{% else %}Location map{% endif %}</h2>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-1 h-5 bg-red-600 rounded-full"></div>
+                        <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Carte des localisations{% else %}Location map{% endif %}</h2>
+                    </div>
                     <div id="detail-map" class="h-56 rounded-lg border border-gray-200" data-testid="map-detail"></div>
                 </div>
                 {% endif %}
                 
                 <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <h2 class="text-base font-semibold mb-4 text-gray-900">{% if get_locale() == 'fr' %}Historique des contributions{% else %}Contribution history{% endif %} ({{ contributions|length }})</h2>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-1 h-5 bg-red-600 rounded-full"></div>
+                        <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Historique des contributions{% else %}Contribution history{% endif %} ({{ contributions|length }})</h2>
+                    </div>
                     
                     {% if contributions %}
                     <div class="space-y-3">
@@ -142,7 +165,10 @@
             
             <div class="space-y-5">
                 <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <h2 class="text-base font-semibold mb-4 text-gray-900">{% if get_locale() == 'fr' %}Ajouter une contribution{% else %}Add contribution{% endif %}</h2>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-1 h-5 bg-red-600 rounded-full"></div>
+                        <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Ajouter une contribution{% else %}Add contribution{% endif %}</h2>
+                    </div>
                     
                     <form action="/disparu/{{ person.public_id }}/contribute" method="POST" enctype="multipart/form-data" class="space-y-4">
                         <div>
@@ -208,7 +234,10 @@
                 </div>
                 
                 <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                    <h2 class="text-base font-semibold mb-4 text-gray-900">{% if get_locale() == 'fr' %}Signaler un probleme{% else %}Report a problem{% endif %}</h2>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-1 h-5 bg-amber-500 rounded-full"></div>
+                        <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Signaler un probleme{% else %}Report a problem{% endif %}</h2>
+                    </div>
                     
                     <form action="/disparu/{{ person.public_id }}/report" method="POST" class="space-y-4">
                         <div>

@@ -7,18 +7,23 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-xl md:text-2xl font-bold mb-2 tracking-tight leading-tight" data-testid="text-hero-title">
+            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                54 {% if get_locale() == 'fr' %}pays africains{% else %}African countries{% endif %}
+            </div>
+            <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-hero-title">
                 {% if get_locale() == 'fr' %}
                     Aidez-nous a retrouver les disparus en Afrique
                 {% else %}
                     Help us find the missing in Africa
                 {% endif %}
             </h1>
+            <div class="w-16 h-1 bg-white/50 rounded-full mx-auto mb-4"></div>
             <p class="text-base text-red-100 mb-2 opacity-90">
                 {% if get_locale() == 'fr' %}
-                    25 000+ enfants et personnes portes disparus chaque annee en Afrique
+                    25 000+ enfants et personnes portes disparus chaque annee
                 {% else %}
-                    25,000+ children and people reported missing every year in Africa
+                    25,000+ children and people reported missing every year
                 {% endif %}
             </p>
             <p class="text-sm text-red-200 mb-6 italic opacity-80">
@@ -65,11 +70,15 @@
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 tracking-tight" data-testid="text-recent-title">
-                {% if get_locale() == 'fr' %}Derniers signalements{% else %}Recent reports{% endif %}
-            </h2>
-            <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium text-sm" data-testid="link-view-all">
-                {% if get_locale() == 'fr' %}Voir tout{% else %}View all{% endif %} &rarr;
+            <div class="flex items-center gap-3">
+                <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+                <h2 class="text-lg font-semibold text-gray-900" data-testid="text-recent-title">
+                    {% if get_locale() == 'fr' %}Derniers signalements{% else %}Recent reports{% endif %}
+                </h2>
+            </div>
+            <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium text-sm flex items-center gap-1" data-testid="link-view-all">
+                {% if get_locale() == 'fr' %}Voir tout{% else %}View all{% endif %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
         
@@ -120,9 +129,12 @@
 
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-lg font-semibold mb-6 text-gray-900 tracking-tight" data-testid="text-causes-title">
-            {% if get_locale() == 'fr' %}Comprendre les causes{% else %}Understanding causes{% endif %}
-        </h2>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-gray-900" data-testid="text-causes-title">
+                {% if get_locale() == 'fr' %}Comprendre les causes{% else %}Understanding causes{% endif %}
+            </h2>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm hover:shadow-md transition-all">
                 <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -177,32 +189,44 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-lg font-semibold mb-6 text-gray-900 tracking-tight" data-testid="text-map-title">
-            {% if get_locale() == 'fr' %}Carte des disparitions{% else %}Missing persons map{% endif %}
-        </h2>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-gray-900" data-testid="text-map-title">
+                {% if get_locale() == 'fr' %}Carte des disparitions{% else %}Missing persons map{% endif %}
+            </h2>
+        </div>
         <div id="main-map" class="h-[400px] rounded-2xl border border-red-100 shadow-sm overflow-hidden" data-testid="map-main"></div>
     </div>
 </section>
 
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-lg font-semibold mb-6 text-center text-gray-900 tracking-tight">
-            {% if get_locale() == 'fr' %}Conseils de vigilance{% else %}Safety advice{% endif %}
-        </h2>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-gray-900">
+                {% if get_locale() == 'fr' %}Conseils de vigilance{% else %}Safety advice{% endif %}
+            </h2>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
-                <div class="text-red-700 font-bold text-xl mb-3">01</div>
-                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Photos recentes{% else %}Recent photos{% endif %}</h3>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-sm">01</div>
+                    <h3 class="font-semibold text-gray-900 text-sm">{% if get_locale() == 'fr' %}Photos recentes{% else %}Recent photos{% endif %}</h3>
+                </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}Assurez-vous d'avoir des photos claires et recentes de vos proches en permanence.{% else %}Ensure you always have clear and recent photos of your loved ones.{% endif %}</p>
             </div>
             <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
-                <div class="text-red-700 font-bold text-xl mb-3">02</div>
-                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Contacts d'urgence{% else %}Emergency contacts{% endif %}</h3>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-sm">02</div>
+                    <h3 class="font-semibold text-gray-900 text-sm">{% if get_locale() == 'fr' %}Contacts d'urgence{% else %}Emergency contacts{% endif %}</h3>
+                </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}Les enfants doivent connaitre au moins un numero de telephone et leur adresse.{% else %}Children should know at least one phone number and their address.{% endif %}</p>
             </div>
             <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm">
-                <div class="text-red-700 font-bold text-xl mb-3">03</div>
-                <h3 class="font-semibold text-gray-900 mb-2 text-sm">{% if get_locale() == 'fr' %}Signalement immediat{% else %}Report immediately{% endif %}</h3>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-bold text-sm">03</div>
+                    <h3 class="font-semibold text-gray-900 text-sm">{% if get_locale() == 'fr' %}Signalement immediat{% else %}Report immediately{% endif %}</h3>
+                </div>
                 <p class="text-sm text-gray-600 leading-relaxed">{% if get_locale() == 'fr' %}N'attendez pas 24h. Les premieres heures sont cruciales pour les recherches.{% else %}Don't wait 24h. The first hours are crucial for the search.{% endif %}</p>
             </div>
         </div>
@@ -211,7 +235,10 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-lg font-semibold mb-6 text-center text-gray-900 tracking-tight">{% if get_locale() == 'fr' %}Pourquoi agir maintenant ?{% else %}Why act now?{% endif %}</h2>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-gray-900">{% if get_locale() == 'fr' %}Pourquoi agir maintenant ?{% else %}Why act now?{% endif %}</h2>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             <div class="space-y-4">
                 <div class="flex gap-4 p-4 rounded-2xl border border-red-100 bg-white shadow-sm">
@@ -247,9 +274,12 @@
 
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-lg font-semibold text-center mb-6 text-gray-900 tracking-tight" data-testid="text-how-title">
-            {% if get_locale() == 'fr' %}Comment aider ?{% else %}How to help?{% endif %}
-        </h2>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-6 bg-red-600 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-gray-900" data-testid="text-how-title">
+                {% if get_locale() == 'fr' %}Comment aider ?{% else %}How to help?{% endif %}
+            </h2>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-2xl p-5 text-center border border-red-100 shadow-sm hover:shadow-md transition-all">
                 <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

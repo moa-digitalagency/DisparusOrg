@@ -7,9 +7,14 @@
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center max-w-3xl mx-auto">
-            <h1 class="text-xl md:text-2xl font-bold mb-2 tracking-tight leading-tight" data-testid="text-report-title">
+            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {% if get_locale() == 'fr' %}Formulaire de signalement{% else %}Report form{% endif %}
+            </div>
+            <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-report-title">
                 {% if get_locale() == 'fr' %}Signaler une disparition{% else %}Report a disappearance{% endif %}
             </h1>
+            <div class="w-16 h-1 bg-white/50 rounded-full mx-auto mb-4"></div>
             <p class="text-base text-red-100 opacity-90">
                 {% if get_locale() == 'fr' %}Remplissez ce formulaire avec toutes les informations disponibles{% else %}Fill this form with all available information{% endif %}
             </p>
@@ -27,10 +32,12 @@
         
         <form action="/signaler" method="POST" enctype="multipart/form-data" class="space-y-5">
             <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                <h2 class="text-base font-semibold mb-4 flex items-center gap-3 text-gray-900">
-                    <span class="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center text-red-700 text-xs font-semibold">1</span>
-                    {% if get_locale() == 'fr' %}Identite{% else %}Identity{% endif %}
-                </h2>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">1</div>
+                    <h2 class="text-base font-semibold text-gray-900">
+                        {% if get_locale() == 'fr' %}Identite{% else %}Identity{% endif %}
+                    </h2>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -70,10 +77,12 @@
             </div>
             
             <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                <h2 class="text-base font-semibold mb-4 flex items-center gap-3 text-gray-900">
-                    <span class="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center text-red-700 text-xs font-semibold">2</span>
-                    {% if get_locale() == 'fr' %}Lieu de disparition{% else %}Disappearance location{% endif %}
-                </h2>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">2</div>
+                    <h2 class="text-base font-semibold text-gray-900">
+                        {% if get_locale() == 'fr' %}Lieu de disparition{% else %}Disappearance location{% endif %}
+                    </h2>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
@@ -108,10 +117,12 @@
             </div>
             
             <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                <h2 class="text-base font-semibold mb-4 flex items-center gap-3 text-gray-900">
-                    <span class="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center text-red-700 text-xs font-semibold">3</span>
-                    {% if get_locale() == 'fr' %}Description{% else %}Description{% endif %}
-                </h2>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">3</div>
+                    <h2 class="text-base font-semibold text-gray-900">
+                        {% if get_locale() == 'fr' %}Description{% else %}Description{% endif %}
+                    </h2>
+                </div>
                 
                 <div class="space-y-4">
                     <div>
@@ -140,10 +151,12 @@
             </div>
             
             <div class="bg-white rounded-2xl border border-red-100 p-5 shadow-sm">
-                <h2 class="text-base font-semibold mb-4 flex items-center gap-3 text-gray-900">
-                    <span class="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center text-red-700 text-xs font-semibold">4</span>
-                    {% if get_locale() == 'fr' %}Contacts referents{% else %}Reference contacts{% endif %}
-                </h2>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm">4</div>
+                    <h2 class="text-base font-semibold text-gray-900">
+                        {% if get_locale() == 'fr' %}Contacts referents{% else %}Reference contacts{% endif %}
+                    </h2>
+                </div>
                 
                 <div id="contacts-container" class="space-y-4">
                     <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
