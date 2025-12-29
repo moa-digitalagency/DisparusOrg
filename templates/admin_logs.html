@@ -1,0 +1,125 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Logs - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Journal d'activite{% else %}Activity Log{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Historique des actions sur la plateforme{% else %}Platform action history{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+    <div class="p-4 border-b border-gray-100">
+        <form method="GET" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Recherche{% else %}Search{% endif %}</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="IP, utilisateur, action..." class="rounded-xl border-gray-200 text-sm px-3 py-2 w-48">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Type{% else %}Type{% endif %}</label>
+                <select name="action_type" class="rounded-xl border-gray-200 text-sm px-3 py-2">
+                    <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
+                    {% for type in action_types %}
+                    <option value="{{ type }}" {% if action_type == type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Severite{% else %}Severity{% endif %}</label>
+                <select name="severity" class="rounded-xl border-gray-200 text-sm px-3 py-2">
+                    <option value="">{% if get_locale() == 'fr' %}Toutes{% else %}All{% endif %}</option>
+                    {% for level in severity_levels %}
+                    <option value="{{ level }}" {% if severity == level %}selected{% endif %}>{{ level }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <label class="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl">
+                <input type="checkbox" name="security" value="1" {% if security_only %}checked{% endif %} class="rounded border-gray-300">
+                <span class="text-sm text-amber-700 font-medium">{% if get_locale() == 'fr' %}Securite uniquement{% else %}Security only{% endif %}</span>
+            </label>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                {% if get_locale() == 'fr' %}Filtrer{% else %}Filter{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Date/Heure{% else %}Date/Time{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Utilisateur{% else %}User{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">Action</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Cible{% else %}Target{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">IP</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Severite{% else %}Severity{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for log in logs.items %}
+                <tr class="hover:bg-gray-50 transition-colors {% if log.is_security_event %}bg-amber-50/50{% endif %}">
+                    <td class="px-4 py-3 text-gray-500 font-mono text-xs">
+                        {{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') if log.created_at else '-' }}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-900">{{ log.username }}</span>
+                            {% if log.is_security_event %}
+                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs px-2 py-0.5 rounded-lg font-medium
+                                {% if log.action_type == 'auth' %}bg-blue-100 text-blue-700
+                                {% elif log.action_type == 'create' %}bg-green-100 text-green-700
+                                {% elif log.action_type == 'delete' %}bg-red-100 text-red-700
+                                {% elif log.action_type == 'security' %}bg-amber-100 text-amber-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ log.action_type }}
+                            </span>
+                            <span class="text-gray-700">{{ log.action }}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {% if log.target_name %}{{ log.target_name }}{% elif log.target_id %}{{ log.target_type }} #{{ log.target_id }}{% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ log.ip_address or '-' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs px-2 py-0.5 rounded-lg font-medium
+                            {% if log.severity == 'critical' %}bg-red-100 text-red-700
+                            {% elif log.severity == 'error' %}bg-red-100 text-red-700
+                            {% elif log.severity == 'warning' %}bg-amber-100 text-amber-700
+                            {% elif log.severity == 'info' %}bg-blue-100 text-blue-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ log.severity }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-10 text-center text-gray-500">
+                        {% if get_locale() == 'fr' %}Aucun log trouve{% else %}No logs found{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if logs.pages > 1 %}
+    <div class="p-4 border-t border-gray-100 flex items-center justify-between">
+        <div class="text-sm text-gray-500">Page {{ logs.page }} / {{ logs.pages }}</div>
+        <div class="flex gap-2">
+            {% if logs.has_prev %}
+            <a href="{{ url_for('admin.logs', page=logs.prev_num, action_type=action_type, severity=severity, search=search, security=1 if security_only else '') }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700">Precedent</a>
+            {% endif %}
+            {% if logs.has_next %}
+            <a href="{{ url_for('admin.logs', page=logs.next_num, action_type=action_type, severity=severity, search=search, security=1 if security_only else '') }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white">Suivant</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

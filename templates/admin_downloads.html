@@ -1,0 +1,124 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Telechargements - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Telechargements{% else %}Downloads{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Historique des fichiers telecharges{% else %}Download history{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+    <div class="p-4 border-b border-gray-100">
+        <form method="GET" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Type de fichier{% else %}File type{% endif %}</label>
+                <select name="file_type" class="rounded-xl border-gray-200 text-sm px-3 py-2">
+                    <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
+                    {% for type in file_types %}
+                    <option value="{{ type }}" {% if file_type == type %}selected{% endif %}>{{ type|upper }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Type de telechargement{% else %}Download type{% endif %}</label>
+                <select name="download_type" class="rounded-xl border-gray-200 text-sm px-3 py-2">
+                    <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
+                    {% for type in download_types %}
+                    <option value="{{ type }}" {% if download_type == type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                {% if get_locale() == 'fr' %}Filtrer{% else %}Filter{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Date{% else %}Date{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Fichier{% else %}File{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Fiche{% else %}Record{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Type{% else %}Type{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Taille{% else %}Size{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">IP</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for dl in downloads.items %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-gray-500 font-mono text-xs">
+                        {{ dl.created_at.strftime('%d/%m/%Y %H:%M') if dl.created_at else '-' }}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center
+                                {% if dl.file_type == 'pdf' %}bg-red-100
+                                {% elif dl.file_type in ['png', 'jpg'] %}bg-blue-100
+                                {% else %}bg-gray-100{% endif %}">
+                                {% if dl.file_type == 'pdf' %}
+                                <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/></svg>
+                                {% elif dl.file_type in ['png', 'jpg'] %}
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {% else %}
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900 truncate max-w-xs">{{ dl.file_name }}</div>
+                                <div class="text-xs text-gray-500 uppercase">{{ dl.file_type }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if dl.disparu_public_id %}
+                        <a href="/disparu/{{ dl.disparu_public_id }}" class="text-red-600 hover:text-red-700 font-medium">
+                            {{ dl.disparu_name or dl.disparu_public_id }}
+                        </a>
+                        {% else %}
+                        <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs px-2 py-0.5 rounded-lg font-medium bg-gray-100 text-gray-700">
+                            {{ dl.download_type }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {% if dl.file_size %}
+                        {{ (dl.file_size / 1024)|round(1) }} Ko
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ dl.ip_address or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-10 text-center text-gray-500">
+                        {% if get_locale() == 'fr' %}Aucun telechargement{% else %}No downloads{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if downloads.pages > 1 %}
+    <div class="p-4 border-t border-gray-100 flex items-center justify-between">
+        <div class="text-sm text-gray-500">Page {{ downloads.page }} / {{ downloads.pages }}</div>
+        <div class="flex gap-2">
+            {% if downloads.has_prev %}
+            <a href="{{ url_for('admin.downloads', page=downloads.prev_num, file_type=file_type, download_type=download_type) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700">Precedent</a>
+            {% endif %}
+            {% if downloads.has_next %}
+            <a href="{{ url_for('admin.downloads', page=downloads.next_num, file_type=file_type, download_type=download_type) }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white">Suivant</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

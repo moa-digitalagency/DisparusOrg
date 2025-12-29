@@ -1,0 +1,130 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Utilisateurs - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Utilisateurs{% else %}Users{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Gestion des comptes utilisateurs{% else %}User account management{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+    <div class="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+        <form method="GET" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Recherche{% else %}Search{% endif %}</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Email, nom..." class="rounded-xl border-gray-200 text-sm px-3 py-2 w-48">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Role{% else %}Role{% endif %}</label>
+                <select name="role" class="rounded-xl border-gray-200 text-sm px-3 py-2">
+                    <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
+                    {% for role in roles %}
+                    <option value="{{ role.name }}" {% if role_filter == role.name %}selected{% endif %}>{{ role.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                {% if get_locale() == 'fr' %}Filtrer{% else %}Filter{% endif %}
+            </button>
+        </form>
+        <a href="{{ url_for('admin.add_user') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            {% if get_locale() == 'fr' %}Ajouter{% else %}Add{% endif %}
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Utilisateur{% else %}User{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">Email</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Role{% else %}Role{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Organisation{% else %}Organization{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Statut{% else %}Status{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Derniere connexion{% else %}Last login{% endif %}</th>
+                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for user in users.items %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">{{ user.full_name }}</div>
+                                <div class="text-xs text-gray-500">@{{ user.username or 'N/A' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ user.email }}</td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs px-2 py-1 rounded-lg font-medium
+                            {% if user.role == 'admin' %}bg-red-100 text-red-700
+                            {% elif user.role == 'moderator' %}bg-purple-100 text-purple-700
+                            {% elif user.role == 'ngo' %}bg-blue-100 text-blue-700
+                            {% elif user.role == 'secours' %}bg-green-100 text-green-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ user.role }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ user.organization or '-' }}</td>
+                    <td class="px-4 py-3">
+                        {% if user.is_active %}
+                        <span class="flex items-center gap-1 text-green-600 text-xs font-medium">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            {% if get_locale() == 'fr' %}Actif{% else %}Active{% endif %}
+                        </span>
+                        {% else %}
+                        <span class="flex items-center gap-1 text-gray-400 text-xs font-medium">
+                            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                            {% if get_locale() == 'fr' %}Inactif{% else %}Inactive{% endif %}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                        {{ user.last_login.strftime('%d/%m/%Y %H:%M') if user.last_login else '-' }}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="text-blue-600 hover:text-blue-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </a>
+                            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                <button type="submit" class="text-gray-400 hover:text-red-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-10 text-center text-gray-500 text-sm">
+                        {% if get_locale() == 'fr' %}Aucun utilisateur trouve{% else %}No users found{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if users.pages > 1 %}
+    <div class="p-4 border-t border-gray-100 flex items-center justify-between">
+        <div class="text-sm text-gray-500">Page {{ users.page }} / {{ users.pages }}</div>
+        <div class="flex gap-2">
+            {% if users.has_prev %}
+            <a href="{{ url_for('admin.users', page=users.prev_num, role=role_filter, search=search) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700">Precedent</a>
+            {% endif %}
+            {% if users.has_next %}
+            <a href="{{ url_for('admin.users', page=users.next_num, role=role_filter, search=search) }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white">Suivant</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

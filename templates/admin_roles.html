@@ -1,0 +1,75 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Roles - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Roles{% else %}Roles{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Gestion des roles et permissions{% else %}Role and permission management{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="flex justify-end mb-6">
+    <a href="{{ url_for('admin.add_role') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        {% if get_locale() == 'fr' %}Nouveau role{% else %}New role{% endif %}
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for role in roles %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center
+                        {% if role.name == 'admin' %}bg-red-100
+                        {% elif role.name == 'moderator' %}bg-purple-100
+                        {% elif role.name == 'ngo' %}bg-blue-100
+                        {% elif role.name == 'secours' %}bg-green-100
+                        {% else %}bg-gray-100{% endif %}">
+                        <svg class="w-5 h-5 {% if role.name == 'admin' %}text-red-600{% elif role.name == 'moderator' %}text-purple-600{% elif role.name == 'ngo' %}text-blue-600{% elif role.name == 'secours' %}text-green-600{% else %}text-gray-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ role.display_name }}</h3>
+                        <span class="text-xs text-gray-500 font-mono">{{ role.name }}</span>
+                    </div>
+                </div>
+                {% if role.is_system %}
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">Systeme</span>
+                {% endif %}
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-4">{{ role.description or 'Aucune description' }}</p>
+            
+            <div class="mb-4">
+                <div class="text-xs font-medium text-gray-500 uppercase mb-2">{% if get_locale() == 'fr' %}Menus accessibles{% else %}Accessible menus{% endif %}</div>
+                <div class="flex flex-wrap gap-1">
+                    {% for menu in role.menu_access or [] %}
+                    <span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">{{ menu }}</span>
+                    {% else %}
+                    <span class="text-xs text-gray-400">{% if get_locale() == 'fr' %}Aucun{% else %}None{% endif %}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="text-xs font-medium text-gray-500 uppercase mb-2">{% if get_locale() == 'fr' %}Permissions{% else %}Permissions{% endif %}</div>
+                <div class="flex flex-wrap gap-1">
+                    {% for perm, enabled in (role.permissions or {}).items() %}
+                    {% if enabled %}
+                    <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">{{ perm }}</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="text-xs text-gray-400">{% if get_locale() == 'fr' %}Aucune{% else %}None{% endif %}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="px-5 py-3 bg-gray-50 border-t border-gray-100">
+            <a href="{{ url_for('admin.edit_role', role_id=role.id) }}" class="text-sm text-red-600 hover:text-red-700 font-medium">
+                {% if get_locale() == 'fr' %}Modifier{% else %}Edit{% endif %}
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

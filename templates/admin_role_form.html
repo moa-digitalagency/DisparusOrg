@@ -1,0 +1,62 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{% if role %}Modifier{% else %}Ajouter{% endif %} Role - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if role %}{% if get_locale() == 'fr' %}Modifier le role{% else %}Edit role{% endif %}{% else %}{% if get_locale() == 'fr' %}Nouveau role{% else %}New role{% endif %}{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-2xl">
+    <form method="POST" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-6 space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Identifiant{% else %}ID{% endif %} *</label>
+                    <input type="text" name="name" value="{{ role.name if role else '' }}" required {% if role and role.is_system %}readonly{% endif %} class="w-full rounded-xl border-gray-200 text-sm {% if role and role.is_system %}bg-gray-100{% endif %}" placeholder="ex: moderator">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Nom affiche{% else %}Display name{% endif %} *</label>
+                    <input type="text" name="display_name" value="{{ role.display_name if role else '' }}" required class="w-full rounded-xl border-gray-200 text-sm" placeholder="ex: Moderateur">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea name="description" rows="2" class="w-full rounded-xl border-gray-200 text-sm">{{ role.description if role else '' }}</textarea>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{% if get_locale() == 'fr' %}Menus accessibles{% else %}Accessible menus{% endif %}</label>
+                <div class="grid grid-cols-3 gap-2">
+                    {% set menus = ['dashboard', 'reports', 'moderation', 'contributions', 'statistics', 'map', 'users', 'roles', 'logs', 'downloads', 'settings'] %}
+                    {% for menu in menus %}
+                    <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                        <input type="checkbox" name="menu_access" value="{{ menu }}" {% if role and menu in (role.menu_access or []) %}checked{% endif %} class="rounded border-gray-300">
+                        <span class="text-sm text-gray-700">{{ menu }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                <div class="grid grid-cols-2 gap-2">
+                    {% set perms = ['manage_users', 'manage_roles', 'manage_settings', 'manage_reports', 'manage_contributions', 'view_logs', 'view_downloads', 'moderate_content', 'delete_content', 'export_data'] %}
+                    {% for perm in perms %}
+                    <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                        <input type="checkbox" name="perm_{{ perm }}" {% if role and role.permissions and role.permissions.get(perm) %}checked{% endif %} class="rounded border-gray-300">
+                        <span class="text-sm text-gray-700">{{ perm }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+            <a href="{{ url_for('admin.roles') }}" class="text-gray-600 hover:text-gray-800 text-sm font-medium">{% if get_locale() == 'fr' %}Annuler{% else %}Cancel{% endif %}</a>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors">
+                {% if role %}{% if get_locale() == 'fr' %}Mettre a jour{% else %}Update{% endif %}{% else %}{% if get_locale() == 'fr' %}Creer{% else %}Create{% endif %}{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

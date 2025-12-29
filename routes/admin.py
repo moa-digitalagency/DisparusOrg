@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 
-from models import db, Disparu, Contribution, ModerationReport
+from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting
 from services.analytics import get_platform_stats
 
 admin_bp = Blueprint('admin', __name__)
@@ -194,7 +194,283 @@ def map_view():
     return render_template('admin_map.html', disparus=disparus)
 
 
-@admin_bp.route('/settings')
+@admin_bp.route('/settings', methods=['GET', 'POST'])
 @admin_required
 def settings():
-    return render_template('admin_settings.html')
+    if request.method == 'POST':
+        for key in request.form:
+            if key.startswith('setting_'):
+                setting_key = key[8:]
+                value = request.form[key]
+                SiteSetting.set(setting_key, value, updated_by=session.get('admin_username'))
+        flash('Parametres sauvegardes', 'success')
+        return redirect(url_for('admin.settings'))
+    
+    settings_list = SiteSetting.query.order_by(SiteSetting.category, SiteSetting.key).all()
+    settings_by_category = {}
+    for s in settings_list:
+        if s.category not in settings_by_category:
+            settings_by_category[s.category] = []
+        settings_by_category[s.category].append(s)
+    
+    return render_template('admin_settings.html', settings_by_category=settings_by_category)
+
+
+@admin_bp.route('/users')
+@admin_required
+def users():
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    role_filter = request.args.get('role', '')
+    search = request.args.get('search', '')
+    
+    query = User.query
+    if role_filter:
+        query = query.filter_by(role=role_filter)
+    if search:
+        query = query.filter(
+            db.or_(
+                User.email.ilike(f'%{search}%'),
+                User.first_name.ilike(f'%{search}%'),
+                User.last_name.ilike(f'%{search}%'),
+                User.username.ilike(f'%{search}%')
+            )
+        )
+    
+    users = query.order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    roles = Role.query.all()
+    
+    return render_template('admin_users.html', 
+                         users=users, 
+                         roles=roles,
+                         role_filter=role_filter,
+                         search=search)
+
+
+@admin_bp.route('/users/add', methods=['GET', 'POST'])
+@admin_required
+def add_user():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        role = request.form.get('role', 'user')
+        organization = request.form.get('organization')
+        
+        if User.query.filter_by(email=email).first():
+            flash('Cet email existe deja', 'error')
+            return redirect(url_for('admin.add_user'))
+        
+        user = User(
+            email=email,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            role=role,
+            organization=organization,
+            is_active=True
+        )
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Utilisateur cree avec succes', 'success')
+        return redirect(url_for('admin.users'))
+    
+    roles = Role.query.all()
+    return render_template('admin_user_form.html', user=None, roles=roles)
+
+
+@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    if request.method == 'POST':
+        user.email = request.form.get('email')
+        user.username = request.form.get('username')
+        user.first_name = request.form.get('first_name')
+        user.last_name = request.form.get('last_name')
+        user.role = request.form.get('role', 'user')
+        user.organization = request.form.get('organization')
+        user.is_active = request.form.get('is_active') == 'on'
+        
+        if request.form.get('password'):
+            user.set_password(request.form.get('password'))
+        
+        db.session.commit()
+        flash('Utilisateur mis a jour', 'success')
+        return redirect(url_for('admin.users'))
+    
+    roles = Role.query.all()
+    return render_template('admin_user_form.html', user=user, roles=roles)
+
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('Utilisateur supprime', 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/roles')
+@admin_required
+def roles():
+    roles = Role.query.order_by(Role.name).all()
+    return render_template('admin_roles.html', roles=roles)
+
+
+@admin_bp.route('/roles/add', methods=['GET', 'POST'])
+@admin_required
+def add_role():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        display_name = request.form.get('display_name')
+        description = request.form.get('description')
+        
+        permissions = {}
+        for key in request.form:
+            if key.startswith('perm_'):
+                permissions[key[5:]] = True
+        
+        menu_access = request.form.getlist('menu_access')
+        
+        role = Role(
+            name=name,
+            display_name=display_name,
+            description=description,
+            permissions=permissions,
+            menu_access=menu_access,
+            is_system=False
+        )
+        db.session.add(role)
+        db.session.commit()
+        
+        flash('Role cree avec succes', 'success')
+        return redirect(url_for('admin.roles'))
+    
+    return render_template('admin_role_form.html', role=None)
+
+
+@admin_bp.route('/roles/<int:role_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_role(role_id):
+    role = Role.query.get_or_404(role_id)
+    
+    if request.method == 'POST':
+        if not role.is_system:
+            role.name = request.form.get('name')
+        role.display_name = request.form.get('display_name')
+        role.description = request.form.get('description')
+        
+        permissions = {}
+        for key in request.form:
+            if key.startswith('perm_'):
+                permissions[key[5:]] = True
+        role.permissions = permissions
+        
+        role.menu_access = request.form.getlist('menu_access')
+        
+        db.session.commit()
+        flash('Role mis a jour', 'success')
+        return redirect(url_for('admin.roles'))
+    
+    return render_template('admin_role_form.html', role=role)
+
+
+@admin_bp.route('/logs')
+@admin_required
+def logs():
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    action_type = request.args.get('action_type', '')
+    severity = request.args.get('severity', '')
+    search = request.args.get('search', '')
+    security_only = request.args.get('security', '') == '1'
+    
+    query = ActivityLog.query
+    
+    if action_type:
+        query = query.filter_by(action_type=action_type)
+    if severity:
+        query = query.filter_by(severity=severity)
+    if security_only:
+        query = query.filter_by(is_security_event=True)
+    if search:
+        query = query.filter(
+            db.or_(
+                ActivityLog.username.ilike(f'%{search}%'),
+                ActivityLog.action.ilike(f'%{search}%'),
+                ActivityLog.ip_address.ilike(f'%{search}%'),
+                ActivityLog.target_name.ilike(f'%{search}%')
+            )
+        )
+    
+    logs = query.order_by(ActivityLog.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    action_types = ['auth', 'view', 'create', 'update', 'delete', 'download', 'security', 'admin']
+    severity_levels = ['debug', 'info', 'warning', 'error', 'critical']
+    
+    return render_template('admin_logs.html', 
+                         logs=logs,
+                         action_types=action_types,
+                         severity_levels=severity_levels,
+                         action_type=action_type,
+                         severity=severity,
+                         search=search,
+                         security_only=security_only)
+
+
+@admin_bp.route('/downloads')
+@admin_required
+def downloads():
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    file_type = request.args.get('file_type', '')
+    download_type = request.args.get('download_type', '')
+    
+    query = Download.query
+    
+    if file_type:
+        query = query.filter_by(file_type=file_type)
+    if download_type:
+        query = query.filter_by(download_type=download_type)
+    
+    downloads = query.order_by(Download.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    file_types = ['pdf', 'png', 'jpg', 'csv', 'json']
+    download_types = ['pdf_fiche', 'pdf_qrcode', 'pdf_affiche', 'image_photo', 'csv_export', 'json_export']
+    
+    return render_template('admin_downloads.html',
+                         downloads=downloads,
+                         file_types=file_types,
+                         download_types=download_types,
+                         file_type=file_type,
+                         download_type=download_type)
+
+
+@admin_bp.route('/contributions/<int:contrib_id>/approve', methods=['POST'])
+@admin_required
+def approve_contribution(contrib_id):
+    contribution = Contribution.query.get_or_404(contrib_id)
+    contribution.is_approved = True
+    contribution.approved_by = session.get('admin_username')
+    contribution.approved_at = datetime.utcnow()
+    db.session.commit()
+    flash('Contribution approuvee', 'success')
+    return redirect(url_for('admin.contributions'))
+
+
+@admin_bp.route('/contributions/<int:contrib_id>/reject', methods=['POST'])
+@admin_required
+def reject_contribution(contrib_id):
+    contribution = Contribution.query.get_or_404(contrib_id)
+    db.session.delete(contribution)
+    db.session.commit()
+    flash('Contribution rejetee', 'success')
+    return redirect(url_for('admin.contributions'))
