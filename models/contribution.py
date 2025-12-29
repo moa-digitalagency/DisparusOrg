@@ -25,6 +25,14 @@ class Contribution(db.Model):
     contact_email = db.Column(db.String(100))
     
     is_verified = db.Column(db.Boolean, default=False)
+    is_approved = db.Column(db.Boolean, default=False)
+    approved_by = db.Column(db.String(100))
+    approved_at = db.Column(db.DateTime)
+    
+    contributor_name = db.Column(db.String(100))
+    content = db.Column(db.Text)
+    location = db.Column(db.String(200))
+    
     created_at = db.Column(db.DateTime, default=db.func.now())
     
     def to_dict(self):
