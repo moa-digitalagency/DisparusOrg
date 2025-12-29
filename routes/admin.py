@@ -75,6 +75,7 @@ def logout():
 @admin_bp.route('/')
 @admin_required
 def dashboard():
+    log_activity('Consultation tableau de bord', action_type='view', target_type='dashboard')
     stats = {
         'total': Disparu.query.count(),
         'missing': Disparu.query.filter_by(status='missing').count(),
@@ -91,6 +92,7 @@ def dashboard():
 @admin_bp.route('/moderation')
 @admin_required
 def moderation():
+    log_activity('Consultation moderation', action_type='view', target_type='moderation')
     reports = ModerationReport.query.filter_by(status='pending').order_by(ModerationReport.created_at.desc()).all()
     flagged = Disparu.query.filter_by(is_flagged=True).all()
     stats = {
@@ -157,6 +159,7 @@ def delete_disparu(disparu_id):
 @admin_bp.route('/reports')
 @admin_required
 def all_reports():
+    log_activity('Consultation signalements', action_type='view', target_type='reports')
     page = request.args.get('page', 1, type=int)
     per_page = 20
     status_filter = request.args.get('status', '')
@@ -181,6 +184,7 @@ def all_reports():
 @admin_bp.route('/contributions')
 @admin_required
 def contributions():
+    log_activity('Consultation contributions', action_type='view', target_type='contributions')
     page = request.args.get('page', 1, type=int)
     per_page = 20
     contributions = Contribution.query.order_by(Contribution.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
@@ -190,6 +194,7 @@ def contributions():
 @admin_bp.route('/statistics')
 @admin_required
 def statistics():
+    log_activity('Consultation statistiques', action_type='view', target_type='statistics')
     total_views = db.session.query(db.func.sum(Disparu.view_count)).scalar() or 0
     total_downloads = Download.query.count()
     
@@ -259,6 +264,7 @@ def statistics():
 @admin_bp.route('/map')
 @admin_required
 def map_view():
+    log_activity('Consultation carte', action_type='view', target_type='map')
     disparus = Disparu.query.all()
     return render_template('admin_map.html', disparus=disparus)
 
@@ -305,6 +311,7 @@ def settings():
 @admin_bp.route('/users')
 @admin_required
 def users():
+    log_activity('Consultation utilisateurs', action_type='view', target_type='users')
     page = request.args.get('page', 1, type=int)
     per_page = 20
     role_filter = request.args.get('role', '')
@@ -477,6 +484,7 @@ def edit_role(role_id):
 @admin_bp.route('/logs')
 @admin_required
 def logs():
+    log_activity('Consultation logs', action_type='view', target_type='logs')
     page = request.args.get('page', 1, type=int)
     per_page = 50
     action_type = request.args.get('action_type', '')
@@ -520,6 +528,7 @@ def logs():
 @admin_bp.route('/downloads')
 @admin_required
 def downloads():
+    log_activity('Consultation telechargements', action_type='view', target_type='downloads')
     page = request.args.get('page', 1, type=int)
     per_page = 50
     file_type = request.args.get('file_type', '')
