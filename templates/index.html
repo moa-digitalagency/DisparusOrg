@@ -195,6 +195,33 @@
     </div>
 </section>
 
+<section class="py-12 bg-gradient-to-br from-red-700 to-red-900 text-white relative overflow-hidden">
+    <div class="absolute inset-0 bg-black/10"></div>
+    <div class="max-w-4xl mx-auto px-4 relative z-10 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h2 class="text-xl md:text-2xl font-bold mb-4">
+            {% if get_locale() == 'fr' %}N'attendez jamais 24 heures !{% else %}Never wait 24 hours!{% endif %}
+        </h2>
+        <p class="text-white/90 text-sm md:text-base leading-relaxed mb-6 max-w-2xl mx-auto">
+            {% if get_locale() == 'fr' %}
+                Contrairement aux idees recues, vous n'avez pas besoin d'attendre 24h pour signaler une disparition. 
+                <strong class="text-white">Les premieres heures sont cruciales.</strong> 
+                Mieux vaut signaler et retrouver la personne rapidement que perdre un temps precieux.
+            {% else %}
+                Contrary to popular belief, you don't need to wait 24 hours to report a disappearance. 
+                <strong class="text-white">The first hours are crucial.</strong> 
+                It's better to report and find the person quickly than to waste precious time.
+            {% endif %}
+        </p>
+        <a href="/signaler" class="inline-flex items-center gap-2 bg-white text-red-700 font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all text-sm md:text-base">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            {% if get_locale() == 'fr' %}Signaler maintenant{% else %}Report now{% endif %}
+        </a>
+    </div>
+</section>
+
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
         <div class="flex items-center gap-3 mb-2">
