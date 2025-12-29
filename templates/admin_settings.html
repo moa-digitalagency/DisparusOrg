@@ -1,0 +1,80 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Reglages - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Reglages{% else %}Settings{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Configuration de la plateforme{% else %}Platform configuration{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="max-w-2xl">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Compte administrateur{% else %}Administrator account{% endif %}</h2>
+        </div>
+        <div class="p-5">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div>
+                    <div class="font-semibold text-gray-900">{{ session.get('admin_username', 'Admin') }}</div>
+                    <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Administrateur{% else %}Administrator{% endif %}</div>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+                {% if get_locale() == 'fr' %}
+                Les identifiants administrateur sont configures via les variables d'environnement ADMIN_USERNAME et ADMIN_PASSWORD.
+                {% else %}
+                Admin credentials are configured via ADMIN_USERNAME and ADMIN_PASSWORD environment variables.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Informations systeme{% else %}System information{% endif %}</h2>
+        </div>
+        <div class="p-5 space-y-3">
+            <div class="flex justify-between py-2 border-b border-gray-100">
+                <span class="text-gray-600">{% if get_locale() == 'fr' %}Version{% else %}Version{% endif %}</span>
+                <span class="font-medium text-gray-900">1.0.0</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+                <span class="text-gray-600">{% if get_locale() == 'fr' %}Plateforme{% else %}Platform{% endif %}</span>
+                <span class="font-medium text-gray-900">Flask + PostgreSQL</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+                <span class="text-gray-600">{% if get_locale() == 'fr' %}Langues supportees{% else %}Supported languages{% endif %}</span>
+                <span class="font-medium text-gray-900">Francais, English</span>
+            </div>
+            <div class="flex justify-between py-2">
+                <span class="text-gray-600">{% if get_locale() == 'fr' %}Pays couverts{% else %}Countries covered{% endif %}</span>
+                <span class="font-medium text-gray-900">54</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Actions{% else %}Actions{% endif %}</h2>
+        </div>
+        <div class="p-5 space-y-3">
+            <a href="/" class="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <span class="text-gray-700">{% if get_locale() == 'fr' %}Voir le site public{% else %}View public site{% endif %}</span>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+            <a href="{{ url_for('admin.logout') }}" class="flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span class="text-red-700">{% if get_locale() == 'fr' %}Se deconnecter{% else %}Logout{% endif %}</span>
+                </div>
+                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

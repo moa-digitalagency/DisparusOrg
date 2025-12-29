@@ -1,0 +1,137 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Statistiques - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Statistiques{% else %}Statistics{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Analyses et metriques de la plateforme{% else %}Platform analytics and metrics{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
+                <div class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Total signalements{% else %}Total reports{% endif %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-red-600">{{ stats.missing }}</div>
+                <div class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Encore disparus{% else %}Still missing{% endif %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-green-600">{{ stats.found }}</div>
+                <div class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-blue-600">{{ stats.contributions }}</div>
+                <div class="text-xs text-gray-500">Contributions</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Par statut{% else %}By status{% endif %}</h2>
+        </div>
+        <div class="p-4">
+            {% for status, count in by_status %}
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full
+                        {% if status == 'missing' %}bg-red-500
+                        {% elif status == 'found' %}bg-green-500
+                        {% else %}bg-gray-400{% endif %}"></span>
+                    <span class="font-medium text-gray-700 capitalize">{{ status }}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 bg-gray-100 rounded-full h-2">
+                        <div class="h-2 rounded-full
+                            {% if status == 'missing' %}bg-red-500
+                            {% elif status == 'found' %}bg-green-500
+                            {% else %}bg-gray-400{% endif %}" 
+                            style="width: {{ (count / stats.total * 100) if stats.total > 0 else 0 }}%"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900 w-12 text-right">{{ count }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Top 10 pays{% else %}Top 10 countries{% endif %}</h2>
+        </div>
+        <div class="p-4">
+            {% for country, count in by_country %}
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                <span class="font-medium text-gray-700">{{ country }}</span>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 bg-gray-100 rounded-full h-2">
+                        <div class="bg-red-500 h-2 rounded-full" style="width: {{ (count / stats.total * 100) if stats.total > 0 else 0 }}%"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900 w-12 text-right">{{ count }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="py-8 text-center text-gray-500 text-sm">
+                {% if get_locale() == 'fr' %}Aucune donnee{% else %}No data{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Resume{% else %}Summary{% endif %}</h2>
+    </div>
+    <div class="p-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-gray-50 rounded-xl">
+                <div class="text-3xl font-bold text-gray-900">{{ stats.countries }}</div>
+                <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Pays couverts{% else %}Countries covered{% endif %}</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-xl">
+                <div class="text-3xl font-bold text-amber-600">{{ stats.flagged }}</div>
+                <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Fiches signalees{% else %}Flagged records{% endif %}</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-xl">
+                <div class="text-3xl font-bold text-purple-600">{{ stats.pending_reports }}</div>
+                <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Rapports en attente{% else %}Pending reports{% endif %}</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-xl">
+                <div class="text-3xl font-bold text-green-600">
+                    {% if stats.total > 0 %}{{ ((stats.found / stats.total) * 100)|round(1) }}%{% else %}0%{% endif %}
+                </div>
+                <div class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Taux de retrouvailles{% else %}Found rate{% endif %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

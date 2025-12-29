@@ -1,140 +1,142 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 
-{% block title %}Admin Dashboard - DISPARUS.ORG{% endblock %}
+{% block title %}Tableau de bord - Admin DISPARUS.ORG{% endblock %}
 
-{% block content %}
-<section class="bg-gradient-to-br from-red-700 to-red-900 text-white py-12 relative overflow-hidden">
-    <div class="absolute inset-0 bg-black/20"></div>
-    <div class="max-w-7xl mx-auto px-4 relative z-10">
-        <div class="text-center max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-xl text-sm font-medium mb-4">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                {% if get_locale() == 'fr' %}Administration{% else %}Administration{% endif %}
+{% block page_title %}{% if get_locale() == 'fr' %}Tableau de bord{% else %}Dashboard{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Vue d'ensemble de la plateforme{% else %}Platform overview{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">Total</div>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-red-600">{{ stats.missing }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Disparus{% else %}Missing{% endif %}</div>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-green-600">{{ stats.found }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-gray-600">{{ stats.deceased }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Decedes{% else %}Deceased{% endif %}</div>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-amber-600">{{ stats.flagged }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Signales{% else %}Flagged{% endif %}</div>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-blue-600">{{ stats.contributions }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">Contributions</div>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
+        <div class="text-2xl font-bold text-purple-600">{{ stats.countries }}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Signalements recents{% else %}Recent reports{% endif %}</h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for person in disparus[:5] %}
+            <div class="p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
+                {% if person.photo_url %}
+                <img src="{{ person.photo_url }}" class="w-12 h-12 rounded-xl object-cover border border-gray-200">
+                {% else %}
+                <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-900 truncate">{{ person.first_name }} {{ person.last_name }}</span>
+                        {% if person.is_flagged %}
+                        <span class="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-lg font-medium">!</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-sm text-gray-500">{{ person.city }}, {{ person.country }}</div>
+                </div>
+                <span class="text-xs px-2 py-1 rounded-lg font-medium
+                    {% if person.status == 'missing' %}bg-red-100 text-red-700
+                    {% elif person.status == 'found' %}bg-green-100 text-green-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {{ person.status }}
+                </span>
+                <a href="/disparu/{{ person.public_id }}" class="text-red-600 hover:text-red-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
-            <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-admin-title">
-                Admin Dashboard
-            </h1>
-            <div class="w-16 h-1 bg-white/50 rounded-full mx-auto mb-4"></div>
-            <p class="text-sm text-red-100 opacity-90 mb-4">
-                {% if get_locale() == 'fr' %}Gestion de la plateforme{% else %}Platform management{% endif %}
-            </p>
-            <a href="/moderation" class="inline-flex items-center gap-2 bg-white text-red-700 hover:bg-red-50 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm" data-testid="link-moderation">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                {% if get_locale() == 'fr' %}Moderation{% else %}Moderation{% endif %}
+            {% else %}
+            <div class="p-8 text-center text-gray-500">
+                {% if get_locale() == 'fr' %}Aucun signalement{% else %}No reports{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if disparus|length > 5 %}
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <a href="{{ url_for('admin.all_reports') }}" class="text-sm text-red-600 hover:text-red-700 font-medium">
+                {% if get_locale() == 'fr' %}Voir tous les signalements{% else %}View all reports{% endif %} ({{ disparus|length }})
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Actions rapides{% else %}Quick actions{% endif %}</h2>
+        </div>
+        <div class="p-4 space-y-3">
+            <a href="{{ url_for('admin.moderation') }}" class="flex items-center gap-3 p-3 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">{% if get_locale() == 'fr' %}Moderation{% else %}Moderation{% endif %}</div>
+                    <div class="text-xs text-gray-500">{{ stats.flagged }} {% if get_locale() == 'fr' %}en attente{% else %}pending{% endif %}</div>
+                </div>
+            </a>
+            <a href="{{ url_for('admin.contributions') }}" class="flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">Contributions</div>
+                    <div class="text-xs text-gray-500">{{ stats.contributions }} total</div>
+                </div>
+            </a>
+            <a href="{{ url_for('admin.map_view') }}" class="flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">{% if get_locale() == 'fr' %}Carte interactive{% else %}Interactive map{% endif %}</div>
+                    <div class="text-xs text-gray-500">{{ stats.countries }} {% if get_locale() == 'fr' %}pays{% else %}countries{% endif %}</div>
+                </div>
+            </a>
+            <a href="{{ url_for('admin.statistics') }}" class="flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">{% if get_locale() == 'fr' %}Statistiques{% else %}Statistics{% endif %}</div>
+                    <div class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Analyses detaillees{% else %}Detailed analytics{% endif %}</div>
+                </div>
             </a>
         </div>
     </div>
-</section>
+</div>
 
-<section class="py-12 bg-gray-50/50">
-    <div class="max-w-7xl mx-auto px-4 space-y-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-gray-900">{{ stats.total }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Total</div>
-            </div>
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-red-600">{{ stats.missing }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Disparus{% else %}Missing{% endif %}</div>
-            </div>
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-green-600">{{ stats.found }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}</div>
-            </div>
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-gray-600">{{ stats.deceased }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Decedes{% else %}Deceased{% endif %}</div>
-            </div>
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-amber-600">{{ stats.flagged }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Signales{% else %}Flagged{% endif %}</div>
-            </div>
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-blue-600">{{ stats.contributions }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Contributions</div>
-            </div>
-            <div class="bg-white/95 rounded-xl px-3 py-2.5 border border-red-100 shadow-sm">
-                <div class="text-xl font-bold text-purple-600">{{ stats.countries }}</div>
-                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Pays{% else %}Countries{% endif %}</div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-1 h-5 bg-red-600 rounded-full"></div>
-                <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Carte complete{% else %}Complete map{% endif %}</h2>
-            </div>
-            <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-4"></div>
-            <div id="admin-map" class="h-80 rounded-xl border border-gray-200" data-testid="map-admin"></div>
-        </div>
-        
-        <div class="bg-white rounded-xl border border-red-100 overflow-hidden shadow-sm">
-            <div class="p-5 border-b border-red-100">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-1 h-5 bg-red-600 rounded-full"></div>
-                    <h2 class="text-base font-semibold text-gray-900">{% if get_locale() == 'fr' %}Tous les signalements{% else %}All reports{% endif %} ({{ disparus|length }})</h2>
-                </div>
-                <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full"></div>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">ID</th>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Nom{% else %}Name{% endif %}</th>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Age{% else %}Age{% endif %}</th>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Lieu{% else %}Location{% endif %}</th>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Date{% else %}Date{% endif %}</th>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">{% if get_locale() == 'fr' %}Statut{% else %}Status{% endif %}</th>
-                            <th class="text-left px-4 py-3 text-xs font-medium text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        {% for person in disparus %}
-                        <tr class="hover:bg-gray-50 transition-colors" data-testid="row-person-{{ person.public_id }}">
-                            <td class="px-4 py-3 font-mono text-sm">{{ person.public_id }}</td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-2">
-                                    {% if person.photo_url %}
-                                    <img src="{{ person.photo_url }}" class="w-8 h-8 rounded-xl object-cover border border-gray-200">
-                                    {% else %}
-                                    <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
-                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                                    </div>
-                                    {% endif %}
-                                    <span class="font-medium text-gray-900 text-sm">{{ person.first_name }} {{ person.last_name }}</span>
-                                    {% if person.is_flagged %}
-                                    <span class="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-lg font-medium">!</span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-sm text-gray-600">{{ person.age }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-600">{{ person.city }}, {{ person.country }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-600">{{ person.disappearance_date.strftime('%d/%m/%Y') if person.disappearance_date else '-' }}</td>
-                            <td class="px-4 py-3">
-                                <span class="text-xs px-2 py-1 rounded-lg font-medium
-                                    {% if person.status == 'missing' %}bg-red-100 text-red-700
-                                    {% elif person.status == 'found' %}bg-green-100 text-green-700
-                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
-                                    {{ person.status }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <a href="/disparu/{{ person.public_id }}" class="text-red-700 hover:text-red-800 text-sm font-medium" data-testid="link-view-{{ person.public_id }}">{% if get_locale() == 'fr' %}Voir{% else %}View{% endif %}</a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="7" class="px-4 py-10 text-center text-gray-500 text-sm">{% if get_locale() == 'fr' %}Aucun signalement{% else %}No reports{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Carte des signalements{% else %}Reports map{% endif %}</h2>
     </div>
-</section>
+    <div id="admin-map" class="h-80"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}

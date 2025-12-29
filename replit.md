@@ -83,9 +83,18 @@ templates/            # Jinja2 templates
 - `GET /set-locale/<locale>` - Change language
 
 ### Admin Blueprint (routes/admin.py)
-- `GET /admin/` - Admin dashboard
+- `GET /admin/login` - Admin login page
+- `GET /admin/logout` - Logout
+- `GET /admin/` - Admin dashboard with sidebar
+- `GET /admin/reports` - All reports with pagination/filters
 - `GET /admin/moderation` - Moderation dashboard
+- `GET /admin/contributions` - All contributions
+- `GET /admin/statistics` - Platform statistics
+- `GET /admin/map` - Interactive map view
+- `GET /admin/settings` - Settings page
 - `POST /admin/moderation/<id>/resolve` - Resolve report
+- `POST /admin/disparu/<id>/status` - Update status
+- `POST /admin/disparu/<id>/delete` - Delete record
 
 ### API Blueprint (routes/api.py)
 - `GET /api/disparus` - JSON list of missing persons
@@ -119,6 +128,9 @@ python main.py        # Start Flask development server
 - `SESSION_SECRET` - Session encryption key
 
 ## Recent Changes
+- 2025-12-29: Admin panel redesigned with left sidebar navigation menu
+- 2025-12-29: Added admin pages: reports, contributions, statistics, map, settings
+- 2025-12-29: Admin authentication with login/logout and session-based security
 - 2025-12-26: Restructured to modular architecture with routes/, models/, services/, utils/, security/, algorithms/
 - 2025-12-26: Flask Blueprints for public, admin, and API routes
 - 2025-12-26: Added PDF/QR generation, clustering algorithms, photo matching stubs

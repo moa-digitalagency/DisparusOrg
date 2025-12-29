@@ -122,3 +122,79 @@ def delete_disparu(disparu_id):
     db.session.delete(disparu)
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/reports')
+@admin_required
+def all_reports():
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    status_filter = request.args.get('status', '')
+    country_filter = request.args.get('country', '')
+    
+    query = Disparu.query
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    if country_filter:
+        query = query.filter_by(country=country_filter)
+    
+    disparus = query.order_by(Disparu.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    countries = db.session.query(Disparu.country).distinct().all()
+    
+    return render_template('admin_reports.html', 
+                         disparus=disparus, 
+                         countries=[c[0] for c in countries],
+                         status_filter=status_filter,
+                         country_filter=country_filter)
+
+
+@admin_bp.route('/contributions')
+@admin_required
+def contributions():
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    contributions = Contribution.query.order_by(Contribution.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('admin_contributions.html', contributions=contributions)
+
+
+@admin_bp.route('/statistics')
+@admin_required
+def statistics():
+    stats = {
+        'total': Disparu.query.count(),
+        'missing': Disparu.query.filter_by(status='missing').count(),
+        'found': Disparu.query.filter_by(status='found').count(),
+        'deceased': Disparu.query.filter_by(status='deceased').count(),
+        'flagged': Disparu.query.filter_by(is_flagged=True).count(),
+        'contributions': Contribution.query.count(),
+        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
+        'pending_reports': ModerationReport.query.filter_by(status='pending').count(),
+    }
+    
+    by_country = db.session.query(
+        Disparu.country, 
+        db.func.count(Disparu.id)
+    ).group_by(Disparu.country).order_by(db.func.count(Disparu.id).desc()).limit(10).all()
+    
+    by_status = db.session.query(
+        Disparu.status, 
+        db.func.count(Disparu.id)
+    ).group_by(Disparu.status).all()
+    
+    return render_template('admin_statistics.html', 
+                         stats=stats, 
+                         by_country=by_country, 
+                         by_status=by_status)
+
+
+@admin_bp.route('/map')
+@admin_required
+def map_view():
+    disparus = Disparu.query.all()
+    return render_template('admin_map.html', disparus=disparus)
+
+
+@admin_bp.route('/settings')
+@admin_required
+def settings():
+    return render_template('admin_settings.html')

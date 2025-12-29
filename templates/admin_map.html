@@ -1,0 +1,66 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Carte - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Carte interactive{% else %}Interactive map{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Visualisation geographique des signalements{% else %}Geographic visualization of reports{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                <span class="text-sm text-gray-600">{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                <span class="text-sm text-gray-600">{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                <span class="text-sm text-gray-600">{% if get_locale() == 'fr' %}Signale{% else %}Flagged{% endif %}</span>
+            </div>
+        </div>
+        <div class="text-sm text-gray-500">
+            {{ disparus|length }} {% if get_locale() == 'fr' %}signalements{% else %}reports{% endif %}
+        </div>
+    </div>
+    <div id="admin-map" class="h-[600px]"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const map = L.map('admin-map').setView([7.5, 15], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'OpenStreetMap'
+    }).addTo(map);
+    
+    const disparus = {{ disparus|tojson|safe if disparus else '[]' }};
+    disparus.forEach(function(d) {
+        if (d.latitude && d.longitude) {
+            const color = d.status === 'found' ? '#22c55e' : (d.is_flagged ? '#f97316' : '#ef4444');
+            const marker = L.circleMarker([d.latitude, d.longitude], {
+                radius: 8,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
+            marker.bindPopup(
+                '<div class="text-center">' +
+                '<strong class="text-base">' + d.first_name + ' ' + d.last_name + '</strong><br>' +
+                '<span class="text-gray-500 text-sm">ID: ' + d.public_id + '</span><br>' +
+                '<span class="text-sm">' + d.city + ', ' + d.country + '</span><br>' +
+                '<span class="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium ' + 
+                (d.status === 'found' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') + '">' + 
+                d.status + '</span><br>' +
+                '<a href="/disparu/' + d.public_id + '" class="text-red-600 hover:underline text-sm mt-1 inline-block">Voir la fiche</a>' +
+                '</div>'
+            );
+        }
+    });
+</script>
+{% endblock %}
