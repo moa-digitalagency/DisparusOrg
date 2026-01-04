@@ -273,6 +273,118 @@ def report_content(public_id):
     return redirect(url_for('public.detail', public_id=public_id))
 
 
+@public_bp.route('/disparu/<public_id>/pdf')
+def download_pdf(public_id):
+    from flask import Response
+    from utils.pdf_gen import generate_missing_person_pdf
+    
+    disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    log_public_activity('Telechargement PDF', action_type='download', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
+    
+    try:
+        from models import Download
+        download = Download(
+            disparu_public_id=public_id,
+            file_type='pdf',
+            download_type='pdf_fiche',
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500]
+        )
+        db.session.add(download)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    
+    base_url = request.url_root.rstrip('/')
+    pdf_buffer = generate_missing_person_pdf(disparu, base_url)
+    
+    if pdf_buffer is None:
+        flash('Erreur lors de la generation du PDF', 'error')
+        return redirect(url_for('public.detail', public_id=public_id))
+    
+    filename = f"disparu_{public_id}.pdf"
+    return Response(
+        pdf_buffer.getvalue(),
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
+
+
+@public_bp.route('/disparu/<public_id>/share-image')
+def download_share_image(public_id):
+    from flask import Response
+    from utils.pdf_gen import generate_social_media_image
+    
+    disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    log_public_activity('Telechargement image partage', action_type='download', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
+    
+    try:
+        from models import Download
+        download = Download(
+            disparu_public_id=public_id,
+            file_type='png',
+            download_type='image_social',
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500]
+        )
+        db.session.add(download)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    
+    base_url = request.url_root.rstrip('/')
+    image_buffer = generate_social_media_image(disparu, base_url)
+    
+    if image_buffer is None:
+        flash('Erreur lors de la generation de l\'image', 'error')
+        return redirect(url_for('public.detail', public_id=public_id))
+    
+    filename = f"disparu_{public_id}_partage.png"
+    return Response(
+        image_buffer.getvalue(),
+        mimetype='image/png',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
+
+
+@public_bp.route('/disparu/<public_id>/qrcode')
+def download_qrcode(public_id):
+    from flask import Response
+    from utils.pdf_gen import generate_qr_code
+    
+    disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
+    log_public_activity('Telechargement QR code', action_type='download', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
+    
+    try:
+        from models import Download
+        download = Download(
+            disparu_public_id=public_id,
+            file_type='png',
+            download_type='pdf_qrcode',
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500]
+        )
+        db.session.add(download)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    
+    base_url = request.url_root.rstrip('/')
+    qr_url = f"{base_url}/disparu/{public_id}"
+    qr_buffer = generate_qr_code(qr_url, size=15)
+    
+    if qr_buffer is None:
+        flash('Erreur lors de la generation du QR code', 'error')
+        return redirect(url_for('public.detail', public_id=public_id))
+    
+    filename = f"qrcode_{public_id}.png"
+    return Response(
+        qr_buffer.getvalue(),
+        mimetype='image/png',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
+
+
 @public_bp.route('/set-locale/<locale>')
 def set_locale(locale):
     if locale in ['fr', 'en']:

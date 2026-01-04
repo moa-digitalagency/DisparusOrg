@@ -160,6 +160,8 @@ The `init_db.py` script handles:
 - `ADMIN_PASSWORD` - Admin password for login
 
 ## Recent Changes
+- 2026-01-04: Added PDF, social media image, and QR code download routes
+- 2026-01-04: Enhanced detail page map with all contribution locations and custom markers
 - 2026-01-04: Admin authentication uses ADMIN_USERNAME and ADMIN_PASSWORD env vars
 - 2026-01-04: Enhanced security - CSRF protection, rate limiting on API
 - 2026-01-04: Added init_db.py for database initialization
