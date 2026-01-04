@@ -182,3 +182,18 @@ The `init_db.py` script handles:
 - 2025-12-26: Added PDF/QR generation, clustering algorithms, photo matching stubs
 - 2025-12-26: Security module with auth decorators and rate limiting
 - 2025-12-26: Renamed static/ to statics/ per user request
+- 2026-01-04: Enhanced PDF generator with premium design (colors, branding, QR codes)
+- 2026-01-04: Created comprehensive documentation in docs/ folder
+
+## Documentation
+
+Complete documentation is available in the `docs/` folder:
+
+- **README.md** - Documentation index
+- **ARCHITECTURE.md** - Technical architecture, database schema, data flows
+- **INSTALLATION.md** - Installation and deployment guide
+- **API.md** - API reference with endpoints and examples
+- **GUIDE_UTILISATEUR.md** - User guide (French)
+- **GUIDE_ADMIN.md** - Administrator guide (French)
+- **PRESENTATION.md** - Project presentation, vision, mission
+- **PARTENARIATS.md** - Partnership opportunities
