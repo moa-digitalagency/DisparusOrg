@@ -156,11 +156,12 @@ The `init_db.py` script handles:
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string (auto-provisioned)
 - `SESSION_SECRET` - Session encryption key
-- `ADMIN_PASSWORD` - Admin password for initial setup (optional)
+- `ADMIN_USERNAME` - Admin username for login
+- `ADMIN_PASSWORD` - Admin password for login
 
 ## Recent Changes
-- 2026-01-04: Enhanced security - CSRF protection, rate limiting on API, hashed passwords
-- 2026-01-04: Admin authentication now uses database users instead of env vars
+- 2026-01-04: Admin authentication uses ADMIN_USERNAME and ADMIN_PASSWORD env vars
+- 2026-01-04: Enhanced security - CSRF protection, rate limiting on API
 - 2026-01-04: Added init_db.py for database initialization
 - 2026-01-04: Logo and favicon now configurable via admin settings
 - 2026-01-04: Added file upload validation (allowed extensions/mimetypes)
