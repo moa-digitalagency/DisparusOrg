@@ -159,6 +159,8 @@ The `init_db.py` script handles:
 - `ADMIN_PASSWORD` - Admin password for initial setup (optional)
 
 ## Recent Changes
+- 2026-01-04: Enhanced security - CSRF protection, rate limiting on API, hashed passwords
+- 2026-01-04: Admin authentication now uses database users instead of env vars
 - 2026-01-04: Added init_db.py for database initialization
 - 2026-01-04: Logo and favicon now configurable via admin settings
 - 2026-01-04: Added file upload validation (allowed extensions/mimetypes)

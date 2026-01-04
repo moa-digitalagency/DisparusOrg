@@ -49,14 +49,32 @@ def login():
         username = request.form.get('username', '')
         password = request.form.get('password', '')
         
-        admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-        admin_password = os.environ.get('ADMIN_PASSWORD', '')
+        user = User.query.filter(
+            db.or_(User.username == username, User.email == username)
+        ).first()
         
-        if username == admin_username and password == admin_password and admin_password:
-            session['admin_logged_in'] = True
-            session['admin_username'] = username
-            log_activity('Connexion admin reussie', action_type='auth', severity='info', is_security=True)
-            return redirect(url_for('admin.dashboard'))
+        if user and user.check_password(password) and user.is_active:
+            has_admin_access = False
+            if user.role_obj:
+                perms = user.role_obj.permissions or {}
+                has_admin_access = perms.get('all') or user.role_obj.name == 'admin' or perms.get('manage_settings')
+            
+            if has_admin_access:
+                session['admin_logged_in'] = True
+                session['admin_username'] = user.username
+                session['admin_user_id'] = user.id
+                session['admin_role'] = user.role_obj.name if user.role_obj else 'user'
+                
+                user.last_login = db.func.now()
+                user.last_login_ip = request.remote_addr
+                user.login_count = (user.login_count or 0) + 1
+                db.session.commit()
+                
+                log_activity('Connexion admin reussie', action_type='auth', severity='info', is_security=True)
+                return redirect(url_for('admin.dashboard'))
+            else:
+                log_activity(f'Acces refuse - droits insuffisants: {username}', action_type='auth', severity='warning', is_security=True)
+                error = 'Acces non autorise'
         else:
             log_activity(f'Tentative de connexion echouee pour: {username}', action_type='auth', severity='warning', is_security=True)
             error = 'Identifiants invalides'

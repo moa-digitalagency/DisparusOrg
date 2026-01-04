@@ -2,10 +2,13 @@ import os
 from flask import Flask, request, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel
+from flask_wtf.csrf import CSRFProtect
 
 from models import db
 from routes import register_blueprints
 from config import config
+
+csrf = CSRFProtect()
 
 
 def get_locale():
@@ -18,7 +21,13 @@ def get_locale():
 def create_app(config_name='default'):
     app = Flask(__name__)
     
-    app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key')
+    session_secret = os.environ.get('SESSION_SECRET')
+    if not session_secret:
+        import secrets
+        session_secret = secrets.token_hex(32)
+        import logging
+        logging.warning("SESSION_SECRET not set. Using random secret. Sessions will not persist across restarts.")
+    app.config['SECRET_KEY'] = session_secret
     
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
@@ -30,6 +39,7 @@ def create_app(config_name='default'):
     app.config['UPLOAD_FOLDER'] = 'statics/uploads'
     
     db.init_app(app)
+    csrf.init_app(app)
     
     babel = Babel(app, locale_selector=get_locale)
     

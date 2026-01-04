@@ -2,11 +2,13 @@ from flask import Blueprint, jsonify, request
 
 from models import db, Disparu, Contribution
 from utils.geo import get_countries, get_cities
+from security.rate_limit import rate_limit
 
 api_bp = Blueprint('api', __name__)
 
 
 @api_bp.route('/disparus')
+@rate_limit()
 def get_disparus():
     status = request.args.get('status')
     country = request.args.get('country')
@@ -25,6 +27,7 @@ def get_disparus():
 
 
 @api_bp.route('/disparus/<public_id>')
+@rate_limit()
 def get_disparu(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
     contributions = Contribution.query.filter_by(disparu_id=disparu.id).all()
@@ -36,6 +39,7 @@ def get_disparu(public_id):
 
 
 @api_bp.route('/stats')
+@rate_limit()
 def get_stats():
     return jsonify({
         'total': Disparu.query.count(),
@@ -47,16 +51,19 @@ def get_stats():
 
 
 @api_bp.route('/countries')
+@rate_limit()
 def get_countries_list():
     return jsonify(get_countries())
 
 
 @api_bp.route('/cities/<country>')
+@rate_limit()
 def get_cities_list(country):
     return jsonify(get_cities(country))
 
 
 @api_bp.route('/search')
+@rate_limit()
 def search_api():
     query = request.args.get('q', '')
     

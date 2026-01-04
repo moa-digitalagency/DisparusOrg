@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash
 from werkzeug.utils import secure_filename
 
 from models import db, Disparu, Contribution, ModerationReport, ActivityLog
@@ -8,6 +8,22 @@ from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cit
 from services.signalement import create_signalement, generate_public_id
 
 public_bp = Blueprint('public', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_MIMETYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
+
+
+def allowed_file(filename, file_obj=None):
+    """Validate file extension and optionally MIME type"""
+    if '.' not in filename:
+        return False
+    ext = filename.rsplit('.', 1)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return False
+    if file_obj and file_obj.content_type:
+        if file_obj.content_type not in ALLOWED_MIMETYPES:
+            return False
+    return True
 
 
 def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None):
@@ -110,6 +126,9 @@ def report():
                 file = request.files['photo']
                 if file and file.filename:
                     filename = secure_filename(file.filename)
+                    if not allowed_file(filename, file):
+                        flash('Type de fichier non autorise. Utilisez PNG, JPG, GIF ou WebP.', 'error')
+                        return redirect(url_for('public.report'))
                     unique_name = f"{generate_public_id()}_{filename}"
                     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
                     file.save(filepath)
