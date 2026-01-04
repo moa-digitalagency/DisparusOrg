@@ -19,27 +19,35 @@ def init_default_roles():
     default_roles = [
         {
             'name': 'admin',
-            'description': 'Administrateur - Acces complet',
-            'permissions': 'all',
-            'menu_access': 'dashboard,reports,moderation,contributions,statistics,map,users,roles,logs,downloads,settings'
+            'display_name': 'Administrateur',
+            'description': 'Acces complet a toutes les fonctionnalites',
+            'permissions': {'all': True},
+            'menu_access': ['dashboard', 'reports', 'moderation', 'contributions', 'statistics', 'map', 'users', 'roles', 'logs', 'downloads', 'settings'],
+            'is_system': True
         },
         {
             'name': 'moderator',
-            'description': 'Moderateur - Gestion du contenu',
-            'permissions': 'moderation,contributions,reports',
-            'menu_access': 'dashboard,reports,moderation,contributions'
+            'display_name': 'Moderateur',
+            'description': 'Gestion du contenu et moderation',
+            'permissions': {'moderation': True, 'contributions': True, 'reports': True},
+            'menu_access': ['dashboard', 'reports', 'moderation', 'contributions'],
+            'is_system': True
         },
         {
             'name': 'ngo',
-            'description': 'ONG - Rapports et statistiques',
-            'permissions': 'reports,statistics,exports',
-            'menu_access': 'dashboard,reports,statistics'
+            'display_name': 'ONG',
+            'description': 'Rapports et statistiques',
+            'permissions': {'reports': True, 'statistics': True, 'exports': True},
+            'menu_access': ['dashboard', 'reports', 'statistics'],
+            'is_system': True
         },
         {
             'name': 'secours',
-            'description': 'Services de secours - Rapports et carte',
-            'permissions': 'reports,map',
-            'menu_access': 'dashboard,reports,map'
+            'display_name': 'Services de secours',
+            'description': 'Rapports et carte interactive',
+            'permissions': {'reports': True, 'map': True},
+            'menu_access': ['dashboard', 'reports', 'map'],
+            'is_system': True
         }
     ]
     

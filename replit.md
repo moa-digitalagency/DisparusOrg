@@ -143,13 +143,25 @@ templates/            # Jinja2 templates
 ## Running the Project
 ```bash
 python main.py        # Start Flask development server
+python init_db.py     # Initialize database tables and default data
 ```
+
+## Database Initialization
+The `init_db.py` script handles:
+1. Creating all database tables
+2. Initializing default roles (admin, moderator, ngo, secours)
+3. Initializing default site settings (SEO, footer, security)
+4. Creating admin user if ADMIN_PASSWORD is set
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string (auto-provisioned)
 - `SESSION_SECRET` - Session encryption key
+- `ADMIN_PASSWORD` - Admin password for initial setup (optional)
 
 ## Recent Changes
+- 2026-01-04: Added init_db.py for database initialization
+- 2026-01-04: Logo and favicon now configurable via admin settings
+- 2026-01-04: Added file upload validation (allowed extensions/mimetypes)
 - 2025-12-29: Added user management with CRUD, role assignment
 - 2025-12-29: Added role management with permissions and menu access control
 - 2025-12-29: Added activity logging system with severity levels and security events
