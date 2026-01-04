@@ -6,15 +6,25 @@ try:
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
     from reportlab.lib.units import cm, mm
-    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.lib.colors import HexColor, white, black, Color
     from reportlab.lib.utils import ImageReader
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.platypus import Paragraph
-    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
     import qrcode
     from PIL import Image
     HAS_REPORTLAB = True
 except ImportError:
     HAS_REPORTLAB = False
+
+
+RED_PRIMARY = HexColor('#B91C1C')
+RED_DARK = HexColor('#7F1D1D')
+RED_LIGHT = HexColor('#FEE2E2')
+GRAY_DARK = HexColor('#1F2937')
+GRAY_MEDIUM = HexColor('#6B7280')
+GRAY_LIGHT = HexColor('#F3F4F6')
+ACCENT_GOLD = HexColor('#D97706')
 
 
 def get_site_settings():
@@ -28,6 +38,35 @@ def get_site_settings():
         return {}
 
 
+def draw_rounded_rect(c, x, y, width, height, radius, fill_color=None, stroke_color=None, stroke_width=1):
+    c.saveState()
+    if fill_color:
+        c.setFillColor(fill_color)
+    if stroke_color:
+        c.setStrokeColor(stroke_color)
+        c.setLineWidth(stroke_width)
+    
+    p = c.beginPath()
+    p.moveTo(x + radius, y)
+    p.lineTo(x + width - radius, y)
+    p.arcTo(x + width - radius, y, x + width, y + radius, radius)
+    p.lineTo(x + width, y + height - radius)
+    p.arcTo(x + width, y + height - radius, x + width - radius, y + height, radius)
+    p.lineTo(x + radius, y + height)
+    p.arcTo(x + radius, y + height, x, y + height - radius, radius)
+    p.lineTo(x, y + radius)
+    p.arcTo(x, y + radius, x + radius, y, radius)
+    p.close()
+    
+    if fill_color and stroke_color:
+        c.drawPath(p, fill=1, stroke=1)
+    elif fill_color:
+        c.drawPath(p, fill=1, stroke=0)
+    elif stroke_color:
+        c.drawPath(p, fill=0, stroke=1)
+    c.restoreState()
+
+
 def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     if not HAS_REPORTLAB:
         return None
@@ -39,107 +78,135 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     
-    red_primary = HexColor('#B91C1C')
-    red_dark = HexColor('#7F1D1D')
-    gray_dark = HexColor('#1F2937')
-    gray_medium = HexColor('#6B7280')
+    p.setFillColor(RED_PRIMARY)
+    p.rect(0, height - 5*cm, width, 5*cm, fill=1, stroke=0)
     
-    p.setFillColor(red_primary)
-    p.rect(0, height - 4*cm, width, 4*cm, fill=1, stroke=0)
+    p.setFillColor(RED_DARK)
+    p.rect(0, height - 5.3*cm, width, 0.3*cm, fill=1, stroke=0)
     
+    p.setFillColor(ACCENT_GOLD)
+    p.rect(0, height - 5.5*cm, width, 0.2*cm, fill=1, stroke=0)
+    
+    logo_drawn = False
     logo_path = settings.get('site_logo')
-    if logo_path and os.path.exists(f'statics/{logo_path}'):
-        try:
-            logo = ImageReader(f'statics/{logo_path}')
-            p.drawImage(logo, 1.5*cm, height - 3.2*cm, width=2*cm, height=2*cm, preserveAspectRatio=True, mask='auto')
-        except Exception:
-            pass
+    if logo_path:
+        full_path = f'statics/{logo_path}' if not logo_path.startswith('statics/') else logo_path
+        if os.path.exists(full_path):
+            try:
+                logo = ImageReader(full_path)
+                p.drawImage(logo, 1.5*cm, height - 4*cm, width=2.5*cm, height=2.5*cm, preserveAspectRatio=True, mask='auto')
+                logo_drawn = True
+            except Exception:
+                pass
+    
+    if not logo_drawn:
+        p.setFillColor(white)
+        p.circle(2.75*cm, height - 2.75*cm, 1.2*cm, fill=1, stroke=0)
+        p.setFillColor(RED_PRIMARY)
+        p.setFont("Helvetica-Bold", 20)
+        p.drawCentredString(2.75*cm, height - 3*cm, "D")
     
     p.setFillColor(white)
-    p.setFont("Helvetica-Bold", 28)
-    p.drawString(4*cm, height - 2.5*cm, site_name)
+    p.setFont("Helvetica-Bold", 32)
+    p.drawString(5*cm, height - 2.8*cm, site_name)
     
-    p.setFont("Helvetica", 12)
-    p.drawRightString(width - 1.5*cm, height - 2.5*cm, f"ID: {disparu.public_id}")
+    p.setFont("Helvetica", 11)
+    p.drawString(5*cm, height - 4*cm, "Plateforme citoyenne pour personnes disparues")
     
-    p.setFillColor(red_dark)
-    p.setFont("Helvetica-Bold", 36)
-    p.drawCentredString(width/2, height - 6*cm, "PERSONNE DISPARUE")
-    p.drawCentredString(width/2, height - 7.2*cm, "MISSING PERSON")
+    p.setFont("Helvetica-Bold", 12)
+    p.drawRightString(width - 1.5*cm, height - 2.8*cm, f"ID: {disparu.public_id}")
     
-    p.setStrokeColor(red_primary)
-    p.setLineWidth(2)
-    p.line(2*cm, height - 7.8*cm, width - 2*cm, height - 7.8*cm)
+    p.setFillColor(RED_DARK)
+    p.setFont("Helvetica-Bold", 42)
+    title_y = height - 7.5*cm
+    p.drawCentredString(width/2, title_y, "PERSONNE DISPARUE")
+    
+    p.setFillColor(GRAY_MEDIUM)
+    p.setFont("Helvetica-Bold", 24)
+    p.drawCentredString(width/2, title_y - 1.2*cm, "MISSING PERSON")
+    
+    p.setStrokeColor(RED_PRIMARY)
+    p.setLineWidth(3)
+    p.line(3*cm, title_y - 1.8*cm, width - 3*cm, title_y - 1.8*cm)
+    
+    p.setStrokeColor(ACCENT_GOLD)
+    p.setLineWidth(1)
+    p.line(5*cm, title_y - 2*cm, width - 5*cm, title_y - 2*cm)
     
     photo_x = 2*cm
-    photo_y = height - 15*cm
-    photo_width = 6*cm
-    photo_height = 7*cm
+    photo_y = height - 18*cm
+    photo_width = 7*cm
+    photo_height = 8*cm
     
-    p.setStrokeColor(red_primary)
-    p.setLineWidth(3)
-    p.roundRect(photo_x - 2*mm, photo_y - 2*mm, photo_width + 4*mm, photo_height + 4*mm, 5*mm, fill=0, stroke=1)
+    draw_rounded_rect(p, photo_x - 3*mm, photo_y - 3*mm, photo_width + 6*mm, photo_height + 6*mm, 5*mm, stroke_color=RED_PRIMARY, stroke_width=3)
     
-    if disparu.photo_url and os.path.exists(f'statics/{disparu.photo_url.replace("/statics/", "")}'):
-        try:
-            photo = ImageReader(f'statics/{disparu.photo_url.replace("/statics/", "")}')
-            p.drawImage(photo, photo_x, photo_y, width=photo_width, height=photo_height, preserveAspectRatio=True)
-        except Exception:
-            p.setFillColor(HexColor('#E5E7EB'))
-            p.roundRect(photo_x, photo_y, photo_width, photo_height, 3*mm, fill=1, stroke=0)
-            p.setFillColor(gray_medium)
-            p.setFont("Helvetica", 10)
-            p.drawCentredString(photo_x + photo_width/2, photo_y + photo_height/2, "Photo non disponible")
-    else:
-        p.setFillColor(HexColor('#E5E7EB'))
-        p.roundRect(photo_x, photo_y, photo_width, photo_height, 3*mm, fill=1, stroke=0)
-        p.setFillColor(gray_medium)
-        p.setFont("Helvetica", 10)
-        p.drawCentredString(photo_x + photo_width/2, photo_y + photo_height/2, "Photo non disponible")
+    photo_loaded = False
+    if disparu.photo_url:
+        photo_path = disparu.photo_url.replace('/statics/', 'statics/')
+        if os.path.exists(photo_path):
+            try:
+                photo = ImageReader(photo_path)
+                p.drawImage(photo, photo_x, photo_y, width=photo_width, height=photo_height, preserveAspectRatio=True)
+                photo_loaded = True
+            except Exception:
+                pass
     
-    info_x = 9*cm
-    info_y = height - 8.8*cm
+    if not photo_loaded:
+        draw_rounded_rect(p, photo_x, photo_y, photo_width, photo_height, 3*mm, fill_color=GRAY_LIGHT)
+        p.setFillColor(GRAY_MEDIUM)
+        p.setFont("Helvetica", 12)
+        p.drawCentredString(photo_x + photo_width/2, photo_y + photo_height/2 + 0.3*cm, "Photo non")
+        p.drawCentredString(photo_x + photo_width/2, photo_y + photo_height/2 - 0.3*cm, "disponible")
     
-    p.setFillColor(gray_dark)
-    p.setFont("Helvetica-Bold", 24)
+    info_x = 10*cm
+    info_y = height - 10.5*cm
+    
+    p.setFillColor(GRAY_DARK)
+    p.setFont("Helvetica-Bold", 28)
     name = f"{disparu.first_name} {disparu.last_name}"
+    if len(name) > 25:
+        p.setFont("Helvetica-Bold", 22)
     p.drawString(info_x, info_y, name)
     
-    info_y -= 1.2*cm
-    p.setFont("Helvetica", 14)
-    p.setFillColor(gray_medium)
+    info_y -= 1.5*cm
+    
+    draw_rounded_rect(p, info_x - 2*mm, info_y - 2.8*cm, 8.5*cm, 3.2*cm, 3*mm, fill_color=RED_LIGHT)
     
     details = [
-        ("Age:", f"{disparu.age} ans"),
-        ("Sexe:", disparu.sex or "Non specifie"),
-        ("Lieu:", f"{disparu.city}, {disparu.country}"),
+        ("Age:", f"{disparu.age} ans / years old"),
+        ("Sexe / Gender:", disparu.sex or "Non specifie"),
+        ("Lieu / Location:", f"{disparu.city}, {disparu.country}"),
         ("Date:", disparu.disappearance_date.strftime('%d/%m/%Y') if disparu.disappearance_date else "Non specifie"),
     ]
     
     for label, value in details:
-        p.setFont("Helvetica-Bold", 12)
-        p.setFillColor(gray_dark)
+        p.setFont("Helvetica-Bold", 11)
+        p.setFillColor(RED_DARK)
         p.drawString(info_x, info_y, label)
-        p.setFont("Helvetica", 12)
-        p.setFillColor(gray_medium)
-        p.drawString(info_x + 2*cm, info_y, value)
-        info_y -= 0.7*cm
+        p.setFont("Helvetica", 11)
+        p.setFillColor(GRAY_DARK)
+        label_width = p.stringWidth(label, "Helvetica-Bold", 11)
+        p.drawString(info_x + label_width + 3*mm, info_y, value[:35])
+        info_y -= 0.65*cm
     
-    desc_y = height - 16*cm
-    p.setFillColor(red_primary)
+    section_y = height - 19*cm
+    
+    p.setFillColor(RED_PRIMARY)
+    p.rect(2*cm - 2*mm, section_y - 0.2*cm, 4*mm, 0.6*cm, fill=1, stroke=0)
+    p.setFillColor(GRAY_DARK)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(2*cm, desc_y, "DESCRIPTION PHYSIQUE")
+    p.drawString(2*cm + 5*mm, section_y, "DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION")
     
-    p.setStrokeColor(red_primary)
+    p.setStrokeColor(GRAY_LIGHT)
     p.setLineWidth(1)
-    p.line(2*cm, desc_y - 3*mm, width - 2*cm, desc_y - 3*mm)
+    p.line(2*cm, section_y - 4*mm, width - 2*cm, section_y - 4*mm)
     
-    desc_y -= 1*cm
-    p.setFillColor(gray_dark)
+    section_y -= 1*cm
+    p.setFillColor(GRAY_DARK)
     p.setFont("Helvetica", 11)
     
-    description = disparu.physical_description or "Aucune description disponible"
-    max_chars = 80
+    description = disparu.physical_description or "Aucune description disponible / No description available"
+    max_chars = 90
     lines = []
     words = description.split()
     current_line = ""
@@ -152,24 +219,27 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     if current_line:
         lines.append(current_line)
     
-    for line in lines[:6]:
-        p.drawString(2*cm, desc_y, line)
-        desc_y -= 0.5*cm
+    for line in lines[:5]:
+        p.drawString(2*cm, section_y, line)
+        section_y -= 0.5*cm
     
     if disparu.circumstances:
-        circ_y = desc_y - 0.8*cm
-        p.setFillColor(red_primary)
+        section_y -= 0.5*cm
+        
+        p.setFillColor(RED_PRIMARY)
+        p.rect(2*cm - 2*mm, section_y - 0.2*cm, 4*mm, 0.6*cm, fill=1, stroke=0)
+        p.setFillColor(GRAY_DARK)
         p.setFont("Helvetica-Bold", 14)
-        p.drawString(2*cm, circ_y, "CIRCONSTANCES")
+        p.drawString(2*cm + 5*mm, section_y, "CIRCONSTANCES / CIRCUMSTANCES")
         
-        p.setStrokeColor(red_primary)
-        p.line(2*cm, circ_y - 3*mm, width - 2*cm, circ_y - 3*mm)
+        p.setStrokeColor(GRAY_LIGHT)
+        p.line(2*cm, section_y - 4*mm, width - 2*cm, section_y - 4*mm)
         
-        circ_y -= 1*cm
-        p.setFillColor(gray_dark)
+        section_y -= 1*cm
+        p.setFillColor(GRAY_DARK)
         p.setFont("Helvetica", 11)
         
-        circ_text = disparu.circumstances[:300]
+        circ_text = disparu.circumstances[:350]
         circ_lines = []
         words = circ_text.split()
         current_line = ""
@@ -183,57 +253,73 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
             circ_lines.append(current_line)
         
         for line in circ_lines[:4]:
-            p.drawString(2*cm, circ_y, line)
-            circ_y -= 0.5*cm
+            p.drawString(2*cm, section_y, line)
+            section_y -= 0.5*cm
+    
+    contacts = getattr(disparu, 'contacts', [])
+    if contacts:
+        section_y -= 0.5*cm
+        
+        p.setFillColor(RED_PRIMARY)
+        p.rect(2*cm - 2*mm, section_y - 0.2*cm, 4*mm, 0.6*cm, fill=1, stroke=0)
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(2*cm + 5*mm, section_y, "CONTACTS")
+        
+        p.setStrokeColor(GRAY_LIGHT)
+        p.line(2*cm, section_y - 4*mm, 12*cm, section_y - 4*mm)
+        
+        section_y -= 0.8*cm
+        p.setFont("Helvetica", 11)
+        
+        for contact in contacts[:3]:
+            contact_name = contact.get('name', '') if isinstance(contact, dict) else getattr(contact, 'name', '')
+            contact_phone = contact.get('phone', '') if isinstance(contact, dict) else getattr(contact, 'phone', '')
+            if contact_name and contact_phone:
+                p.setFillColor(GRAY_DARK)
+                p.drawString(2*cm, section_y, f"{contact_name}: {contact_phone}")
+                section_y -= 0.5*cm
+    
+    qr_x = width - 6*cm
+    qr_y = 3*cm
+    qr_size = 4*cm
+    
+    draw_rounded_rect(p, qr_x - 5*mm, qr_y - 5*mm, qr_size + 1*cm, qr_size + 2*cm, 5*mm, fill_color=GRAY_LIGHT, stroke_color=RED_PRIMARY, stroke_width=2)
     
     qr_url = f"{base_url}/disparu/{disparu.public_id}"
     try:
-        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr = qrcode.QRCode(version=1, box_size=10, border=2, error_correction=qrcode.constants.ERROR_CORRECT_H)
         qr.add_data(qr_url)
         qr.make(fit=True)
-        qr_img = qr.make_image(fill_color="black", back_color="white")
+        qr_img = qr.make_image(fill_color="#7F1D1D", back_color="white")
         qr_buffer = io.BytesIO()
         qr_img.save(qr_buffer, format='PNG')
         qr_buffer.seek(0)
         qr_reader = ImageReader(qr_buffer)
-        p.drawImage(qr_reader, width - 5*cm, 2.5*cm, width=3.5*cm, height=3.5*cm)
-        
-        p.setFillColor(gray_medium)
-        p.setFont("Helvetica", 8)
-        p.drawCentredString(width - 3.25*cm, 2*cm, "Scannez pour plus d'infos")
+        p.drawImage(qr_reader, qr_x, qr_y + 0.8*cm, width=qr_size, height=qr_size)
     except Exception:
         pass
     
-    p.setFillColor(red_primary)
-    p.rect(0, 0, width, 1.5*cm, fill=1, stroke=0)
+    p.setFillColor(RED_DARK)
+    p.setFont("Helvetica-Bold", 9)
+    p.drawCentredString(qr_x + qr_size/2, qr_y + 0.3*cm, "SCANNEZ / SCAN")
+    
+    p.setFillColor(RED_PRIMARY)
+    p.rect(0, 0, width, 2*cm, fill=1, stroke=0)
+    
+    p.setFillColor(ACCENT_GOLD)
+    p.rect(0, 2*cm, width, 0.2*cm, fill=1, stroke=0)
     
     p.setFillColor(white)
-    p.setFont("Helvetica-Bold", 12)
-    p.drawCentredString(width/2, 0.7*cm, f"{base_url} - Si vous avez des informations, contactez-nous!")
+    p.setFont("Helvetica-Bold", 14)
+    p.drawCentredString(width/2, 1.2*cm, f"{base_url}")
     
-    contacts = getattr(disparu, 'contacts', [])
-    if contacts:
-        contact_y = 6.5*cm
-        p.setFillColor(red_primary)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(2*cm, contact_y, "CONTACTS")
-        
-        p.setStrokeColor(red_primary)
-        p.line(2*cm, contact_y - 3*mm, 10*cm, contact_y - 3*mm)
-        
-        contact_y -= 0.8*cm
-        p.setFillColor(gray_dark)
-        p.setFont("Helvetica", 11)
-        
-        for contact in contacts[:3]:
-            contact_name = contact.name if hasattr(contact, 'name') else str(contact.get('name', ''))
-            contact_phone = contact.phone if hasattr(contact, 'phone') else str(contact.get('phone', ''))
-            p.drawString(2*cm, contact_y, f"{contact_name}: {contact_phone}")
-            contact_y -= 0.5*cm
+    p.setFont("Helvetica", 10)
+    p.drawCentredString(width/2, 0.5*cm, "Si vous avez des informations, contactez-nous! / If you have information, contact us!")
     
-    p.setFillColor(gray_medium)
+    p.setFillColor(GRAY_MEDIUM)
     p.setFont("Helvetica", 8)
-    p.drawString(2*cm, 2*cm, f"Document genere le {datetime.now().strftime('%d/%m/%Y a %H:%M')}")
+    p.drawString(2*cm, 2.5*cm, f"Document genere le {datetime.now().strftime('%d/%m/%Y a %H:%M')}")
     
     p.showPage()
     p.save()
@@ -246,14 +332,14 @@ def generate_qr_code(data, size=10):
     try:
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=size,
             border=4,
         )
         qr.add_data(data)
         qr.make(fit=True)
         
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color="#7F1D1D", back_color="white")
         buffer = io.BytesIO()
         img.save(buffer, format='PNG')
         buffer.seek(0)
@@ -275,44 +361,52 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     img = Image.new('RGB', (width, height), color='#FFFFFF')
     draw = ImageDraw.Draw(img)
     
-    draw.rectangle([0, 0, width, 120], fill='#B91C1C')
+    draw.rectangle([0, 0, width, 140], fill='#B91C1C')
+    draw.rectangle([0, 140, width, 148], fill='#7F1D1D')
+    draw.rectangle([0, 148, width, 155], fill='#D97706')
     
     logo_path = settings.get('site_logo')
-    if logo_path and os.path.exists(f'statics/{logo_path}'):
-        try:
-            logo = Image.open(f'statics/{logo_path}')
-            logo = logo.convert('RGBA')
-            logo.thumbnail((80, 80), Image.Resampling.LANCZOS)
-            img.paste(logo, (30, 20), logo if logo.mode == 'RGBA' else None)
-        except Exception:
-            pass
+    if logo_path:
+        full_path = f'statics/{logo_path}' if not logo_path.startswith('statics/') else logo_path
+        if os.path.exists(full_path):
+            try:
+                logo = Image.open(full_path)
+                logo = logo.convert('RGBA')
+                logo.thumbnail((100, 100), Image.Resampling.LANCZOS)
+                img.paste(logo, (30, 20), logo if logo.mode == 'RGBA' else None)
+            except Exception:
+                pass
     
     try:
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 40)
+        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
         font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
         font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
+        font_tiny = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
     except Exception:
         font_title = ImageFont.load_default()
         font_large = ImageFont.load_default()
         font_medium = ImageFont.load_default()
         font_small = ImageFont.load_default()
+        font_tiny = ImageFont.load_default()
     
-    draw.text((130, 40), site_name, fill='#FFFFFF', font=font_title)
-    draw.text((width - 200, 45), f"ID: {disparu.public_id}", fill='#FFFFFF', font=font_small)
+    draw.text((150, 45), site_name, fill='#FFFFFF', font=font_title)
+    draw.text((width - 180, 50), f"ID: {disparu.public_id}", fill='#FFFFFF', font=font_small)
     
-    draw.text((width//2 - 180, 150), "PERSONNE DISPARUE", fill='#7F1D1D', font=font_large)
+    draw.text((width//2 - 220, 175), "PERSONNE DISPARUE", fill='#7F1D1D', font=font_large)
+    draw.text((width//2 - 120, 235), "MISSING PERSON", fill='#6B7280', font=font_medium)
     
-    draw.line([(100, 210), (width - 100, 210)], fill='#B91C1C', width=3)
+    draw.line([(100, 280), (width - 100, 280)], fill='#B91C1C', width=4)
+    draw.line([(200, 286), (width - 200, 286)], fill='#D97706', width=2)
     
-    photo_x, photo_y = 50, 240
-    photo_size = 320
+    photo_x, photo_y = 50, 310
+    photo_size = 260
     
-    draw.rectangle([photo_x - 5, photo_y - 5, photo_x + photo_size + 5, photo_y + photo_size + 5], outline='#B91C1C', width=4)
+    draw.rectangle([photo_x - 6, photo_y - 6, photo_x + photo_size + 6, photo_y + photo_size + 6], outline='#B91C1C', width=5)
     
     photo_loaded = False
     if disparu.photo_url:
-        photo_path = f'statics/{disparu.photo_url.replace("/statics/", "")}'
+        photo_path = disparu.photo_url.replace('/statics/', 'statics/')
         if os.path.exists(photo_path):
             try:
                 photo = Image.open(photo_path)
@@ -326,41 +420,50 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
                 pass
     
     if not photo_loaded:
-        draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill='#E5E7EB')
-        draw.text((photo_x + 60, photo_y + 140), "Photo non\ndisponible", fill='#6B7280', font=font_medium)
+        draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill='#F3F4F6')
+        draw.text((photo_x + 55, photo_y + 110), "Photo non", fill='#6B7280', font=font_medium)
+        draw.text((photo_x + 50, photo_y + 145), "disponible", fill='#6B7280', font=font_medium)
     
-    info_x = 420
-    info_y = 250
+    info_x = 350
+    info_y = 320
     
     name = f"{disparu.first_name} {disparu.last_name}"
     draw.text((info_x, info_y), name, fill='#1F2937', font=font_large)
     
     info_y += 70
-    draw.text((info_x, info_y), f"Age: {disparu.age} ans", fill='#6B7280', font=font_medium)
+    draw.rectangle([info_x - 10, info_y - 5, info_x + 450, info_y + 130], fill='#FEE2E2', outline='#B91C1C', width=2)
     
-    info_y += 45
+    info_y += 10
+    draw.text((info_x + 10, info_y), f"Age: {disparu.age} ans", fill='#1F2937', font=font_medium)
+    info_y += 40
     location = f"{disparu.city}, {disparu.country}"
-    draw.text((info_x, info_y), location, fill='#6B7280', font=font_medium)
-    
-    info_y += 45
+    draw.text((info_x + 10, info_y), location[:40], fill='#1F2937', font=font_medium)
+    info_y += 40
     if disparu.disappearance_date:
         date_str = disparu.disappearance_date.strftime('%d/%m/%Y')
-        draw.text((info_x, info_y), f"Disparu(e) le: {date_str}", fill='#B91C1C', font=font_medium)
+        draw.text((info_x + 10, info_y), f"Disparu(e) le: {date_str}", fill='#B91C1C', font=font_medium)
     
+    qr_x = width - 170
+    qr_y = 310
     qr_url = f"{base_url}/disparu/{disparu.public_id}"
     try:
-        qr = qrcode.QRCode(version=1, box_size=6, border=2)
+        qr = qrcode.QRCode(version=1, box_size=6, border=2, error_correction=qrcode.constants.ERROR_CORRECT_H)
         qr.add_data(qr_url)
         qr.make(fit=True)
-        qr_img = qr.make_image(fill_color="black", back_color="white")
-        qr_img = qr_img.resize((100, 100), Image.Resampling.LANCZOS)
-        img.paste(qr_img, (width - 130, 240))
-        draw.text((width - 150, 350), "Plus d'infos", fill='#6B7280', font=font_small)
+        qr_img = qr.make_image(fill_color="#7F1D1D", back_color="white")
+        qr_img = qr_img.resize((130, 130), Image.Resampling.LANCZOS)
+        
+        draw.rectangle([qr_x - 10, qr_y - 10, qr_x + 140, qr_y + 170], fill='#F3F4F6', outline='#B91C1C', width=2)
+        img.paste(qr_img, (qr_x, qr_y))
+        draw.text((qr_x - 5, qr_y + 135), "Scannez pour", fill='#6B7280', font=font_tiny)
+        draw.text((qr_x + 5, qr_y + 153), "plus d'infos", fill='#6B7280', font=font_tiny)
     except Exception:
         pass
     
-    draw.rectangle([0, height - 60, width, height], fill='#B91C1C')
-    draw.text((width//2 - 280, height - 45), f"{base_url} - Aidez-nous a retrouver cette personne", fill='#FFFFFF', font=font_small)
+    draw.rectangle([0, height - 70, width, height], fill='#B91C1C')
+    draw.rectangle([0, height - 75, width, height - 70], fill='#D97706')
+    draw.text((width//2 - 150, height - 55), base_url, fill='#FFFFFF', font=font_medium)
+    draw.text((width//2 - 260, height - 25), "Aidez-nous a retrouver cette personne!", fill='#FFFFFF', font=font_small)
     
     buffer = io.BytesIO()
     img.save(buffer, format='PNG', quality=95)
