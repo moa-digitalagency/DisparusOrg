@@ -3,16 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
-    <meta name="description" content="DISPARUS.ORG - Plateforme citoyenne de signalement de personnes disparues en Afrique">
+    <meta name="description" content="{{ site_settings.get('meta_description', 'DISPARUS.ORG - Plateforme citoyenne de signalement de personnes disparues en Afrique' if get_locale() == 'fr' else 'DISPARUS.ORG - Citizen platform for reporting missing persons in Africa') }}">
+    <meta name="keywords" content="{{ site_settings.get('meta_keywords', 'disparus, missing persons, personnes disparues, afrique, africa, recherche, search') }}">
+    <meta name="author" content="{{ site_settings.get('site_name', 'DISPARUS.ORG') }}">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#b91c1c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Disparus">
+    <meta name="apple-mobile-web-app-title" content="{{ site_settings.get('site_name', 'Disparus') }}">
     
-    <title>{% block title %}DISPARUS.ORG{% endblock %}</title>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="{% block og_title %}{{ site_settings.get('site_name', 'DISPARUS.ORG') }}{% endblock %}">
+    <meta property="og:description" content="{{ site_settings.get('og_description', site_settings.get('meta_description', 'Plateforme citoyenne de signalement de personnes disparues en Afrique')) }}">
+    <meta property="og:image" content="{{ site_settings.get('og_image', url_for('static', filename='img/og-image.png', _external=True) if url_for else '/statics/img/og-image.png') }}">
+    <meta property="og:site_name" content="{{ site_settings.get('site_name', 'DISPARUS.ORG') }}">
+    <meta property="og:locale" content="{{ 'fr_FR' if get_locale() == 'fr' else 'en_US' }}">
     
-    <link rel="icon" type="image/png" href="{{ site_settings.get('favicon', '/statics/img/favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ site_settings.get('favicon', '/statics/img/favicon.png') }}">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ request.url }}">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ site_settings.get('site_name', 'DISPARUS.ORG') }}{% endblock %}">
+    <meta name="twitter:description" content="{{ site_settings.get('og_description', site_settings.get('meta_description', 'Plateforme citoyenne de signalement de personnes disparues en Afrique')) }}">
+    <meta name="twitter:image" content="{{ site_settings.get('og_image', '/statics/img/og-image.png') }}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <title>{% block title %}{{ site_settings.get('site_name', 'DISPARUS.ORG') }}{% endblock %}</title>
+    
+    {% set favicon_url = site_settings.get('favicon', '/statics/img/favicon.png') %}
+    <link rel="icon" type="image/png" href="{{ favicon_url }}">
+    <link rel="apple-touch-icon" href="{{ favicon_url }}">
+    
+    <!-- Google Analytics -->
+    {% if site_settings.get('google_analytics_id') %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_settings.get('google_analytics_id') }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ site_settings.get('google_analytics_id') }}');
+    </script>
+    {% endif %}
+    
+    <!-- Google Tag Manager -->
+    {% if site_settings.get('google_tag_manager_id') %}
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','{{ site_settings.get('google_tag_manager_id') }}');</script>
+    {% endif %}
+    
+    <!-- Custom Head Scripts -->
+    {{ site_settings.get('head_scripts', '')|safe }}
     <link rel="manifest" href="/manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,11 +111,11 @@
             <div class="flex items-center justify-between h-14 md:h-16 gap-2 md:gap-4">
                 <a href="/" class="flex items-center gap-1.5 text-red-700 dark:text-red-500 font-bold text-lg md:text-xl flex-shrink-0" data-testid="link-home">
                     {% if site_settings.get('logo') %}
-                    <img src="{{ site_settings.get('logo') }}" alt="DISPARUS.ORG" class="h-8 md:h-10 w-auto">
+                    <img src="{{ site_settings.get('logo') }}" alt="{{ site_settings.get('site_name', 'DISPARUS.ORG') }}" class="h-8 md:h-10 w-auto">
                     {% else %}
                     <svg class="w-6 h-6 md:w-8 md:h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span class="tracking-tighter leading-none">{{ site_settings.get('site_name', 'DISPARUS.ORG') }}</span>
                     {% endif %}
-                    <span class="tracking-tighter leading-none">DISPARUS.ORG</span>
                 </a>
                 
                 <div class="flex items-center gap-1.5 md:gap-2">
