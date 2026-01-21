@@ -107,7 +107,8 @@ templates/            # Jinja2 templates
 - `POST /admin/disparu/<id>/delete` - Delete record
 
 ### API Blueprint (routes/api.py)
-- `GET /api/disparus` - JSON list of missing persons
+- `GET /api/disparus` - JSON list of missing persons (supports lat/lng for proximity sorting)
+- `GET /api/disparus/nearby` - Get nearby disparus sorted by distance (requires lat/lng params)
 - `GET /api/disparus/<id>` - Single person with contributions
 - `GET /api/stats` - Platform statistics
 - `GET /api/countries` - List of countries
@@ -121,7 +122,7 @@ templates/            # Jinja2 templates
 
 ## Key Features
 1. **Multi-section Report Form**: Identity, Location, Description, Contact
-2. **Interactive Maps**: Click to set location, geolocation support
+2. **Interactive Maps**: Click to set location, geolocation support, hover previews
 3. **Moderation System**: Flag false/inappropriate content
 4. **Multilingual**: French and English with cookie-based preference
 5. **Offline-First**: PWA manifest, service worker with caching
@@ -133,6 +134,8 @@ templates/            # Jinja2 templates
 11. **Contribution Validation**: Approve/reject workflow for contributions
 12. **SEO Configuration**: Meta tags, OpenGraph, Google Analytics/GTM
 13. **Custom Script Injection**: Head/body scripts for tracking
+14. **Geolocation-Based Sorting**: Reports sorted by proximity to user's detected location
+15. **Country Filter**: Persistent dropdown filter on homepage and admin map (localStorage)
 
 ## User Roles
 - **admin**: Full access to all features
@@ -160,6 +163,10 @@ The `init_db.py` script handles:
 - `ADMIN_PASSWORD` - Admin password for login
 
 ## Recent Changes
+- 2026-01-21: Added geolocation-based map zoom to user's detected city/location
+- 2026-01-21: Reports sorted by proximity (closest first) using Haversine formula
+- 2026-01-21: Added country filter dropdown on homepage and admin map with localStorage persistence
+- 2026-01-21: Added /api/disparus/nearby endpoint for proximity-sorted results
 - 2026-01-04: Added PDF, social media image, and QR code download routes
 - 2026-01-04: Enhanced detail page map with all contribution locations and custom markers
 - 2026-01-04: Admin authentication uses ADMIN_USERNAME and ADMIN_PASSWORD env vars

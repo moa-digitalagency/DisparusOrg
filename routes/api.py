@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from math import radians, sin, cos, sqrt, atan2
 
 from models import db, Disparu, Contribution
 from utils.geo import get_countries, get_cities
@@ -7,12 +8,27 @@ from security.rate_limit import rate_limit
 api_bp = Blueprint('api', __name__)
 
 
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance between two points in km"""
+    if not all([lat1, lon1, lat2, lon2]):
+        return float('inf')
+    R = 6371
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    return R * c
+
+
 @api_bp.route('/disparus')
 @rate_limit()
 def get_disparus():
     status = request.args.get('status')
     country = request.args.get('country')
     limit = request.args.get('limit', 100, type=int)
+    user_lat = request.args.get('lat', type=float)
+    user_lng = request.args.get('lng', type=float)
     
     q = Disparu.query
     
@@ -23,7 +39,43 @@ def get_disparus():
     
     disparus = q.order_by(Disparu.created_at.desc()).limit(limit).all()
     
-    return jsonify([d.to_dict() for d in disparus])
+    result = [d.to_dict() for d in disparus]
+    
+    if user_lat and user_lng:
+        for d in result:
+            d['distance'] = haversine_distance(user_lat, user_lng, d.get('latitude'), d.get('longitude'))
+        result.sort(key=lambda x: x.get('distance', float('inf')))
+    
+    return jsonify(result)
+
+
+@api_bp.route('/disparus/nearby')
+@rate_limit()
+def get_nearby_disparus():
+    user_lat = request.args.get('lat', type=float)
+    user_lng = request.args.get('lng', type=float)
+    status = request.args.get('status', 'missing')
+    limit = request.args.get('limit', 20, type=int)
+    
+    if not user_lat or not user_lng:
+        return jsonify({'error': 'lat and lng required'}), 400
+    
+    q = Disparu.query.filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))
+    if status:
+        q = q.filter_by(status=status)
+    
+    disparus = q.all()
+    
+    results = []
+    for d in disparus:
+        dist = haversine_distance(user_lat, user_lng, d.latitude, d.longitude)
+        data = d.to_dict()
+        data['distance'] = round(dist, 1)
+        results.append(data)
+    
+    results.sort(key=lambda x: x['distance'])
+    
+    return jsonify(results[:limit])
 
 
 @api_bp.route('/disparus/<public_id>')

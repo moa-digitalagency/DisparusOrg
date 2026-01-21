@@ -7,7 +7,7 @@
 
 {% block admin_content %}
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+    <div class="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-2">
                 <span class="w-3 h-3 rounded-full bg-red-500"></span>
@@ -22,8 +22,17 @@
                 <span class="text-sm text-gray-600">{% if get_locale() == 'fr' %}Signale{% else %}Flagged{% endif %}</span>
             </div>
         </div>
-        <div class="text-sm text-gray-500">
-            {{ disparus|length }} {% if get_locale() == 'fr' %}signalements{% else %}reports{% endif %}
+        <div class="flex items-center gap-3">
+            <select id="admin-country-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <option value="">{% if get_locale() == 'fr' %}Tous les pays{% else %}All countries{% endif %}</option>
+                {% set countries = disparus|map(attribute='country')|unique|sort %}
+                {% for country in countries %}
+                <option value="{{ country }}">{{ country }}</option>
+                {% endfor %}
+            </select>
+            <span id="admin-count" class="text-sm text-gray-500">
+                {{ disparus|length }} {% if get_locale() == 'fr' %}signalements{% else %}reports{% endif %}
+            </span>
         </div>
     </div>
     <div id="admin-map" class="h-[600px]"></div>
@@ -84,19 +93,40 @@
     }).addTo(map);
     
     const hoverCard = document.getElementById('hover-card');
-    const disparus = {{ disparus|tojson|safe if disparus else '[]' }};
+    const allDisparus = {{ disparus|tojson|safe if disparus else '[]' }};
+    const adminCountryFilter = document.getElementById('admin-country-filter');
+    const adminCount = document.getElementById('admin-count');
+    let mapMarkers = [];
     
-    disparus.forEach(function(d) {
-        if (d.latitude && d.longitude) {
-            const color = d.status === 'found' ? '#22c55e' : (d.is_flagged ? '#f97316' : '#ef4444');
-            const marker = L.circleMarker([d.latitude, d.longitude], {
-                radius: 10,
-                fillColor: color,
-                color: '#fff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.9
-            }).addTo(map);
+    const savedAdminCountry = localStorage.getItem('disparus_admin_country_filter');
+    if (savedAdminCountry) {
+        adminCountryFilter.value = savedAdminCountry;
+    }
+    
+    function updateAdminMap() {
+        mapMarkers.forEach(m => map.removeLayer(m));
+        mapMarkers = [];
+        
+        const selectedCountry = adminCountryFilter.value;
+        let filtered = allDisparus;
+        
+        if (selectedCountry) {
+            filtered = allDisparus.filter(d => d.country === selectedCountry);
+        }
+        
+        adminCount.textContent = filtered.length + ' {% if get_locale() == "fr" %}signalements{% else %}reports{% endif %}';
+        
+        filtered.forEach(function(d) {
+            if (d.latitude && d.longitude) {
+                const color = d.status === 'found' ? '#22c55e' : (d.is_flagged ? '#f97316' : '#ef4444');
+                const marker = L.circleMarker([d.latitude, d.longitude], {
+                    radius: 10,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
             
             marker.on('mouseover', function(e) {
                 const photoHtml = d.photo_url 
@@ -145,11 +175,37 @@
                 '<a href="/disparu/' + d.public_id + '" class="text-red-600 hover:underline text-sm mt-1 inline-block">{% if get_locale() == "fr" %}Voir la fiche{% else %}View profile{% endif %}</a>' +
                 '</div>'
             );
+            mapMarkers.push(marker);
         }
+        });
+        
+        if (mapMarkers.length > 0) {
+            const bounds = mapMarkers.map(m => m.getLatLng());
+            map.fitBounds(bounds.map(b => [b.lat, b.lng]), {padding: [30, 30], maxZoom: 10});
+        }
+    }
+    
+    adminCountryFilter.addEventListener('change', function() {
+        localStorage.setItem('disparus_admin_country_filter', this.value);
+        updateAdminMap();
     });
     
     hoverCard.addEventListener('mouseleave', function() {
         hoverCard.classList.add('hidden');
     });
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                if (!adminCountryFilter.value) {
+                    map.setView([position.coords.latitude, position.coords.longitude], 8);
+                }
+            },
+            function() {},
+            { enableHighAccuracy: false, timeout: 5000 }
+        );
+    }
+    
+    updateAdminMap();
 </script>
 {% endblock %}

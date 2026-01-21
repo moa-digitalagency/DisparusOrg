@@ -75,17 +75,26 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center justify-between mb-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
             <div class="flex items-center gap-3">
                 <div class="w-1 h-6 bg-red-600 rounded-full"></div>
                 <h2 class="text-lg font-semibold text-gray-900" data-testid="text-recent-title">
-                    {% if get_locale() == 'fr' %}Derniers signalements{% else %}Recent reports{% endif %}
+                    {% if get_locale() == 'fr' %}Signalements proches de vous{% else %}Reports near you{% endif %}
                 </h2>
+                <span id="user-location-badge" class="hidden text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"></span>
             </div>
-            <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium text-sm flex items-center gap-1" data-testid="link-view-all">
-                {% if get_locale() == 'fr' %}Voir tout{% else %}View all{% endif %}
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
+            <div class="flex items-center gap-2">
+                <select id="country-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">{% if get_locale() == 'fr' %}Tous les pays{% else %}All countries{% endif %}</option>
+                    {% for country in countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+                <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium text-sm flex items-center gap-1" data-testid="link-view-all">
+                    {% if get_locale() == 'fr' %}Voir tout{% else %}View all{% endif %}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
         </div>
         <div class="h-0.5 w-full bg-gradient-to-r from-red-500 via-red-300 to-transparent rounded-full mb-6"></div>
         
@@ -434,12 +443,126 @@
         attribution: 'OpenStreetMap'
     }).addTo(map);
     
-    const disparus = {{ all_disparus|tojson|safe if all_disparus else '[]' }};
-    disparus.forEach(function(d) {
-        if (d.latitude && d.longitude) {
-            const marker = L.marker([d.latitude, d.longitude]).addTo(map);
-            marker.bindPopup('<strong>' + d.first_name + ' ' + d.last_name + '</strong><br>ID: ' + d.public_id + '<br><a href="/disparu/' + d.public_id + '">Voir</a>');
+    let allDisparus = {{ all_disparus|tojson|safe if all_disparus else '[]' }};
+    let userLocation = null;
+    let markers = [];
+    const countryFilter = document.getElementById('country-filter');
+    const locationBadge = document.getElementById('user-location-badge');
+    const cardsContainer = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
+    
+    const savedCountry = localStorage.getItem('disparus_country_filter');
+    if (savedCountry) {
+        countryFilter.value = savedCountry;
+    }
+    
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+    
+    function updateMarkers() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        
+        const selectedCountry = countryFilter.value;
+        let filtered = allDisparus;
+        
+        if (selectedCountry) {
+            filtered = allDisparus.filter(d => d.country === selectedCountry);
         }
+        
+        if (userLocation) {
+            filtered = filtered.map(d => ({
+                ...d,
+                distance: calculateDistance(userLocation.lat, userLocation.lng, d.latitude, d.longitude)
+            })).sort((a, b) => a.distance - b.distance);
+        }
+        
+        filtered.forEach(function(d) {
+            if (d.latitude && d.longitude) {
+                const color = d.status === 'found' ? '#22c55e' : '#ef4444';
+                const marker = L.circleMarker([d.latitude, d.longitude], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    fillOpacity: 0.9
+                }).addTo(map);
+                marker.bindPopup(
+                    '<div class="text-center">' +
+                    (d.photo_url ? '<img src="' + d.photo_url + '" class="w-12 h-12 mx-auto rounded-lg object-cover mb-2">' : '') +
+                    '<strong>' + d.first_name + ' ' + d.last_name + '</strong><br>' +
+                    '<span class="text-gray-500 text-sm">' + d.city + ', ' + d.country + '</span>' +
+                    (d.distance ? '<br><span class="text-xs text-blue-600">' + Math.round(d.distance) + ' km</span>' : '') +
+                    '<br><a href="/disparu/' + d.public_id + '" class="text-red-600 text-sm">{% if get_locale() == "fr" %}Voir{% else %}View{% endif %}</a>' +
+                    '</div>'
+                );
+                markers.push(marker);
+            }
+        });
+        
+        if (markers.length > 0) {
+            const bounds = markers.map(m => m.getLatLng());
+            if (userLocation && !selectedCountry) {
+                map.setView([userLocation.lat, userLocation.lng], 8);
+            } else if (bounds.length > 0) {
+                map.fitBounds(bounds.map(b => [b.lat, b.lng]), {padding: [30, 30], maxZoom: 10});
+            }
+        }
+    }
+    
+    countryFilter.addEventListener('change', function() {
+        localStorage.setItem('disparus_country_filter', this.value);
+        updateMarkers();
     });
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                localStorage.setItem('disparus_user_lat', userLocation.lat);
+                localStorage.setItem('disparus_user_lng', userLocation.lng);
+                
+                fetch('https://nominatim.openstreetmap.org/reverse?lat=' + userLocation.lat + '&lon=' + userLocation.lng + '&format=json')
+                    .then(r => r.json())
+                    .then(data => {
+                        const city = data.address?.city || data.address?.town || data.address?.village || '';
+                        const country = data.address?.country || '';
+                        if (city || country) {
+                            locationBadge.textContent = city ? city + ', ' + country : country;
+                            locationBadge.classList.remove('hidden');
+                        }
+                    }).catch(() => {});
+                
+                if (!countryFilter.value) {
+                    map.setView([userLocation.lat, userLocation.lng], 8);
+                }
+                updateMarkers();
+            },
+            function(error) {
+                const savedLat = localStorage.getItem('disparus_user_lat');
+                const savedLng = localStorage.getItem('disparus_user_lng');
+                if (savedLat && savedLng) {
+                    userLocation = { lat: parseFloat(savedLat), lng: parseFloat(savedLng) };
+                }
+                updateMarkers();
+            },
+            { enableHighAccuracy: false, timeout: 5000 }
+        );
+    } else {
+        updateMarkers();
+    }
+    
+    updateMarkers();
 </script>
 {% endblock %}
