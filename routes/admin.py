@@ -649,7 +649,7 @@ def data_management():
             disparus_count = Disparu.query.filter_by(country=country).count()
             disparu_ids = [d.id for d in Disparu.query.filter_by(country=country).all()]
             contributions_count = Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).count() if disparu_ids else 0
-            reports_count = ModerationReport.query.filter(ModerationReport.disparu_id.in_(disparu_ids)).count() if disparu_ids else 0
+            reports_count = ModerationReport.query.filter(ModerationReport.target_type == 'disparu', ModerationReport.target_id.in_(disparu_ids)).count() if disparu_ids else 0
             country_stats.append({
                 'country': country,
                 'disparus_count': disparus_count,
@@ -681,18 +681,18 @@ def export_data():
             'first_name': d.first_name,
             'last_name': d.last_name,
             'age': d.age,
-            'gender': d.gender,
+            'sex': d.sex,
+            'person_type': d.person_type,
             'country': d.country,
             'city': d.city,
             'latitude': d.latitude,
             'longitude': d.longitude,
-            'description': d.description,
-            'contact_name': d.contact_name,
-            'contact_phone': d.contact_phone,
-            'contact_email': d.contact_email,
+            'physical_description': d.physical_description,
+            'circumstances': d.circumstances,
+            'contacts': d.contacts,
             'status': d.status,
             'created_at': d.created_at.isoformat() if d.created_at else None,
-            'last_seen_date': d.last_seen_date.isoformat() if d.last_seen_date else None
+            'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None
         }
         data.append(item)
     
@@ -730,7 +730,7 @@ def backup_data():
     disparu_ids = [d.id for d in disparus]
     
     contributions = Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).all() if disparu_ids else []
-    reports = ModerationReport.query.filter(ModerationReport.disparu_id.in_(disparu_ids)).all() if disparu_ids else []
+    reports = ModerationReport.query.filter(ModerationReport.target_type == 'disparu', ModerationReport.target_id.in_(disparu_ids)).all() if disparu_ids else []
     
     backup = {
         'version': '1.0',
@@ -747,30 +747,30 @@ def backup_data():
             'first_name': d.first_name,
             'last_name': d.last_name,
             'age': d.age,
-            'gender': d.gender,
+            'sex': d.sex,
             'person_type': d.person_type,
             'country': d.country,
             'city': d.city,
             'latitude': d.latitude,
             'longitude': d.longitude,
-            'description': d.description,
-            'distinctive_signs': d.distinctive_signs,
-            'last_seen_location': d.last_seen_location,
-            'last_seen_date': d.last_seen_date.isoformat() if d.last_seen_date else None,
-            'contact_name': d.contact_name,
-            'contact_phone': d.contact_phone,
-            'contact_email': d.contact_email,
-            'contact_relationship': d.contact_relationship,
+            'physical_description': d.physical_description,
+            'circumstances': d.circumstances,
+            'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None,
+            'clothing': d.clothing,
+            'objects': d.objects,
+            'contacts': d.contacts,
             'photo_url': d.photo_url,
             'status': d.status,
             'is_flagged': d.is_flagged,
+            'view_count': d.view_count,
             'created_at': d.created_at.isoformat() if d.created_at else None,
             'updated_at': d.updated_at.isoformat() if d.updated_at else None
         })
     
     for c in contributions:
+        disparu_contrib = Disparu.query.get(c.disparu_id) if c.disparu_id else None
         backup['contributions'].append({
-            'disparu_public_id': Disparu.query.get(c.disparu_id).public_id if c.disparu_id else None,
+            'disparu_public_id': disparu_contrib.public_id if disparu_contrib else None,
             'contributor_name': c.contributor_name,
             'contributor_phone': c.contributor_phone,
             'contributor_email': c.contributor_email,
@@ -784,12 +784,14 @@ def backup_data():
         })
     
     for r in reports:
+        disparu = Disparu.query.get(r.target_id) if r.target_id else None
         backup['moderation_reports'].append({
-            'disparu_public_id': Disparu.query.get(r.disparu_id).public_id if r.disparu_id else None,
-            'reporter_name': r.reporter_name,
-            'reporter_email': r.reporter_email,
+            'disparu_public_id': disparu.public_id if disparu else None,
+            'target_type': r.target_type,
+            'target_id': r.target_id,
             'reason': r.reason,
             'details': r.details,
+            'reporter_contact': r.reporter_contact,
             'status': r.status,
             'created_at': r.created_at.isoformat() if r.created_at else None
         })
@@ -828,28 +830,26 @@ def restore_data():
                 skipped_count += 1
                 continue
             
-            d = Disparu(
-                public_id=d_data.get('public_id'),
-                first_name=d_data.get('first_name'),
-                last_name=d_data.get('last_name'),
-                age=d_data.get('age'),
-                gender=d_data.get('gender'),
-                person_type=d_data.get('person_type'),
-                country=d_data.get('country'),
-                city=d_data.get('city'),
-                latitude=d_data.get('latitude'),
-                longitude=d_data.get('longitude'),
-                description=d_data.get('description'),
-                distinctive_signs=d_data.get('distinctive_signs'),
-                last_seen_location=d_data.get('last_seen_location'),
-                contact_name=d_data.get('contact_name'),
-                contact_phone=d_data.get('contact_phone'),
-                contact_email=d_data.get('contact_email'),
-                contact_relationship=d_data.get('contact_relationship'),
-                photo_url=d_data.get('photo_url'),
-                status=d_data.get('status', 'missing'),
-                is_flagged=d_data.get('is_flagged', False)
-            )
+            d = Disparu()
+            d.public_id = d_data.get('public_id')
+            d.first_name = d_data.get('first_name')
+            d.last_name = d_data.get('last_name')
+            d.age = d_data.get('age')
+            d.sex = d_data.get('sex', 'unknown')
+            d.person_type = d_data.get('person_type', 'adult')
+            d.country = d_data.get('country')
+            d.city = d_data.get('city')
+            d.latitude = d_data.get('latitude')
+            d.longitude = d_data.get('longitude')
+            d.physical_description = d_data.get('physical_description', '')
+            d.circumstances = d_data.get('circumstances', '')
+            d.disappearance_date = datetime.fromisoformat(d_data['disappearance_date']) if d_data.get('disappearance_date') else datetime.now()
+            d.clothing = d_data.get('clothing')
+            d.objects = d_data.get('objects')
+            d.contacts = d_data.get('contacts')
+            d.photo_url = d_data.get('photo_url')
+            d.status = d_data.get('status', 'missing')
+            d.is_flagged = d_data.get('is_flagged', False)
             db.session.add(d)
             restored_count += 1
         
@@ -887,7 +887,7 @@ def delete_data():
         
         if disparu_ids:
             Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).delete(synchronize_session=False)
-            ModerationReport.query.filter(ModerationReport.disparu_id.in_(disparu_ids)).delete(synchronize_session=False)
+            ModerationReport.query.filter(ModerationReport.target_type == 'disparu', ModerationReport.target_id.in_(disparu_ids)).delete(synchronize_session=False)
         
         deleted_count = q.delete(synchronize_session=False)
         db.session.commit()
