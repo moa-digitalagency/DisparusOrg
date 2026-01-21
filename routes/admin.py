@@ -900,3 +900,35 @@ def delete_data():
         flash(f'Erreur lors de la suppression: {str(e)}', 'error')
     
     return redirect(url_for('admin.data_management'))
+
+
+@admin_bp.route('/data/delete-demo', methods=['POST'])
+@admin_required
+def delete_demo_data():
+    try:
+        DEMO_IDS = ['DEMO01', 'DEMO02', 'DEMO03', 'DEMO04', 'DEMO05', 'DEMO06', 'DEMO07', 'DEMO08']
+        
+        disparus = Disparu.query.filter(Disparu.public_id.in_(DEMO_IDS)).all()
+        disparu_db_ids = [d.id for d in disparus]
+        
+        contrib_deleted = 0
+        report_deleted = 0
+        
+        if disparu_db_ids:
+            contrib_deleted = Contribution.query.filter(Contribution.disparu_id.in_(disparu_db_ids)).delete(synchronize_session=False)
+            report_deleted = ModerationReport.query.filter(
+                ModerationReport.target_type == 'disparu',
+                ModerationReport.target_id.in_(disparu_db_ids)
+            ).delete(synchronize_session=False)
+        
+        disparu_deleted = Disparu.query.filter(Disparu.public_id.in_(DEMO_IDS)).delete(synchronize_session=False)
+        db.session.commit()
+        
+        log_activity(f'Suppression donnees demo: {disparu_deleted} signalements', action_type='delete', target_type='demo_data', severity='warning')
+        flash(f'{disparu_deleted} profils demo supprimes (+ {contrib_deleted} contributions, {report_deleted} rapports)', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.data_management'))
