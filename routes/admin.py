@@ -300,7 +300,7 @@ def settings():
         upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'statics', 'uploads', 'settings')
         os.makedirs(upload_folder, exist_ok=True)
         
-        image_fields = ['og_image', 'favicon', 'logo']
+        image_fields = ['og_image', 'favicon', 'logo', 'placeholder_male', 'placeholder_female']
         for field in image_fields:
             file_key = f'upload_{field}'
             if file_key in request.files:

@@ -152,6 +152,20 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
                 pass
     
     if not photo_loaded:
+        sex = getattr(disparu, 'sex', 'unknown') or 'unknown'
+        placeholder_key = 'placeholder_male' if sex.lower() in ['m', 'male', 'homme', 'masculin'] else 'placeholder_female'
+        placeholder_path = settings.get(placeholder_key, '')
+        if placeholder_path:
+            full_placeholder = placeholder_path.replace('/statics/', 'statics/')
+            if os.path.exists(full_placeholder):
+                try:
+                    photo = ImageReader(full_placeholder)
+                    p.drawImage(photo, photo_x, photo_y, width=photo_width, height=photo_height, preserveAspectRatio=True)
+                    photo_loaded = True
+                except Exception:
+                    pass
+    
+    if not photo_loaded:
         draw_rounded_rect(p, photo_x, photo_y, photo_width, photo_height, 3*mm, fill_color=GRAY_LIGHT)
         p.setFillColor(GRAY_MEDIUM)
         p.setFont("Helvetica", 12)
@@ -418,6 +432,24 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
                 photo_loaded = True
             except Exception:
                 pass
+    
+    if not photo_loaded:
+        sex = getattr(disparu, 'sex', 'unknown') or 'unknown'
+        placeholder_key = 'placeholder_male' if sex.lower() in ['m', 'male', 'homme', 'masculin'] else 'placeholder_female'
+        placeholder_path = settings.get(placeholder_key, '')
+        if placeholder_path:
+            full_placeholder = placeholder_path.replace('/statics/', 'statics/')
+            if os.path.exists(full_placeholder):
+                try:
+                    photo = Image.open(full_placeholder)
+                    photo = photo.convert('RGB')
+                    photo.thumbnail((photo_size, photo_size), Image.Resampling.LANCZOS)
+                    paste_x = photo_x + (photo_size - photo.width) // 2
+                    paste_y = photo_y + (photo_size - photo.height) // 2
+                    img.paste(photo, (paste_x, paste_y))
+                    photo_loaded = True
+                except Exception:
+                    pass
     
     if not photo_loaded:
         draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill='#F3F4F6')

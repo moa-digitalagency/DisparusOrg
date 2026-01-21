@@ -138,6 +138,41 @@
                     </div>
                 </div>
             </div>
+            <div class="pt-4 border-t border-gray-100">
+                <h4 class="text-sm font-semibold text-gray-700 mb-4">Images Placeholder (pour exports PDF/Image)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Placeholder Homme</label>
+                        <div class="flex items-center gap-3">
+                            {% if settings.get('placeholder_male') %}
+                            <img src="{{ settings.get('placeholder_male') }}" alt="Placeholder Homme" class="w-16 h-16 object-cover rounded-xl border border-gray-200">
+                            {% else %}
+                            <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
+                            {% endif %}
+                            <div class="flex-1">
+                                <input type="file" name="upload_placeholder_male" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Placeholder Femme</label>
+                        <div class="flex items-center gap-3">
+                            {% if settings.get('placeholder_female') %}
+                            <img src="{{ settings.get('placeholder_female') }}" alt="Placeholder Femme" class="w-16 h-16 object-cover rounded-xl border border-gray-200">
+                            {% else %}
+                            <div class="w-16 h-16 rounded-xl bg-pink-50 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
+                            {% endif %}
+                            <div class="flex-1">
+                                <input type="file" name="upload_placeholder_female" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700">Google Analytics ID</label>

@@ -136,6 +136,7 @@ templates/            # Jinja2 templates
 13. **Custom Script Injection**: Head/body scripts for tracking
 14. **Geolocation-Based Sorting**: Reports sorted by proximity to user's detected location
 15. **Country Filter**: Persistent dropdown filter on homepage and admin map (localStorage)
+16. **Placeholder Images**: Configurable male/female placeholders for PDF/image exports when no photo available
 
 ## User Roles
 - **admin**: Full access to all features
