@@ -172,6 +172,10 @@ The `init_db.py` script handles:
 - 2026-01-21: Added geolocation-based map zoom to user's detected city/location
 - 2026-01-21: Reports sorted by proximity (closest first) using Haversine formula
 - 2026-01-21: Added country filter dropdown on homepage and admin map with localStorage persistence
+- 2026-01-21: Added init_db_demo.py for demo data (8 profiles: Maroc + Gabon)
+- 2026-01-21: Added demo images generation script (scripts/generate_demo_images.py)
+- 2026-01-21: Updated init_db.py with integrated migrations for VPS deployments
+- 2026-01-21: Added delete demo data button in admin Data page
 - 2026-01-21: Added /api/disparus/nearby endpoint for proximity-sorted results
 - 2026-01-04: Added PDF, social media image, and QR code download routes
 - 2026-01-04: Enhanced detail page map with all contribution locations and custom markers

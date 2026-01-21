@@ -2,14 +2,17 @@
 """
 Database initialization script for DISPARUS.ORG
 Creates all tables and initializes default data (roles, settings)
+Includes migration support for VPS deployments
 """
 
 import os
 import sys
+from datetime import datetime
 
 from app import create_app
 from models import db, User, Role, Disparu, Contribution, ModerationReport, ActivityLog, Download, SiteSetting
 from werkzeug.security import generate_password_hash
+from sqlalchemy import text, inspect
 
 app = create_app()
 
@@ -129,6 +132,82 @@ def init_admin_user():
         print("  Admin user already exists")
 
 
+def run_migrations():
+    """Run database migrations for VPS deployments"""
+    print("Running migrations...")
+    
+    inspector = inspect(db.engine)
+    existing_tables = inspector.get_table_names()
+    
+    migrations_applied = 0
+    
+    if 'disparus_flask' in existing_tables:
+        columns = [col['name'] for col in inspector.get_columns('disparus_flask')]
+        
+        if 'view_count' not in columns:
+            try:
+                db.session.execute(text('ALTER TABLE disparus_flask ADD COLUMN view_count INTEGER DEFAULT 0'))
+                db.session.commit()
+                print("  + Added column: disparus_flask.view_count")
+                migrations_applied += 1
+            except Exception as e:
+                db.session.rollback()
+                print(f"  - Migration view_count skipped: {e}")
+        
+        if 'is_flagged' not in columns:
+            try:
+                db.session.execute(text('ALTER TABLE disparus_flask ADD COLUMN is_flagged BOOLEAN DEFAULT FALSE'))
+                db.session.commit()
+                print("  + Added column: disparus_flask.is_flagged")
+                migrations_applied += 1
+            except Exception as e:
+                db.session.rollback()
+                print(f"  - Migration is_flagged skipped: {e}")
+    
+    if 'contributions_flask' in existing_tables:
+        columns = [col['name'] for col in inspector.get_columns('contributions_flask')]
+        
+        if 'is_approved' not in columns:
+            try:
+                db.session.execute(text('ALTER TABLE contributions_flask ADD COLUMN is_approved BOOLEAN DEFAULT FALSE'))
+                db.session.commit()
+                print("  + Added column: contributions_flask.is_approved")
+                migrations_applied += 1
+            except Exception as e:
+                db.session.rollback()
+                print(f"  - Migration is_approved skipped: {e}")
+    
+    if migrations_applied > 0:
+        print(f"  {migrations_applied} migrations applied")
+    else:
+        print("  No migrations needed")
+
+
+def generate_demo_images():
+    """Generate demo profile images if they don't exist"""
+    demo_folder = 'statics/uploads/demo'
+    
+    demo_images = [
+        'demo_child_male.jpg',
+        'demo_adult_male.jpg', 
+        'demo_adult_male_2.jpg',
+        'demo_adult_female.jpg'
+    ]
+    
+    missing_images = [img for img in demo_images if not os.path.exists(os.path.join(demo_folder, img))]
+    
+    if missing_images:
+        print("  Generating demo images...")
+        try:
+            from scripts.generate_demo_images import generate_all_demo_images
+            generate_all_demo_images()
+        except ImportError:
+            print("  Warning: Could not import demo image generator")
+            os.makedirs(demo_folder, exist_ok=True)
+    else:
+        print("  Demo images already exist")
+
+
 def init_database():
     """Main initialization function"""
     print("\n=== DISPARUS.ORG Database Initialization ===\n")
@@ -138,17 +217,25 @@ def init_database():
         db.create_all()
         print("   Tables created successfully!\n")
         
-        print("2. Initializing default roles...")
+        print("2. Running migrations...")
+        run_migrations()
+        print("   Migrations complete!\n")
+        
+        print("3. Initializing default roles...")
         init_default_roles()
         print("   Roles initialized!\n")
         
-        print("3. Initializing default settings...")
+        print("4. Initializing default settings...")
         init_default_settings()
         print("   Settings initialized!\n")
         
-        print("4. Checking admin user...")
+        print("5. Checking admin user...")
         init_admin_user()
         print("   Admin check complete!\n")
+        
+        print("6. Checking demo images...")
+        generate_demo_images()
+        print("   Demo images ready!\n")
         
         print("=== Database initialization complete! ===\n")
 
