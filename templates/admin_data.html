@@ -1,0 +1,175 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Data - Admin DISPARUS.ORG{% endblock %}
+
+{% block page_title %}{% if get_locale() == 'fr' %}Gestion des donnees{% else %}Data Management{% endif %}{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Exporter, sauvegarder et supprimer les donnees{% else %}Export, backup and delete data{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-blue-50">
+            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                {% if get_locale() == 'fr' %}Exporter les donnees{% else %}Export Data{% endif %}
+            </h2>
+        </div>
+        <form action="{{ url_for('admin.export_data') }}" method="POST" class="p-4 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
+                <select name="country" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">{% if get_locale() == 'fr' %}Tous les pays{% else %}All countries{% endif %}</option>
+                    {% for country in countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="format" value="json" checked class="text-blue-600">
+                        <span class="text-sm">JSON</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="format" value="csv" class="text-blue-600">
+                        <span class="text-sm">CSV</span>
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                {% if get_locale() == 'fr' %}Exporter{% else %}Export{% endif %}
+            </button>
+        </form>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-green-50">
+            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                {% if get_locale() == 'fr' %}Sauvegarder la base{% else %}Backup Database{% endif %}
+            </h2>
+        </div>
+        <form action="{{ url_for('admin.backup_data') }}" method="POST" class="p-4 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
+                <select name="country" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">{% if get_locale() == 'fr' %}Tous les pays{% else %}All countries{% endif %}</option>
+                    {% for country in countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <p class="text-xs text-gray-500">{% if get_locale() == 'fr' %}Telecharge un fichier JSON complet avec signalements, contributions et rapports.{% else %}Downloads a complete JSON file with reports, contributions and moderation reports.{% endif %}</p>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                {% if get_locale() == 'fr' %}Sauvegarder{% else %}Backup{% endif %}
+            </button>
+        </form>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-purple-50">
+            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                {% if get_locale() == 'fr' %}Restaurer la base{% else %}Restore Database{% endif %}
+            </h2>
+        </div>
+        <form action="{{ url_for('admin.restore_data') }}" method="POST" enctype="multipart/form-data" class="p-4 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Fichier de sauvegarde (JSON){% else %}Backup file (JSON){% endif %}</label>
+                <input type="file" name="backup_file" accept=".json" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200">
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <p class="text-xs text-amber-800">{% if get_locale() == 'fr' %}Attention: Cette action ajoutera les donnees du fichier a la base existante. Les doublons seront ignores.{% else %}Warning: This action will add data from the file to the existing database. Duplicates will be ignored.{% endif %}</p>
+            </div>
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                {% if get_locale() == 'fr' %}Restaurer{% else %}Restore{% endif %}
+            </button>
+        </form>
+    </div>
+    
+    <div class="bg-white rounded-xl border border-red-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-red-100 bg-red-50">
+            <h2 class="font-semibold text-gray-900 flex items-center gap-2">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                {% if get_locale() == 'fr' %}Supprimer les donnees{% else %}Delete Data{% endif %}
+            </h2>
+        </div>
+        <form action="{{ url_for('admin.delete_data') }}" method="POST" class="p-4 space-y-4" onsubmit="return confirmDelete()">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
+                <select name="country" id="delete-country" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">{% if get_locale() == 'fr' %}Tous les pays (DANGER!){% else %}All countries (DANGER!){% endif %}</option>
+                    {% for country in countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+                <p class="text-xs text-red-800 font-medium">{% if get_locale() == 'fr' %}ATTENTION: Cette action est IRREVERSIBLE! Toutes les donnees (signalements, contributions, rapports) seront DEFINITIVEMENT supprimees.{% else %}WARNING: This action is IRREVERSIBLE! All data (reports, contributions, moderation reports) will be PERMANENTLY deleted.{% endif %}</p>
+            </div>
+            <div>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="confirm" required class="text-red-600 rounded">
+                    <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Je confirme vouloir supprimer ces donnees{% else %}I confirm I want to delete this data{% endif %}</span>
+                </label>
+            </div>
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                {% if get_locale() == 'fr' %}Supprimer{% else %}Delete{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Statistiques par pays{% else %}Statistics by country{% endif %}</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{% if get_locale() == 'fr' %}Signalements{% else %}Reports{% endif %}</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Contributions</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{% if get_locale() == 'fr' %}Moderation{% else %}Moderation{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for stat in country_stats %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ stat.country }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600 text-center">{{ stat.disparus_count }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600 text-center">{{ stat.contributions_count }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600 text-center">{{ stat.reports_count }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">{% if get_locale() == 'fr' %}Aucune donnee{% else %}No data{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete() {
+    const country = document.getElementById('delete-country').value;
+    const msg = country 
+        ? '{% if get_locale() == "fr" %}Etes-vous SUR de vouloir supprimer TOUTES les donnees de {% else %}Are you SURE you want to delete ALL data from {% endif %}' + country + '?'
+        : '{% if get_locale() == "fr" %}Etes-vous SUR de vouloir supprimer TOUTES les donnees de TOUS les pays?{% else %}Are you SURE you want to delete ALL data from ALL countries?{% endif %}';
+    return confirm(msg);
+}
+</script>
+{% endblock %}

@@ -1,10 +1,14 @@
 import os
+import json
+import csv
+import io
 from datetime import datetime
 from functools import wraps
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting
 from services.analytics import get_platform_stats
+from utils.geo import get_countries
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -630,3 +634,269 @@ def reject_contribution(contrib_id):
     db.session.commit()
     flash('Contribution rejetee', 'success')
     return redirect(url_for('admin.contributions'))
+
+
+@admin_bp.route('/data')
+@admin_required
+def data_management():
+    log_activity('Consultation gestion donnees', action_type='view', target_type='data')
+    countries = get_countries()
+    
+    country_stats = []
+    country_list = db.session.query(Disparu.country).distinct().all()
+    for (country,) in country_list:
+        if country:
+            disparus_count = Disparu.query.filter_by(country=country).count()
+            disparu_ids = [d.id for d in Disparu.query.filter_by(country=country).all()]
+            contributions_count = Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).count() if disparu_ids else 0
+            reports_count = ModerationReport.query.filter(ModerationReport.disparu_id.in_(disparu_ids)).count() if disparu_ids else 0
+            country_stats.append({
+                'country': country,
+                'disparus_count': disparus_count,
+                'contributions_count': contributions_count,
+                'reports_count': reports_count
+            })
+    
+    country_stats.sort(key=lambda x: x['disparus_count'], reverse=True)
+    
+    return render_template('admin_data.html', countries=countries, country_stats=country_stats)
+
+
+@admin_bp.route('/data/export', methods=['POST'])
+@admin_required
+def export_data():
+    country = request.form.get('country', '')
+    export_format = request.form.get('format', 'json')
+    
+    q = Disparu.query
+    if country:
+        q = q.filter_by(country=country)
+    
+    disparus = q.all()
+    
+    data = []
+    for d in disparus:
+        item = {
+            'public_id': d.public_id,
+            'first_name': d.first_name,
+            'last_name': d.last_name,
+            'age': d.age,
+            'gender': d.gender,
+            'country': d.country,
+            'city': d.city,
+            'latitude': d.latitude,
+            'longitude': d.longitude,
+            'description': d.description,
+            'contact_name': d.contact_name,
+            'contact_phone': d.contact_phone,
+            'contact_email': d.contact_email,
+            'status': d.status,
+            'created_at': d.created_at.isoformat() if d.created_at else None,
+            'last_seen_date': d.last_seen_date.isoformat() if d.last_seen_date else None
+        }
+        data.append(item)
+    
+    log_activity(f'Export donnees {export_format.upper()} - {country or "Tous"}', action_type='export', target_type='data', severity='info')
+    
+    filename = f"disparus_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    if export_format == 'csv':
+        output = io.StringIO()
+        if data:
+            writer = csv.DictWriter(output, fieldnames=data[0].keys())
+            writer.writeheader()
+            writer.writerows(data)
+        response = make_response(output.getvalue())
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}.csv'
+        return response
+    else:
+        response = make_response(json.dumps(data, ensure_ascii=False, indent=2))
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}.json'
+        return response
+
+
+@admin_bp.route('/data/backup', methods=['POST'])
+@admin_required
+def backup_data():
+    country = request.form.get('country', '')
+    
+    q = Disparu.query
+    if country:
+        q = q.filter_by(country=country)
+    
+    disparus = q.all()
+    disparu_ids = [d.id for d in disparus]
+    
+    contributions = Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).all() if disparu_ids else []
+    reports = ModerationReport.query.filter(ModerationReport.disparu_id.in_(disparu_ids)).all() if disparu_ids else []
+    
+    backup = {
+        'version': '1.0',
+        'created_at': datetime.now().isoformat(),
+        'country': country or 'all',
+        'disparus': [],
+        'contributions': [],
+        'moderation_reports': []
+    }
+    
+    for d in disparus:
+        backup['disparus'].append({
+            'public_id': d.public_id,
+            'first_name': d.first_name,
+            'last_name': d.last_name,
+            'age': d.age,
+            'gender': d.gender,
+            'person_type': d.person_type,
+            'country': d.country,
+            'city': d.city,
+            'latitude': d.latitude,
+            'longitude': d.longitude,
+            'description': d.description,
+            'distinctive_signs': d.distinctive_signs,
+            'last_seen_location': d.last_seen_location,
+            'last_seen_date': d.last_seen_date.isoformat() if d.last_seen_date else None,
+            'contact_name': d.contact_name,
+            'contact_phone': d.contact_phone,
+            'contact_email': d.contact_email,
+            'contact_relationship': d.contact_relationship,
+            'photo_url': d.photo_url,
+            'status': d.status,
+            'is_flagged': d.is_flagged,
+            'created_at': d.created_at.isoformat() if d.created_at else None,
+            'updated_at': d.updated_at.isoformat() if d.updated_at else None
+        })
+    
+    for c in contributions:
+        backup['contributions'].append({
+            'disparu_public_id': Disparu.query.get(c.disparu_id).public_id if c.disparu_id else None,
+            'contributor_name': c.contributor_name,
+            'contributor_phone': c.contributor_phone,
+            'contributor_email': c.contributor_email,
+            'content': c.content,
+            'location': c.location,
+            'latitude': c.latitude,
+            'longitude': c.longitude,
+            'sighting_date': c.sighting_date.isoformat() if c.sighting_date else None,
+            'is_approved': c.is_approved,
+            'created_at': c.created_at.isoformat() if c.created_at else None
+        })
+    
+    for r in reports:
+        backup['moderation_reports'].append({
+            'disparu_public_id': Disparu.query.get(r.disparu_id).public_id if r.disparu_id else None,
+            'reporter_name': r.reporter_name,
+            'reporter_email': r.reporter_email,
+            'reason': r.reason,
+            'details': r.details,
+            'status': r.status,
+            'created_at': r.created_at.isoformat() if r.created_at else None
+        })
+    
+    log_activity(f'Sauvegarde base - {country or "Tous"}', action_type='backup', target_type='data', severity='info')
+    
+    filename = f"backup_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    response = make_response(json.dumps(backup, ensure_ascii=False, indent=2))
+    response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
+
+
+@admin_bp.route('/data/restore', methods=['POST'])
+@admin_required
+def restore_data():
+    if 'backup_file' not in request.files:
+        flash('Aucun fichier selectionne', 'error')
+        return redirect(url_for('admin.data_management'))
+    
+    file = request.files['backup_file']
+    if file.filename == '':
+        flash('Aucun fichier selectionne', 'error')
+        return redirect(url_for('admin.data_management'))
+    
+    try:
+        content = file.read().decode('utf-8')
+        backup = json.loads(content)
+        
+        restored_count = 0
+        skipped_count = 0
+        
+        for d_data in backup.get('disparus', []):
+            existing = Disparu.query.filter_by(public_id=d_data.get('public_id')).first()
+            if existing:
+                skipped_count += 1
+                continue
+            
+            d = Disparu(
+                public_id=d_data.get('public_id'),
+                first_name=d_data.get('first_name'),
+                last_name=d_data.get('last_name'),
+                age=d_data.get('age'),
+                gender=d_data.get('gender'),
+                person_type=d_data.get('person_type'),
+                country=d_data.get('country'),
+                city=d_data.get('city'),
+                latitude=d_data.get('latitude'),
+                longitude=d_data.get('longitude'),
+                description=d_data.get('description'),
+                distinctive_signs=d_data.get('distinctive_signs'),
+                last_seen_location=d_data.get('last_seen_location'),
+                contact_name=d_data.get('contact_name'),
+                contact_phone=d_data.get('contact_phone'),
+                contact_email=d_data.get('contact_email'),
+                contact_relationship=d_data.get('contact_relationship'),
+                photo_url=d_data.get('photo_url'),
+                status=d_data.get('status', 'missing'),
+                is_flagged=d_data.get('is_flagged', False)
+            )
+            db.session.add(d)
+            restored_count += 1
+        
+        db.session.commit()
+        
+        log_activity(f'Restauration base - {restored_count} ajoutes, {skipped_count} ignores', action_type='restore', target_type='data', severity='warning')
+        flash(f'Restauration terminee: {restored_count} signalements ajoutes, {skipped_count} ignores (doublons)', 'success')
+        
+    except json.JSONDecodeError:
+        flash('Fichier JSON invalide', 'error')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la restauration: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.data_management'))
+
+
+@admin_bp.route('/data/delete', methods=['POST'])
+@admin_required
+def delete_data():
+    country = request.form.get('country', '')
+    confirm = request.form.get('confirm')
+    
+    if not confirm:
+        flash('Vous devez confirmer la suppression', 'error')
+        return redirect(url_for('admin.data_management'))
+    
+    try:
+        q = Disparu.query
+        if country:
+            q = q.filter_by(country=country)
+        
+        disparus = q.all()
+        disparu_ids = [d.id for d in disparus]
+        
+        if disparu_ids:
+            Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).delete(synchronize_session=False)
+            ModerationReport.query.filter(ModerationReport.disparu_id.in_(disparu_ids)).delete(synchronize_session=False)
+        
+        deleted_count = q.delete(synchronize_session=False)
+        db.session.commit()
+        
+        log_activity(f'Suppression donnees - {country or "Tous"}: {deleted_count} signalements', action_type='delete', target_type='data', severity='critical', is_security=True)
+        flash(f'{deleted_count} signalements et donnees associees supprimes', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.data_management'))

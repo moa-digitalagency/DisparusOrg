@@ -163,6 +163,11 @@ The `init_db.py` script handles:
 - `ADMIN_PASSWORD` - Admin password for login
 
 ## Recent Changes
+- 2026-01-21: Added admin Data page for export, backup, restore, and delete operations
+- 2026-01-21: Export data to JSON/CSV (all countries or specific country)
+- 2026-01-21: Backup/restore database with full data preservation
+- 2026-01-21: Delete data by country with confirmation
+- 2026-01-21: Reduced logo size in header when custom logo is set
 - 2026-01-21: Added geolocation-based map zoom to user's detected city/location
 - 2026-01-21: Reports sorted by proximity (closest first) using Haversine formula
 - 2026-01-21: Added country filter dropdown on homepage and admin map with localStorage persistence
