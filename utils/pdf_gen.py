@@ -87,28 +87,45 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # --- 1. En-tête (Logo + Titre Site) ---
     # Fond blanc pour le haut, pas de gros bloc rouge tout en haut comme l'affiche
 
-    # Logo (ou Placeholder rond rouge avec 'D')
+    # Logo
     logo_size = 2.5*cm
     logo_x = 1.5*cm
     logo_y = height - 4*cm
 
     logo_drawn = False
-    logo_path = settings.get('site_logo')
-    if logo_path:
-        full_path = f'statics/{logo_path}' if not logo_path.startswith('statics/') else logo_path
-        if os.path.exists(full_path):
-            try:
-                logo = ImageReader(full_path)
-                p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
-                logo_drawn = True
-            except Exception:
-                pass
 
+    # Tentative chargement favicon.png (prioritaire)
+    favicon_path = 'statics/img/favicon.png'
+    # Gestion du chemin relatif si nécessaire
+    if not os.path.exists(favicon_path) and os.path.exists('/' + favicon_path):
+        favicon_path = '/' + favicon_path
+
+    if os.path.exists(favicon_path):
+        try:
+            logo = ImageReader(favicon_path)
+            p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
+            logo_drawn = True
+        except Exception:
+            pass
+
+    # Si favicon non trouvé, on tente le logo du site via settings
+    if not logo_drawn:
+        logo_path = settings.get('site_logo')
+        if logo_path:
+            full_path = f'statics/{logo_path}' if not logo_path.startswith('statics/') else logo_path
+            if os.path.exists(full_path):
+                try:
+                    logo = ImageReader(full_path)
+                    p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
+                    logo_drawn = True
+                except Exception:
+                    pass
+
+    # Si toujours pas de logo, on met un cercle rouge par défaut
     if not logo_drawn:
         # Cercle rouge avec 'D'
-        p.setFillColor(WHITE) # Fond blanc sous le cercle si besoin
+        p.setFillColor(WHITE) 
         p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0) 
-        # En fait dans le PDF exemple c'est un logo graphique, on va simuler un cercle placeholder propre
         p.setFillColor(RED_PRIMARY)
         p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
         p.setFillColor(WHITE)
@@ -118,7 +135,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # Titre du site à droite du logo
     title_x = logo_x + logo_size + 0.5*cm
     title_y = height - 2.5*cm
-    p.setFillColor(BLACK) # Ou gris très foncé
+    p.setFillColor(RED_DARK) 
     p.setFont("Helvetica-Bold", 28)
     p.drawString(title_x, title_y, site_name)
 
@@ -134,7 +151,21 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p.drawRightString(width - 1.5*cm, title_y, f"ID: {disparu.public_id}")
 
     # --- 2. Titre Principal "PERSONNE DISPARUE" ---
-    main_title_y = height - 6*cm
+    # On remonte tout le bloc de 0.5 cm vers le haut (avant height - 6*cm)
+    main_title_y = height - 5.5*cm 
+
+    # Fond rouge léger (10% opacité) derrière tout le bloc
+    p.saveState()
+    # Création couleur rouge avec alpha 0.1
+    bg_color = Color(RED_PRIMARY.red, RED_PRIMARY.green, RED_PRIMARY.blue, alpha=0.1)
+    p.setFillColor(bg_color)
+    # Rectangle couvrant le titre, sous-titre et les lignes
+    # Calcul approximatif pour couvrir la zone
+    rect_bottom = main_title_y - 2.2*cm # Juste en dessous de la ligne or
+    rect_height = 3.5*cm # Assez haut pour couvrir le texte PERSONNE DISPARUE
+    p.rect(0, rect_bottom, width, rect_height, fill=1, stroke=0)
+    p.restoreState()
+
     p.setFillColor(RED_DARK) # Rouge sombre pour le titre principal
     p.setFont("Helvetica-Bold", 36)
     p.drawCentredString(width/2, main_title_y, "PERSONNE DISPARUE")
@@ -154,13 +185,15 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p.line(5*cm, main_title_y - 1.7*cm, width - 5*cm, main_title_y - 1.7*cm) # Ligne or fine
 
     # --- 3. Corps (Photo gauche / Infos droite) ---
-    content_y = main_title_y - 3*cm
-    photo_x = 2*cm
+    # Remonté de 0.5cm (était 3*cm) pour rapprocher du titre
+    content_y = main_title_y - 2.5*cm 
+
+    # Photo décalée de 0.5cm vers la gauche (était 2*cm)
+    photo_x = 1.5*cm
     photo_w = 7*cm
     photo_h = 8*cm
 
     # PAS de cadre rouge autour de la photo (modifié sur demande)
-    # draw_rounded_rect(p, photo_x - 2*mm, content_y - photo_h - 2*mm, photo_w + 4*mm, photo_h + 4*mm, 5*mm, stroke_color=RED_PRIMARY, stroke_width=2)
 
     # Photo
     photo_loaded = False
@@ -183,16 +216,19 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
          p.drawCentredString(photo_x + photo_w/2, content_y - photo_h/2, "Photo non disponible")
 
     # Infos à droite - TAILLE POLICE AUGMENTÉE
-    info_x = photo_x + photo_w + 1*cm
-    # On descend le nom un tout petit peu vers le bas (0.8cm plus bas que la photo top)
-    info_y_cursor = content_y - 0.8*cm 
+    # Infos décalées de 1cm vers la gauche par rapport à l'original (2+7+1 = 10cm).
+    # Nouveau calcul : photo_x (1.5) + photo_w (7) + marge (0.5) = 9cm.
+    info_x = photo_x + photo_w + 0.5*cm
+
+    # On descend le nom de 0.5 cm supplémentaires vers le bas (était 0.8cm, devient 1.3cm)
+    info_y_cursor = content_y - 1.3*cm 
 
     # Nom
     p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica-Bold", 30) # Augmenté de 26 à 30
+    p.setFont("Helvetica-Bold", 25) # Réduit de 26 à 25 comme demandé
     name = f"{disparu.first_name} {disparu.last_name}"
     p.drawString(info_x, info_y_cursor, name)
-    info_y_cursor -= 1.8*cm # Espacement augmenté
+    info_y_cursor -= 1.3*cm # Espacement réduit de 1.8 à 1.3 pour faire monter les détails de 0.5cm
 
     # Date et Heure formatée (Séparées)
     date_val = "Non specifie"
@@ -247,15 +283,16 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # info_y_cursor -= 1.0*cm # Pas nécessaire pour le dernier élément
 
     # --- 4. Description & Circonstances ---
-    section_y = content_y - photo_h - 1.5*cm
+    # REMONTÉ de 0.5cm (était -1.5*cm, maintenant -1.0*cm)
+    section_y = content_y - photo_h - 1.0*cm
 
     def draw_section_block(title, content, y_pos):
         # Petit rectangle rouge puce
         p.setFillColor(RED_PRIMARY)
         p.rect(2*cm, y_pos, 0.4*cm, 0.4*cm, fill=1, stroke=0)
 
-        # Titre
-        p.setFillColor(GRAY_DARK)
+        # Titre - COULEUR CHANGÉE en RED_DARK
+        p.setFillColor(RED_DARK)
         p.setFont("Helvetica-Bold", 14)
         p.drawString(2.6*cm, y_pos, title)
 
@@ -373,250 +410,5 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     p.showPage()
     p.save()
-    buffer.seek(0)
-    return buffer
-
-
-def generate_qr_code(data, size=10):
-    try:
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_H,
-            box_size=size,
-            border=4,
-        )
-        qr.add_data(data)
-        qr.make(fit=True)
-
-        img = qr.make_image(fill_color="#7F1D1D", back_color="white")
-        buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
-        buffer.seek(0)
-        return buffer
-    except Exception:
-        return None
-
-
-def generate_social_media_image(disparu, base_url='https://disparus.org'):
-    """
-    Génère une image pour les réseaux sociaux (1080x1350) 
-    avec un layout ajusté pour que tout soit visible.
-    """
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-    except ImportError:
-        return None
-
-    settings = get_site_settings()
-    site_name = settings.get('site_name', 'DISPARUS.ORG')
-
-    # Dimensions (Format Portrait Social Media)
-    width, height = 1080, 1350
-
-    # --- Palette de couleurs exacte du HTML ---
-    COLOR_RED = '#9F1C1C'       
-    COLOR_NAVY = '#1E2538'      
-    COLOR_CONTACT = '#8B1818'   
-    COLOR_WHITE = '#FFFFFF'
-    COLOR_BG = '#FFFFFF'        
-    COLOR_BLACK = '#000000'
-    COLOR_TEXT_GRAY = '#4A4A4A' 
-
-    img = Image.new('RGB', (width, height), color=COLOR_BG)
-    draw = ImageDraw.Draw(img)
-
-    def get_font(variant, size):
-        font_candidates = {
-            "Bold": [
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-                "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
-                "arialbd.ttf", "Arial Bold.ttf",
-            ],
-            "Regular": [
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-                "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
-                "arial.ttf", "Arial.ttf",
-            ]
-        }
-        selected_path = None
-        for path in font_candidates.get(variant, []):
-            try:
-                if os.path.isabs(path) and not os.path.exists(path):
-                    continue
-                ImageFont.truetype(path, size)
-                selected_path = path
-                break
-            except OSError:
-                continue
-
-        if selected_path:
-            return ImageFont.truetype(selected_path, size)
-        else:
-            return ImageFont.load_default()
-
-    # Définition des tailles (Légèrement réduites pour l'espace)
-    font_header_title = get_font("Bold", 32)
-    font_header_meta = get_font("Bold", 22)
-    font_subheader = get_font("Bold", 50)
-    font_subheader_small = get_font("Regular", 26)
-    font_name = get_font("Bold", 55)   # Réduit de 70
-    font_details = get_font("Bold", 32) # Réduit de 38
-    font_date = get_font("Bold", 34)    # Réduit de 40
-    font_contact_instr = get_font("Bold", 24)
-    font_contact_name = get_font("Bold", 36)
-    font_contact_phone = get_font("Bold", 55)
-    font_footer = get_font("Bold", 24)  # Réduit de 28
-    font_url = get_font("Regular", 22)
-
-    # --- 1. En-tête Rouge (Top Header) ---
-    header_h = 100
-    draw.rectangle([0, 0, width, header_h], fill=COLOR_RED)
-
-    draw.text((width//2, 40), "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!", fill=COLOR_WHITE, font=font_header_title, anchor='mm')
-    draw.text((40, 75), site_name, fill=COLOR_WHITE, font=font_header_meta, anchor='lm')
-    draw.text((width - 40, 75), f"ID : {disparu.public_id}", fill=COLOR_WHITE, font=font_header_meta, anchor='rm')
-
-    # --- 2. Sous-titre Bleu (Sub-Header) ---
-    sub_header_y = header_h
-    sub_header_h = 120
-    draw.rectangle([0, sub_header_y, width, sub_header_y + sub_header_h], fill=COLOR_NAVY)
-
-    draw.text((width//2, sub_header_y + 45), "PERSONNE DISPARUE", fill=COLOR_WHITE, font=font_subheader, anchor='mm')
-    draw.text((width//2, sub_header_y + 90), "MISSING PERSON", fill='#CCCCCC', font=font_subheader_small, anchor='mm') 
-
-    # --- 3. Section Photo (REDUITE) ---
-    # Réduit de 520 à 480 pour gagner 40px
-    photo_size = 480 
-    photo_y = sub_header_y + sub_header_h + 30
-    photo_x = (width - photo_size) // 2
-
-    border = 2
-    draw.rounded_rectangle(
-        [photo_x - border, photo_y - border, photo_x + photo_size + border, photo_y + photo_size + border], 
-        radius=40, fill='#E5E7EB'
-    )
-
-    photo_img = None
-    if disparu.photo_url:
-        path = disparu.photo_url.replace('/statics/', 'statics/')
-        if not os.path.exists(path) and os.path.exists(path.lstrip('/')):
-             path = path.lstrip('/')
-        if os.path.exists(path):
-            try:
-                photo_img = Image.open(path).convert('RGBA')
-            except:
-                pass
-
-    if not photo_img:
-        sex = getattr(disparu, 'sex', 'unknown') or 'unknown'
-        key = 'placeholder_male' if sex.lower() in ['m', 'male', 'homme', 'masculin'] else 'placeholder_female'
-        p_path = settings.get(key, '')
-        if p_path:
-             full_p = p_path.replace('/statics/', 'statics/')
-             if not os.path.exists(full_p) and os.path.exists(full_p.lstrip('/')):
-                 full_p = full_p.lstrip('/')
-             if os.path.exists(full_p):
-                 try:
-                    photo_img = Image.open(full_p).convert('RGBA')
-                 except:
-                    pass
-
-    if photo_img:
-        min_dim = min(photo_img.width, photo_img.height)
-        left = (photo_img.width - min_dim) // 2
-        top = (photo_img.height - min_dim) // 2
-        photo_img = photo_img.crop((left, top, left + min_dim, top + min_dim))
-        photo_img = photo_img.resize((photo_size, photo_size), Image.Resampling.LANCZOS)
-
-        mask = Image.new("L", (photo_size, photo_size), 0)
-        draw_mask = ImageDraw.Draw(mask)
-        draw_mask.rounded_rectangle((0, 0, photo_size, photo_size), radius=40, fill=255)
-
-        img.paste(photo_img, (photo_x, photo_y), mask=mask)
-    else:
-        draw.rounded_rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], radius=40, fill='#DDDDDD')
-        draw.text((width//2, photo_y + photo_size//2), "Photo non disponible", fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
-
-    # --- 4. Informations (Compactée) ---
-    info_y = photo_y + photo_size + 40
-
-    name = f"{disparu.first_name} {disparu.last_name}"
-    draw.text((width//2, info_y), name.upper(), fill=COLOR_BLACK, font=font_name, anchor='mm')
-
-    info_y += 60 # Reduced spacing
-
-    age_str = f"{disparu.age} ANS" if disparu.age else ""
-    sex_input = getattr(disparu, 'sex', '') or ''
-    sex_str = "HOMME" if sex_input.lower() in ['m', 'male', 'homme'] else "FEMME" if sex_input else ""
-
-    details_line = " - ".join(filter(None, [age_str, sex_str]))
-    draw.text((width//2, info_y), details_line, fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
-
-    info_y += 50
-    loc_str = f"{disparu.city}, {disparu.country}".upper()
-    draw.text((width//2, info_y), loc_str, fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
-
-    info_y += 60
-    date_line = "DISPARU(E)"
-    if disparu.disappearance_date:
-        d_str = disparu.disappearance_date.strftime('%d/%m/%Y')
-        t_str = disparu.disappearance_date.strftime('%H:%M')
-        if t_str and t_str != "00:00":
-             date_line += f" LE {d_str} A {t_str}"
-        else:
-             date_line += f" LE {d_str}"
-
-    draw.text((width//2, info_y), date_line, fill=COLOR_RED, font=font_date, anchor='mm')
-
-    # --- 5. Boîte de Contact ---
-    contact_box_top = info_y + 40
-    contact_box_width = int(width * 0.90) 
-    contact_box_x = (width - contact_box_width) // 2
-    contact_box_height = 200 # Réduit de 220 à 200
-
-    draw.rounded_rectangle([contact_box_x, contact_box_top, contact_box_x + contact_box_width, contact_box_top + contact_box_height], radius=40, fill=COLOR_CONTACT)
-
-    c_y = contact_box_top + 40
-    draw.text((width//2, c_y), "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION", fill=COLOR_WHITE, font=font_contact_instr, anchor='mm')
-
-    contacts = getattr(disparu, 'contacts', [])
-    contact_name_str = "FAMILLE"
-    contact_phone_str = ""
-
-    if contacts and len(contacts) > 0:
-        c = contacts[0]
-        if isinstance(c, dict):
-            contact_name_str = c.get('name', 'FAMILLE')
-            contact_phone_str = c.get('phone', '')
-        else:
-            contact_name_str = getattr(c, 'name', 'FAMILLE')
-            contact_phone_str = getattr(c, 'phone', '')
-
-    c_y += 50
-    draw.text((width//2, c_y), contact_name_str.upper(), fill=COLOR_WHITE, font=font_contact_name, anchor='mm')
-
-    if contact_phone_str:
-        c_y += 60
-        draw.text((width//2, c_y), contact_phone_str, fill=COLOR_WHITE, font=font_contact_phone, anchor='mm')
-
-    # --- 6. Texte de pied de page (VISIBILITÉ CRITIQUE) ---
-    # Placé juste en dessous de la boite de contact
-    footer_text_y = contact_box_top + contact_box_height + 30 
-
-    draw.text((width//2, footer_text_y), "TOUTE INFORMATION PEUT PERMETTRE DE RETROUVER CETTE PERSONNE,", fill=COLOR_RED, font=font_footer, anchor='mm')
-    draw.text((width//2, footer_text_y + 35), "UN PARTAGE DE CETTE IMAGE PEUT AIDER A LA RECHERCHE AUSSI", fill=COLOR_RED, font=font_footer, anchor='mm')
-
-    # --- 7. Barre URL en bas ---
-    bottom_bar_h = 60
-    # La barre URL est à 1290 (1350 - 60). Le texte footer est vers 1200-1250, donc ça passe.
-    draw.rectangle([0, height - bottom_bar_h, width, height], fill=COLOR_RED)
-
-    url_text = f"{base_url}/disparu/{disparu.public_id}".upper()
-    url_display = f"HTTP://{url_text.replace('HTTPS://', '').replace('HTTP://', '')}"
-
-    draw.text((width//2, height - bottom_bar_h/2), url_display, fill=COLOR_WHITE, font=font_url, anchor='mm')
-
-    buffer = io.BytesIO()
-    img.save(buffer, format='PNG', quality=95)
     buffer.seek(0)
     return buffer
