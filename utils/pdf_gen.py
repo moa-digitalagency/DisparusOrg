@@ -18,13 +18,16 @@ except ImportError:
     HAS_REPORTLAB = False
 
 
-RED_PRIMARY = HexColor('#9F1C1C') 
+# Couleurs
+RED_PRIMARY = HexColor('#B91C1C') # Rouge vif du PDF exemple
 RED_DARK = HexColor('#7F1D1D')
 RED_LIGHT = HexColor('#FEE2E2')
 GRAY_DARK = HexColor('#1F2937')
 GRAY_MEDIUM = HexColor('#6B7280')
 GRAY_LIGHT = HexColor('#F3F4F6')
-ACCENT_GOLD = HexColor('#D97706')
+ACCENT_GOLD = HexColor('#D97706') # Couleur Or pour les soulignements secondaires
+WHITE = HexColor('#FFFFFF')
+BLACK = HexColor('#000000')
 
 
 def get_site_settings():
@@ -68,6 +71,9 @@ def draw_rounded_rect(c, x, y, width, height, radius, fill_color=None, stroke_co
 
 
 def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
+    """
+    Génère un PDF A4 reproduisant le design original du site (horizontal).
+    """
     if not HAS_REPORTLAB:
         return None
 
@@ -76,16 +82,15 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
+    width, height = A4 # approx 21cm x 29.7cm
 
-    p.setFillColor(RED_PRIMARY)
-    p.rect(0, height - 5*cm, width, 5*cm, fill=1, stroke=0)
+    # --- 1. En-tête (Logo + Titre Site) ---
+    # Fond blanc pour le haut, pas de gros bloc rouge tout en haut comme l'affiche
 
-    p.setFillColor(RED_DARK)
-    p.rect(0, height - 5.3*cm, width, 0.3*cm, fill=1, stroke=0)
-
-    p.setFillColor(ACCENT_GOLD)
-    p.rect(0, height - 5.5*cm, width, 0.2*cm, fill=1, stroke=0)
+    # Logo (ou Placeholder rond rouge avec 'D')
+    logo_size = 2.5*cm
+    logo_x = 1.5*cm
+    logo_y = height - 4*cm
 
     logo_drawn = False
     logo_path = settings.get('site_logo')
@@ -94,250 +99,279 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
         if os.path.exists(full_path):
             try:
                 logo = ImageReader(full_path)
-                p.drawImage(logo, 1.5*cm, height - 4*cm, width=2.5*cm, height=2.5*cm, preserveAspectRatio=True, mask='auto')
+                p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
                 logo_drawn = True
             except Exception:
                 pass
 
     if not logo_drawn:
-        p.setFillColor(white)
-        p.circle(2.75*cm, height - 2.75*cm, 1.2*cm, fill=1, stroke=0)
+        # Cercle rouge avec 'D'
+        p.setFillColor(WHITE) # Fond blanc sous le cercle si besoin
+        p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0) 
+        # En fait dans le PDF exemple c'est un logo graphique, on va simuler un cercle placeholder propre
         p.setFillColor(RED_PRIMARY)
-        p.setFont("Helvetica-Bold", 20)
-        p.drawCentredString(2.75*cm, height - 3*cm, "D")
+        p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
+        p.setFillColor(WHITE)
+        p.setFont("Helvetica-Bold", 40)
+        p.drawCentredString(logo_x + logo_size/2, logo_y + logo_size/2 - 10, "D")
 
-    p.setFillColor(white)
-    p.setFont("Helvetica-Bold", 32)
-    p.drawString(5*cm, height - 2.8*cm, site_name)
+    # Titre du site à droite du logo
+    title_x = logo_x + logo_size + 0.5*cm
+    title_y = height - 2.5*cm
+    p.setFillColor(BLACK) # Ou gris très foncé
+    p.setFont("Helvetica-Bold", 28)
+    p.drawString(title_x, title_y, site_name)
 
-    p.setFont("Helvetica", 11)
-    p.drawString(5*cm, height - 4*cm, "Plateforme citoyenne pour personnes disparues")
-
-    p.setFont("Helvetica-Bold", 12)
-    p.drawRightString(width - 1.5*cm, height - 2.8*cm, f"ID: {disparu.public_id}")
-
-    p.setFillColor(RED_DARK)
-    p.setFont("Helvetica-Bold", 42)
-    title_y = height - 7.5*cm
-    p.drawCentredString(width/2, title_y, "PERSONNE DISPARUE")
-
+    # Slogan
+    p.setFont("Helvetica", 10)
     p.setFillColor(GRAY_MEDIUM)
-    p.setFont("Helvetica-Bold", 24)
-    p.drawCentredString(width/2, title_y - 1.2*cm, "MISSING PERSON")
+    p.drawString(title_x, title_y - 0.6*cm, "Plateforme citoyenne pour personnes disparues")
 
+    # ID à droite
+    p.setFont("Helvetica-Bold", 14)
+    p.setFillColor(BLACK)
+    p.drawRightString(width - 1.5*cm, title_y, f"ID: {disparu.public_id}")
+
+    # --- 2. Titre Principal "PERSONNE DISPARUE" ---
+    main_title_y = height - 6*cm
+    p.setFillColor(RED_DARK) # Rouge sombre pour le titre principal
+    p.setFont("Helvetica-Bold", 36)
+    p.drawCentredString(width/2, main_title_y, "PERSONNE DISPARUE")
+
+    # Sous-titre
+    p.setFillColor(GRAY_MEDIUM)
+    p.setFont("Helvetica-Bold", 20)
+    p.drawCentredString(width/2, main_title_y - 1*cm, "MISSING PERSON")
+
+    # Lignes décoratives
     p.setStrokeColor(RED_PRIMARY)
     p.setLineWidth(3)
-    p.line(3*cm, title_y - 1.8*cm, width - 3*cm, title_y - 1.8*cm)
+    p.line(3*cm, main_title_y - 1.5*cm, width - 3*cm, main_title_y - 1.5*cm) # Ligne rouge épaisse
 
     p.setStrokeColor(ACCENT_GOLD)
     p.setLineWidth(1)
-    p.line(5*cm, title_y - 2*cm, width - 5*cm, title_y - 2*cm)
+    p.line(5*cm, main_title_y - 1.7*cm, width - 5*cm, main_title_y - 1.7*cm) # Ligne or fine
 
+    # --- 3. Corps (Photo gauche / Infos droite) ---
+    content_y = main_title_y - 3*cm
     photo_x = 2*cm
-    photo_y = height - 18*cm
-    photo_width = 7*cm
-    photo_height = 8*cm
+    photo_w = 7*cm
+    photo_h = 8*cm
 
-    draw_rounded_rect(p, photo_x - 3*mm, photo_y - 3*mm, photo_width + 6*mm, photo_height + 6*mm, 5*mm, stroke_color=RED_PRIMARY, stroke_width=3)
+    # PAS de cadre rouge autour de la photo (modifié sur demande)
+    # draw_rounded_rect(p, photo_x - 2*mm, content_y - photo_h - 2*mm, photo_w + 4*mm, photo_h + 4*mm, 5*mm, stroke_color=RED_PRIMARY, stroke_width=2)
 
+    # Photo
     photo_loaded = False
     if disparu.photo_url:
         photo_path = disparu.photo_url.replace('/statics/', 'statics/')
         if os.path.exists(photo_path):
             try:
                 photo = ImageReader(photo_path)
-                p.drawImage(photo, photo_x, photo_y, width=photo_width, height=photo_height, preserveAspectRatio=True)
+                # On dessine l'image
+                p.drawImage(photo, photo_x, content_y - photo_h, width=photo_w, height=photo_h, preserveAspectRatio=True, mask='auto')
                 photo_loaded = True
             except Exception:
                 pass
 
     if not photo_loaded:
-        sex = getattr(disparu, 'sex', 'unknown') or 'unknown'
-        placeholder_key = 'placeholder_male' if sex.lower() in ['m', 'male', 'homme', 'masculin'] else 'placeholder_female'
-        placeholder_path = settings.get(placeholder_key, '')
-        if placeholder_path:
-            full_placeholder = placeholder_path.replace('/statics/', 'statics/')
-            if os.path.exists(full_placeholder):
-                try:
-                    photo = ImageReader(full_placeholder)
-                    p.drawImage(photo, photo_x, photo_y, width=photo_width, height=photo_height, preserveAspectRatio=True)
-                    photo_loaded = True
-                except Exception:
-                    pass
+         # Placeholder si pas d'image
+         draw_rounded_rect(p, photo_x, content_y - photo_h, photo_w, photo_h, 3*mm, fill_color=GRAY_LIGHT)
+         p.setFillColor(GRAY_MEDIUM)
+         p.setFont("Helvetica", 10)
+         p.drawCentredString(photo_x + photo_w/2, content_y - photo_h/2, "Photo non disponible")
 
-    if not photo_loaded:
-        draw_rounded_rect(p, photo_x, photo_y, photo_width, photo_height, 3*mm, fill_color=GRAY_LIGHT)
-        p.setFillColor(GRAY_MEDIUM)
-        p.setFont("Helvetica", 12)
-        p.drawCentredString(photo_x + photo_width/2, photo_y + photo_height/2 + 0.3*cm, "Photo non")
-        p.drawCentredString(photo_x + photo_width/2, photo_y + photo_height/2 - 0.3*cm, "disponible")
+    # Infos à droite - TAILLE POLICE AUGMENTÉE
+    info_x = photo_x + photo_w + 1*cm
+    # On descend le nom un tout petit peu vers le bas (0.8cm plus bas que la photo top)
+    info_y_cursor = content_y - 0.8*cm 
 
-    info_x = 10*cm
-    info_y = height - 10.5*cm
-
+    # Nom
     p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica-Bold", 28)
+    p.setFont("Helvetica-Bold", 30) # Augmenté de 26 à 30
     name = f"{disparu.first_name} {disparu.last_name}"
-    if len(name) > 25:
-        p.setFont("Helvetica-Bold", 22)
-    p.drawString(info_x, info_y, name)
+    p.drawString(info_x, info_y_cursor, name)
+    info_y_cursor -= 1.8*cm # Espacement augmenté
 
-    info_y -= 1.5*cm
-
-    draw_rounded_rect(p, info_x - 2*mm, info_y - 2.8*cm, 8.5*cm, 3.2*cm, 3*mm, fill_color=RED_LIGHT)
+    # Date et Heure formatée (Séparées)
+    date_val = "Non specifie"
+    heure_val = ""
+    if disparu.disappearance_date:
+        date_val = disparu.disappearance_date.strftime('%d/%m/%Y')
+        t_str = disparu.disappearance_date.strftime('%H:%M')
+        if t_str and t_str != "00:00":
+             heure_val = t_str
 
     details = [
         ("Age:", f"{disparu.age} ans / years old"),
-        ("Sexe / Gender:", disparu.sex or "Non specifie"),
+        ("Sexe / Gender:", "Homme" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme'] else "Femme"),
         ("Lieu / Location:", f"{disparu.city}, {disparu.country}"),
-        ("Date:", disparu.disappearance_date.strftime('%d/%m/%Y') if disparu.disappearance_date else "Non specifie"),
+        ("Date:", date_val), 
     ]
 
+    # Affichage des détails standard
     for label, value in details:
-        p.setFont("Helvetica-Bold", 11)
         p.setFillColor(RED_DARK)
-        p.drawString(info_x, info_y, label)
-        p.setFont("Helvetica", 11)
+        p.setFont("Helvetica-Bold", 14) 
+        p.drawString(info_x, info_y_cursor, label)
+
         p.setFillColor(GRAY_DARK)
-        label_width = p.stringWidth(label, "Helvetica-Bold", 11)
-        p.drawString(info_x + label_width + 3*mm, info_y, value[:35])
-        info_y -= 0.65*cm
+        p.setFont("Helvetica", 14) 
+        label_w = p.stringWidth(label, "Helvetica-Bold", 14)
+        p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, value)
+        info_y_cursor -= 1.0*cm 
 
-    section_y = height - 19*cm
+    # Ajout Heure sur la ligne suivante si elle existe
+    if heure_val:
+        p.setFillColor(RED_DARK)
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(info_x, info_y_cursor, "Heure / Time:")
 
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica", 14)
+        label_w = p.stringWidth("Heure / Time:", "Helvetica-Bold", 14)
+        p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, heure_val)
+        info_y_cursor -= 1.0*cm
+
+    # Ajout ID sur la ligne suivante encore
+    p.setFillColor(RED_DARK)
+    p.setFont("Helvetica-Bold", 14)
+    label_id = "ID sur Disparus.org:"
+    p.drawString(info_x, info_y_cursor, label_id)
+
+    p.setFillColor(GRAY_DARK)
+    p.setFont("Helvetica", 14)
+    label_w = p.stringWidth(label_id, "Helvetica-Bold", 14)
+    p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(disparu.public_id))
+    # info_y_cursor -= 1.0*cm # Pas nécessaire pour le dernier élément
+
+    # --- 4. Description & Circonstances ---
+    section_y = content_y - photo_h - 1.5*cm
+
+    def draw_section_block(title, content, y_pos):
+        # Petit rectangle rouge puce
+        p.setFillColor(RED_PRIMARY)
+        p.rect(2*cm, y_pos, 0.4*cm, 0.4*cm, fill=1, stroke=0)
+
+        # Titre
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(2.6*cm, y_pos, title)
+
+        # Ligne grise séparation
+        p.setStrokeColor(GRAY_LIGHT)
+        p.setLineWidth(1)
+        p.line(2*cm, y_pos - 0.2*cm, width - 2*cm, y_pos - 0.2*cm)
+
+        # Contenu
+        text_y = y_pos - 0.8*cm
+        p.setFillColor(BLACK)
+        p.setFont("Helvetica", 11)
+
+        max_width = width - 4*cm
+        words = content.split()
+        line = ""
+        for word in words:
+            if p.stringWidth(line + " " + word, "Helvetica", 11) < max_width:
+                line += " " + word if line else word
+            else:
+                p.drawString(2*cm, text_y, line)
+                text_y -= 0.5*cm
+                line = word
+        if line:
+            p.drawString(2*cm, text_y, line)
+            text_y -= 0.5*cm
+
+        return text_y - 0.5*cm
+
+    desc = disparu.physical_description or "Non disponible."
+    section_y = draw_section_block("DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION", desc, section_y)
+
+    circ = disparu.circumstances or "Non disponible."
+    section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
+
+    # --- 5. Contacts (Bloc dédié) ---
+    if section_y < 8*cm: # Si on est trop bas
+        pass
+
+    # Titre "CONTACTS"
     p.setFillColor(RED_PRIMARY)
-    p.rect(2*cm - 2*mm, section_y - 0.2*cm, 4*mm, 0.6*cm, fill=1, stroke=0)
+    p.rect(2*cm, section_y, 0.4*cm, 0.4*cm, fill=1, stroke=0)
     p.setFillColor(GRAY_DARK)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(2*cm + 5*mm, section_y, "DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION")
-
+    p.drawString(2.6*cm, section_y, "CONTACTS")
     p.setStrokeColor(GRAY_LIGHT)
-    p.setLineWidth(1)
-    p.line(2*cm, section_y - 4*mm, width - 2*cm, section_y - 4*mm)
+    p.line(2*cm, section_y - 0.2*cm, width - 6*cm, section_y - 0.2*cm) # Ligne plus courte
 
-    section_y -= 1*cm
-    p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica", 11)
-
-    description = disparu.physical_description or "Aucune description disponible / No description available"
-    max_chars = 90
-    lines = []
-    words = description.split()
-    current_line = ""
-    for word in words:
-        if len(current_line + " " + word) <= max_chars:
-            current_line = current_line + " " + word if current_line else word
-        else:
-            lines.append(current_line)
-            current_line = word
-    if current_line:
-        lines.append(current_line)
-
-    for line in lines[:5]:
-        p.drawString(2*cm, section_y, line)
-        section_y -= 0.5*cm
-
-    if disparu.circumstances:
-        section_y -= 0.5*cm
-
-        p.setFillColor(RED_PRIMARY)
-        p.rect(2*cm - 2*mm, section_y - 0.2*cm, 4*mm, 0.6*cm, fill=1, stroke=0)
-        p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(2*cm + 5*mm, section_y, "CIRCONSTANCES / CIRCUMSTANCES")
-
-        p.setStrokeColor(GRAY_LIGHT)
-        p.line(2*cm, section_y - 4*mm, width - 2*cm, section_y - 4*mm)
-
-        section_y -= 1*cm
-        p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica", 11)
-
-        circ_text = disparu.circumstances[:350]
-        circ_lines = []
-        words = circ_text.split()
-        current_line = ""
-        for word in words:
-            if len(current_line + " " + word) <= max_chars:
-                current_line = current_line + " " + word if current_line else word
-            else:
-                circ_lines.append(current_line)
-                current_line = word
-        if current_line:
-            circ_lines.append(current_line)
-
-        for line in circ_lines[:4]:
-            p.drawString(2*cm, section_y, line)
-            section_y -= 0.5*cm
-
+    contact_y = section_y - 1.2*cm # Espacement un peu plus grand avant le premier contact
     contacts = getattr(disparu, 'contacts', [])
-    if contacts:
-        section_y -= 0.5*cm
 
-        p.setFillColor(RED_PRIMARY)
-        p.rect(2*cm - 2*mm, section_y - 0.2*cm, 4*mm, 0.6*cm, fill=1, stroke=0)
-        p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(2*cm + 5*mm, section_y, "CONTACTS")
+    for contact in contacts[:3]:
+        name = contact.get('name', '') if isinstance(contact, dict) else getattr(contact, 'name', '')
+        phone = contact.get('phone', '') if isinstance(contact, dict) else getattr(contact, 'phone', '')
 
-        p.setStrokeColor(GRAY_LIGHT)
-        p.line(2*cm, section_y - 4*mm, 12*cm, section_y - 4*mm)
+        if name or phone:
+            p.setFillColor(BLACK)
+            p.setFont("Helvetica-Bold", 18) # Augmenté de 12 à 18 (beaucoup plus grand)
+            p.drawString(2*cm, contact_y, f"{name}: {phone}")
+            contact_y -= 1.0*cm # Espacement vertical augmenté
 
-        section_y -= 0.8*cm
-        p.setFont("Helvetica", 11)
+    # --- 6. Footer (QR Code + Bandes couleur) ---
 
-        for contact in contacts[:3]:
-            contact_name = contact.get('name', '') if isinstance(contact, dict) else getattr(contact, 'name', '')
-            contact_phone = contact.get('phone', '') if isinstance(contact, dict) else getattr(contact, 'phone', '')
-            if contact_name and contact_phone:
-                p.setFillColor(GRAY_DARK)
-                p.drawString(2*cm, section_y, f"{contact_name}: {contact_phone}")
-                section_y -= 0.5*cm
+    # QR Code (en bas à droite, au dessus des bandes)
+    qr_size = 3.5*cm
+    qr_x = width - 5*cm
+    qr_y = 3.5*cm 
 
-    qr_x = width - 6*cm
-    qr_y = 3*cm
-    qr_size = 4*cm
+    # PAS de cadre autour du QR Code (modifié sur demande)
+    # draw_rounded_rect(p, qr_x - 0.2*cm, qr_y - 0.2*cm, qr_size + 0.4*cm, qr_size + 0.6*cm, 0.2*cm, stroke_color=RED_PRIMARY, stroke_width=1)
 
-    draw_rounded_rect(p, qr_x - 5*mm, qr_y - 5*mm, qr_size + 1*cm, qr_size + 2*cm, 5*mm, fill_color=GRAY_LIGHT, stroke_color=RED_PRIMARY, stroke_width=2)
-
-    qr_url = f"{base_url}/disparu/{disparu.public_id}"
+    url_text = f"{base_url}/disparu/{disparu.public_id}"
     try:
-        qr = qrcode.QRCode(version=1, box_size=10, border=2, error_correction=qrcode.constants.ERROR_CORRECT_H)
-        qr.add_data(qr_url)
+        qr = qrcode.QRCode(version=1, box_size=10, border=1)
+        qr.add_data(url_text)
         qr.make(fit=True)
         qr_img = qr.make_image(fill_color="#7F1D1D", back_color="white")
         qr_buffer = io.BytesIO()
         qr_img.save(qr_buffer, format='PNG')
         qr_buffer.seek(0)
         qr_reader = ImageReader(qr_buffer)
-        p.drawImage(qr_reader, qr_x, qr_y + 0.8*cm, width=qr_size, height=qr_size)
-    except Exception:
+        p.drawImage(qr_reader, qr_x, qr_y + 0.2*cm, width=qr_size, height=qr_size)
+    except:
         pass
 
     p.setFillColor(RED_DARK)
-    p.setFont("Helvetica-Bold", 9)
-    p.drawCentredString(qr_x + qr_size/2, qr_y + 0.3*cm, "SCANNEZ / SCAN")
+    p.setFont("Helvetica-Bold", 8)
+    p.drawCentredString(qr_x + qr_size/2, qr_y, "SCANNEZ / SCAN")
 
-    p.setFillColor(RED_PRIMARY)
-    p.rect(0, 0, width, 2*cm, fill=1, stroke=0)
-
+    # Bandes de bas de page
+    # Bande Or fine
     p.setFillColor(ACCENT_GOLD)
     p.rect(0, 2*cm, width, 0.2*cm, fill=1, stroke=0)
 
-    p.setFillColor(white)
+    # Bande Rouge épaisse en bas
+    p.setFillColor(RED_PRIMARY)
+    p.rect(0, 0, width, 2*cm, fill=1, stroke=0)
+
+    # Bande Rouge Foncé très fine tout en bas (optionnel, pour le style)
+    p.setFillColor(RED_DARK)
+    p.rect(0, 0, width, 0.3*cm, fill=1, stroke=0)
+
+    # Texte dans la bande rouge
+    p.setFillColor(WHITE)
     p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(width/2, 1.2*cm, f"{base_url}")
+    p.drawCentredString(width/2, 1.2*cm, base_url)
 
     p.setFont("Helvetica", 10)
-    p.drawCentredString(width/2, 0.5*cm, "Si vous avez des informations, contactez-nous! / If you have information, contact us!")
+    p.drawCentredString(width/2, 0.6*cm, "Si vous avez des informations, contactez-nous ! / If you have information, contact us!")
 
+    # Timestamp discret au dessus du footer
     p.setFillColor(GRAY_MEDIUM)
     p.setFont("Helvetica", 8)
     p.drawString(2*cm, 2.5*cm, f"Document genere le {datetime.now().strftime('%d/%m/%Y a %H:%M')}")
 
     p.showPage()
     p.save()
-
     buffer.seek(0)
     return buffer
 
@@ -458,7 +492,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     border = 2
     draw.rounded_rectangle(
         [photo_x - border, photo_y - border, photo_x + photo_size + border, photo_y + photo_size + border], 
-        radius=30, fill='#E5E7EB'
+        radius=40, fill='#E5E7EB'
     )
 
     photo_img = None
@@ -495,11 +529,11 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
 
         mask = Image.new("L", (photo_size, photo_size), 0)
         draw_mask = ImageDraw.Draw(mask)
-        draw_mask.rounded_rectangle((0, 0, photo_size, photo_size), radius=30, fill=255)
+        draw_mask.rounded_rectangle((0, 0, photo_size, photo_size), radius=40, fill=255)
 
         img.paste(photo_img, (photo_x, photo_y), mask=mask)
     else:
-        draw.rounded_rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], radius=30, fill='#DDDDDD')
+        draw.rounded_rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], radius=40, fill='#DDDDDD')
         draw.text((width//2, photo_y + photo_size//2), "Photo non disponible", fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
 
     # --- 4. Informations (Compactée) ---
@@ -539,7 +573,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     contact_box_x = (width - contact_box_width) // 2
     contact_box_height = 200 # Réduit de 220 à 200
 
-    draw.rectangle([contact_box_x, contact_box_top, contact_box_x + contact_box_width, contact_box_top + contact_box_height], fill=COLOR_CONTACT)
+    draw.rounded_rectangle([contact_box_x, contact_box_top, contact_box_x + contact_box_width, contact_box_top + contact_box_height], radius=40, fill=COLOR_CONTACT)
 
     c_y = contact_box_top + 40
     draw.text((width//2, c_y), "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION", fill=COLOR_WHITE, font=font_contact_instr, anchor='mm')
