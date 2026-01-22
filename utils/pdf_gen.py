@@ -18,7 +18,7 @@ except ImportError:
     HAS_REPORTLAB = False
 
 
-RED_PRIMARY = HexColor('#B91C1C')
+RED_PRIMARY = HexColor('#9F1C1C') 
 RED_DARK = HexColor('#7F1D1D')
 RED_LIGHT = HexColor('#FEE2E2')
 GRAY_DARK = HexColor('#1F2937')
@@ -365,7 +365,7 @@ def generate_qr_code(data, size=10):
 def generate_social_media_image(disparu, base_url='https://disparus.org'):
     """
     Génère une image pour les réseaux sociaux (1080x1350) 
-    adaptée au style visuel rouge/bleu de l'affiche Youssef Bennani.
+    avec un layout ajusté pour que tout soit visible.
     """
     try:
         from PIL import Image, ImageDraw, ImageFont
@@ -378,135 +378,138 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     # Dimensions (Format Portrait Social Media)
     width, height = 1080, 1350
 
-    # Palette de couleurs extraite de l'image
-    COLOR_BG = '#F4F4F4'        # Gris très clair pour le fond
-    COLOR_RED = '#981B1B'       # Rouge bordeaux
-    COLOR_NAVY = '#1A1F36'      # Bleu nuit
+    # --- Palette de couleurs exacte du HTML ---
+    COLOR_RED = '#9F1C1C'       
+    COLOR_NAVY = '#1E2538'      
+    COLOR_CONTACT = '#8B1818'   
     COLOR_WHITE = '#FFFFFF'
+    COLOR_BG = '#FFFFFF'        
     COLOR_BLACK = '#000000'
-    COLOR_TEXT_GRAY = '#555555' # Gris foncé pour le texte
-    COLOR_CONTACT_BOX = '#8B1616' # Rouge sombre pour la boite contact
+    COLOR_TEXT_GRAY = '#4A4A4A' 
 
     img = Image.new('RGB', (width, height), color=COLOR_BG)
     draw = ImageDraw.Draw(img)
 
-    # --- Configuration des polices ---
-    # On essaie de charger des polices grasses standard pour se rapprocher de l'impact visuel
     def get_font(variant, size):
-        font_paths = []
-        if variant == "Bold":
-            font_paths = [
+        font_candidates = {
+            "Bold": [
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
                 "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
-                "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"
-            ]
-        else:
-            font_paths = [
+                "arialbd.ttf", "Arial Bold.ttf",
+            ],
+            "Regular": [
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
                 "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
-                "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+                "arial.ttf", "Arial.ttf",
             ]
-
-        for path in font_paths:
-            if os.path.exists(path):
-                try:
-                    return ImageFont.truetype(path, size)
-                except:
+        }
+        selected_path = None
+        for path in font_candidates.get(variant, []):
+            try:
+                if os.path.isabs(path) and not os.path.exists(path):
                     continue
-        return ImageFont.load_default()
+                ImageFont.truetype(path, size)
+                selected_path = path
+                break
+            except OSError:
+                continue
 
-    # Définition des tailles de police
-    font_header_main = get_font("Bold", 34)
-    font_header_meta = get_font("Regular", 24)
-    font_subheader_main = get_font("Bold", 55)
-    font_subheader_sub = get_font("Regular", 30)
-    font_name = get_font("Bold", 65)
-    font_details = get_font("Bold", 35)
-    font_date = get_font("Bold", 38)
-    font_contact_instr = get_font("Bold", 26)
+        if selected_path:
+            return ImageFont.truetype(selected_path, size)
+        else:
+            return ImageFont.load_default()
+
+    # Définition des tailles (Légèrement réduites pour l'espace)
+    font_header_title = get_font("Bold", 32)
+    font_header_meta = get_font("Bold", 22)
+    font_subheader = get_font("Bold", 50)
+    font_subheader_small = get_font("Regular", 26)
+    font_name = get_font("Bold", 55)   # Réduit de 70
+    font_details = get_font("Bold", 32) # Réduit de 38
+    font_date = get_font("Bold", 34)    # Réduit de 40
+    font_contact_instr = get_font("Bold", 24)
     font_contact_name = get_font("Bold", 36)
     font_contact_phone = get_font("Bold", 55)
-    font_footer_text = get_font("Bold", 26)
+    font_footer = get_font("Bold", 24)  # Réduit de 28
     font_url = get_font("Regular", 22)
 
     # --- 1. En-tête Rouge (Top Header) ---
     header_h = 100
     draw.rectangle([0, 0, width, header_h], fill=COLOR_RED)
 
-    # Texte: "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!"
-    draw.text((width//2, 35), "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!", fill=COLOR_WHITE, font=font_header_main, anchor='mm')
-
-    # Meta: Site Name | ID
+    draw.text((width//2, 40), "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!", fill=COLOR_WHITE, font=font_header_title, anchor='mm')
     draw.text((40, 75), site_name, fill=COLOR_WHITE, font=font_header_meta, anchor='lm')
     draw.text((width - 40, 75), f"ID : {disparu.public_id}", fill=COLOR_WHITE, font=font_header_meta, anchor='rm')
 
     # --- 2. Sous-titre Bleu (Sub-Header) ---
     sub_header_y = header_h
-    sub_header_h = 130
+    sub_header_h = 120
     draw.rectangle([0, sub_header_y, width, sub_header_y + sub_header_h], fill=COLOR_NAVY)
 
-    draw.text((width//2, sub_header_y + 45), "PERSONNE DISPARUE", fill=COLOR_WHITE, font=font_subheader_main, anchor='mm')
-    # Espacement léger pour le sous-titre anglais
-    draw.text((width//2, sub_header_y + 95), "MISSING PERSON", fill='#CCCCCC', font=font_subheader_sub, anchor='mm') 
+    draw.text((width//2, sub_header_y + 45), "PERSONNE DISPARUE", fill=COLOR_WHITE, font=font_subheader, anchor='mm')
+    draw.text((width//2, sub_header_y + 90), "MISSING PERSON", fill='#CCCCCC', font=font_subheader_small, anchor='mm') 
 
-    # --- 3. Section Photo ---
-    photo_y = sub_header_y + sub_header_h + 50
-    photo_size = 500 # Carré de 500px
+    # --- 3. Section Photo (REDUITE) ---
+    # Réduit de 520 à 480 pour gagner 40px
+    photo_size = 480 
+    photo_y = sub_header_y + sub_header_h + 30
     photo_x = (width - photo_size) // 2
 
-    # Fonction locale pour charger l'image
-    def load_photo_image(path):
-        try:
-             return Image.open(path).convert('RGBA')
-        except:
-            return None
+    border = 2
+    draw.rounded_rectangle(
+        [photo_x - border, photo_y - border, photo_x + photo_size + border, photo_y + photo_size + border], 
+        radius=30, fill='#E5E7EB'
+    )
 
     photo_img = None
     if disparu.photo_url:
         path = disparu.photo_url.replace('/statics/', 'statics/')
+        if not os.path.exists(path) and os.path.exists(path.lstrip('/')):
+             path = path.lstrip('/')
         if os.path.exists(path):
-            photo_img = load_photo_image(path)
+            try:
+                photo_img = Image.open(path).convert('RGBA')
+            except:
+                pass
 
-    # Fallback si pas de photo
     if not photo_img:
         sex = getattr(disparu, 'sex', 'unknown') or 'unknown'
         key = 'placeholder_male' if sex.lower() in ['m', 'male', 'homme', 'masculin'] else 'placeholder_female'
         p_path = settings.get(key, '')
         if p_path:
              full_p = p_path.replace('/statics/', 'statics/')
+             if not os.path.exists(full_p) and os.path.exists(full_p.lstrip('/')):
+                 full_p = full_p.lstrip('/')
              if os.path.exists(full_p):
-                 photo_img = load_photo_image(full_p)
+                 try:
+                    photo_img = Image.open(full_p).convert('RGBA')
+                 except:
+                    pass
 
     if photo_img:
-        # Crop au format carré centré
         min_dim = min(photo_img.width, photo_img.height)
         left = (photo_img.width - min_dim) // 2
         top = (photo_img.height - min_dim) // 2
         photo_img = photo_img.crop((left, top, left + min_dim, top + min_dim))
         photo_img = photo_img.resize((photo_size, photo_size), Image.Resampling.LANCZOS)
 
-        # Création du masque pour les coins arrondis
         mask = Image.new("L", (photo_size, photo_size), 0)
         draw_mask = ImageDraw.Draw(mask)
-        draw_mask.rounded_rectangle((0, 0, photo_size, photo_size), radius=40, fill=255)
+        draw_mask.rounded_rectangle((0, 0, photo_size, photo_size), radius=30, fill=255)
 
-        # Collage de la photo
         img.paste(photo_img, (photo_x, photo_y), mask=mask)
     else:
-        # Carré gris si aucune image n'est trouvée
-        draw.rounded_rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], radius=40, fill='#DDDDDD')
+        draw.rounded_rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], radius=30, fill='#DDDDDD')
         draw.text((width//2, photo_y + photo_size//2), "Photo non disponible", fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
 
-    # --- 4. Informations ---
-    info_y = photo_y + photo_size + 50
+    # --- 4. Informations (Compactée) ---
+    info_y = photo_y + photo_size + 40
 
-    # Nom complet
     name = f"{disparu.first_name} {disparu.last_name}"
     draw.text((width//2, info_y), name.upper(), fill=COLOR_BLACK, font=font_name, anchor='mm')
 
-    info_y += 70
+    info_y += 60 # Reduced spacing
 
-    # Détails: AGE - SEXE
     age_str = f"{disparu.age} ANS" if disparu.age else ""
     sex_input = getattr(disparu, 'sex', '') or ''
     sex_str = "HOMME" if sex_input.lower() in ['m', 'male', 'homme'] else "FEMME" if sex_input else ""
@@ -515,12 +518,10 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     draw.text((width//2, info_y), details_line, fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
 
     info_y += 50
-    # Ville, Pays
     loc_str = f"{disparu.city}, {disparu.country}".upper()
     draw.text((width//2, info_y), loc_str, fill=COLOR_TEXT_GRAY, font=font_details, anchor='mm')
 
-    info_y += 70
-    # Date de disparition
+    info_y += 60
     date_line = "DISPARU(E)"
     if disparu.disappearance_date:
         d_str = disparu.disappearance_date.strftime('%d/%m/%Y')
@@ -533,17 +534,16 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     draw.text((width//2, info_y), date_line, fill=COLOR_RED, font=font_date, anchor='mm')
 
     # --- 5. Boîte de Contact ---
-    contact_box_top = info_y + 50
-    contact_box_width = int(width * 0.92) # 92% de la largeur
+    contact_box_top = info_y + 40
+    contact_box_width = int(width * 0.90) 
     contact_box_x = (width - contact_box_width) // 2
-    contact_box_height = 240
+    contact_box_height = 200 # Réduit de 220 à 200
 
-    draw.rectangle([contact_box_x, contact_box_top, contact_box_x + contact_box_width, contact_box_top + contact_box_height], fill=COLOR_CONTACT_BOX)
+    draw.rectangle([contact_box_x, contact_box_top, contact_box_x + contact_box_width, contact_box_top + contact_box_height], fill=COLOR_CONTACT)
 
-    c_y = contact_box_top + 45
+    c_y = contact_box_top + 40
     draw.text((width//2, c_y), "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION", fill=COLOR_WHITE, font=font_contact_instr, anchor='mm')
 
-    # Récupération du premier contact
     contacts = getattr(disparu, 'contacts', [])
     contact_name_str = "FAMILLE"
     contact_phone_str = ""
@@ -557,26 +557,30 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
             contact_name_str = getattr(c, 'name', 'FAMILLE')
             contact_phone_str = getattr(c, 'phone', '')
 
-    c_y += 60
+    c_y += 50
     draw.text((width//2, c_y), contact_name_str.upper(), fill=COLOR_WHITE, font=font_contact_name, anchor='mm')
 
     if contact_phone_str:
-        c_y += 70
+        c_y += 60
         draw.text((width//2, c_y), contact_phone_str, fill=COLOR_WHITE, font=font_contact_phone, anchor='mm')
 
-    # --- 6. Texte de pied de page (Appel au partage) ---
-    footer_text_y = contact_box_top + contact_box_height + 45
-    draw.text((width//2, footer_text_y), "TOUTE INFORMATION PEUT PERMETTRE DE RETROUVER CETTE PERSONNE,", fill=COLOR_RED, font=font_footer_text, anchor='mm')
-    draw.text((width//2, footer_text_y + 40), "UN PARTAGE DE CETTE IMAGE PEUT AIDER A LA RECHERCHE AUSSI", fill=COLOR_RED, font=font_footer_text, anchor='mm')
+    # --- 6. Texte de pied de page (VISIBILITÉ CRITIQUE) ---
+    # Placé juste en dessous de la boite de contact
+    footer_text_y = contact_box_top + contact_box_height + 30 
+
+    draw.text((width//2, footer_text_y), "TOUTE INFORMATION PEUT PERMETTRE DE RETROUVER CETTE PERSONNE,", fill=COLOR_RED, font=font_footer, anchor='mm')
+    draw.text((width//2, footer_text_y + 35), "UN PARTAGE DE CETTE IMAGE PEUT AIDER A LA RECHERCHE AUSSI", fill=COLOR_RED, font=font_footer, anchor='mm')
 
     # --- 7. Barre URL en bas ---
-    bottom_bar_h = 70
+    bottom_bar_h = 60
+    # La barre URL est à 1290 (1350 - 60). Le texte footer est vers 1200-1250, donc ça passe.
     draw.rectangle([0, height - bottom_bar_h, width, height], fill=COLOR_RED)
 
     url_text = f"{base_url}/disparu/{disparu.public_id}".upper()
-    draw.text((width//2, height - bottom_bar_h/2), url_text, fill=COLOR_WHITE, font=font_url, anchor='mm')
+    url_display = f"HTTP://{url_text.replace('HTTPS://', '').replace('HTTP://', '')}"
 
-    # Finalisation
+    draw.text((width//2, height - bottom_bar_h/2), url_display, fill=COLOR_WHITE, font=font_url, anchor='mm')
+
     buffer = io.BytesIO()
     img.save(buffer, format='PNG', quality=95)
     buffer.seek(0)
