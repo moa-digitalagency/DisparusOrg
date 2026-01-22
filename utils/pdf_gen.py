@@ -325,6 +325,9 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     desc = disparu.physical_description or "Non disponible."
     section_y = draw_section_block("DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION", desc, section_y)
 
+    clothing = disparu.clothing or "Non disponible."
+    section_y = draw_section_block("VETEMENTS / CLOTHING", clothing, section_y)
+
     circ = disparu.circumstances or "Non disponible."
     section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
 
