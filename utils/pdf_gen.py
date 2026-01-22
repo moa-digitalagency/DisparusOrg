@@ -126,6 +126,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p.setFont("Helvetica", 10)
     p.setFillColor(GRAY_MEDIUM)
     p.drawString(title_x, title_y - 0.6*cm, "Plateforme citoyenne pour personnes disparues")
+    p.drawString(title_x, title_y - 1.0*cm, "Citizen platform for missing persons")
 
     # ID à droite
     p.setFont("Helvetica-Bold", 14)
@@ -236,7 +237,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # Ajout ID sur la ligne suivante encore
     p.setFillColor(RED_DARK)
     p.setFont("Helvetica-Bold", 14)
-    label_id = "ID sur Disparus.org:"
+    label_id = "ID Disparus.org:"
     p.drawString(info_x, info_y_cursor, label_id)
 
     p.setFillColor(GRAY_DARK)
