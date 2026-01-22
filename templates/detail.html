@@ -2,6 +2,16 @@
 
 {% block title %}{{ person.first_name }} {{ person.last_name }} ({{ person.public_id }}) - DISPARUS.ORG{% endblock %}
 
+{% block og_type %}article{% endblock %}
+
+{% block og_title %}Aidez-nous a retrouver cette personne!{% endblock %}
+
+{% block og_description %}{{ person.first_name }} {{ person.last_name }} disparu{% if person.gender == 'F' %}e{% endif %} le {{ person.disappearance_date.strftime('%d/%m/%Y') if person.disappearance_date else 'N/A' }} a {{ person.disappearance_date.strftime('%H:%M') if person.disappearance_date else '' }} a {{ person.city }}, {{ person.country }}{% endblock %}
+
+{% block twitter_title %}Aidez-nous a retrouver cette personne!{% endblock %}
+
+{% block twitter_description %}{{ person.first_name }} {{ person.last_name }} disparu{% if person.gender == 'F' %}e{% endif %} le {{ person.disappearance_date.strftime('%d/%m/%Y') if person.disappearance_date else 'N/A' }} a {{ person.disappearance_date.strftime('%H:%M') if person.disappearance_date else '' }} a {{ person.city }}, {{ person.country }}{% endblock %}
+
 {% block content %}
 <section class="bg-gradient-to-br from-red-700 to-red-900 text-white py-12 relative overflow-hidden">
     <div class="absolute inset-0 bg-black/20"></div>
