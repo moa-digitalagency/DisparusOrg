@@ -15,7 +15,7 @@ class SitemapGenerator:
 
     def generate_sitemap_xml(self):
         from xml.etree.ElementTree import Element, SubElement, tostring
-        sitemap = Element('urlset', xmlns='http://www.sitemaps.org/schemas/sitemap-image/1.1')
+        sitemap = Element('urlset', xmlns='http://www.sitemaps.org/schemas/sitemap/0.9')
         for url in self.sitemap_urls:
             url_element = SubElement(sitemap, 'url')
             for key, value in url.items():
