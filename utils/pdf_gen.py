@@ -405,7 +405,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     
     draw.rectangle([0, 90, width, 180], fill='#1F2937')
     draw.text((width//2, 120), "PERSONNE DISPARUE", fill='#FFFFFF', font=font_alert, anchor='mm')
-    draw.text((width//2, 160), "MISSING PERSON", fill='#9CA3AF', font=font_alert_en, anchor='mm')
+    draw.text((width//2, 158), "MISSING PERSON", fill='#9CA3AF', font=font_alert_en, anchor='mm')
     
     photo_y = 200
     photo_size = 480
