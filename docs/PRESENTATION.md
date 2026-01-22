@@ -16,6 +16,8 @@ Notre approche repose sur trois piliers :
 2. **Couverture continentale** : 54 pays africains, plus de 650 villes repertoriees
 3. **Collaboration citoyenne** : Chaque temoignage compte, chaque partage peut faire la difference
 
+---
+
 ## Le probleme
 
 ### Statistiques alarmantes
@@ -37,10 +39,12 @@ Notre approche repose sur trois piliers :
 
 ### Obstacles actuels
 
-- **Fragmention** : Pas de base de donnees centralisee
+- **Fragmentation** : Pas de base de donnees centralisee a l'echelle continentale
 - **Delais** : Idee recue qu'il faut attendre 24h pour signaler
 - **Accessibilite** : Plateformes existantes peu adaptees au contexte africain
 - **Langue** : Barrieres linguistiques entre pays francophones et anglophones
+
+---
 
 ## Notre solution
 
@@ -48,15 +52,16 @@ Notre approche repose sur trois piliers :
 
 DISPARUS.ORG offre :
 
-- **Un formulaire de signalement complet** : Photo, description physique, circonstances, localisation GPS, contacts multiples
-- **Une recherche puissante** : Par nom, ville, pays, identifiant unique
-- **Une cartographie interactive** : Visualisation des disparitions et des observations
-- **Des outils de diffusion** : PDF imprimables, images pour reseaux sociaux, QR codes
+- **Un formulaire de signalement complet** : Photo, description physique, vetements, circonstances, localisation GPS, contacts multiples
+- **Une recherche puissante** : Par nom, ville, pays, identifiant unique, avec filtres avances
+- **Une cartographie interactive** : Visualisation des disparitions et des observations avec zoom de precision
+- **Des outils de diffusion** : PDF imprimables, images pour reseaux sociaux (1080x1350px), QR codes
 
 ### La force du reseau
 
 - **Contributions citoyennes** : Chaque visiteur peut ajouter des informations sur une fiche
-- **Partage facilite** : Integration Facebook, Twitter, WhatsApp
+- **Partage facilite** : Integration avec 12 plateformes (WhatsApp, Facebook, X, Telegram, LinkedIn, SMS, Email, Messenger, Viber, Pinterest...)
+- **Compteur de temps** : Visualisation du temps ecoule depuis la disparition pour sensibiliser a l'urgence
 - **Moderation communautaire** : Signalement des contenus inappropries
 
 ### Accessibilite maximale
@@ -65,6 +70,44 @@ DISPARUS.ORG offre :
 - **Responsive** : Fonctionne sur telephone, tablette, ordinateur
 - **Mode hors-ligne** : Technologie PWA pour une utilisation meme sans connexion
 - **Leger** : Optimise pour les connexions lentes
+- **SEO optimise** : Sitemap dynamique, balises Open Graph pour maximiser la visibilite
+
+---
+
+## Fonctionnalites detaillees
+
+### Pour les familles et citoyens
+
+| Fonctionnalite | Description |
+|----------------|-------------|
+| Signalement rapide | Formulaire en 4 sections avec upload photo |
+| Recherche avancee | Filtres par statut, type, pays, photo |
+| Contributions | Temoignages avec localisation GPS |
+| Telechargements | PDF, image sociale, QR code |
+| Partage direct | 12 plateformes en un clic |
+| Compteur de temps | Jours, heures, minutes depuis disparition |
+| Carte interactive | Localisation des disparitions |
+
+### Pour les organisations
+
+| Fonctionnalite | Description |
+|----------------|-------------|
+| API REST | Integration avec systemes externes |
+| Export donnees | JSON et CSV |
+| Statistiques | Tableaux de bord detailles |
+| Roles personnalises | Admin, moderateur, ONG, secours |
+
+### Pour les administrateurs
+
+| Fonctionnalite | Description |
+|----------------|-------------|
+| Moderation | Validation des contributions |
+| Gestion utilisateurs | Roles et permissions |
+| Configuration SEO | Meta tags, Google Analytics, GTM |
+| Sauvegarde/Restauration | Export complet de la base |
+| Journalisation | Logs d'activite detailles |
+
+---
 
 ## Impact attendu
 
@@ -86,6 +129,8 @@ DISPARUS.ORG offre :
 - Contribuer a la reduction du delai de signalement
 - Augmenter significativement le taux de personnes retrouvees
 
+---
+
 ## Modele economique
 
 DISPARUS.ORG est une initiative humanitaire fonctionnant sur un modele non lucratif.
@@ -106,16 +151,7 @@ DISPARUS.ORG est une initiative humanitaire fonctionnant sur un modele non lucra
 - Formation et sensibilisation
 - Coordination avec les acteurs locaux
 
-## Equipe et gouvernance
-
-La plateforme est geree par une equipe benevole composee de :
-
-- Developpeurs et techniciens
-- Experts en communication
-- Representants d'ONG partenaires
-- Conseillers juridiques
-
-La gouvernance repose sur un comite de pilotage incluant des representants de chaque region africaine.
+---
 
 ## Valeurs
 
@@ -134,6 +170,8 @@ Les donnees sont utilisees exclusivement pour la recherche des disparus. Nous ne
 ### Fiabilite
 
 Un systeme de moderation garantit la qualite des informations publiees. Les fausses informations sont supprimees.
+
+---
 
 ## Rejoindre le mouvement
 
@@ -154,6 +192,8 @@ Un systeme de moderation garantit la qualite des informations publiees. Les faus
 - Le projet est open source
 - Contribuez au code sur notre depot
 - Proposez des ameliorations et nouvelles fonctionnalites
+
+---
 
 ## Contact
 

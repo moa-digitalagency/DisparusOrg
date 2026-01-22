@@ -15,9 +15,10 @@ Nous cherchons a etablir des relations avec :
 - **Communautes economiques regionales** : CEDEAO, CEEAC, SADC, CAE
 
 **Ce que nous offrons** :
-- Plateforme technique operationnelle
+- Plateforme technique operationnelle couvrant 54 pays
 - Donnees agregees et anonymisees pour rapports
 - Outil de coordination transfrontaliere
+- Interface multilingue (francais/anglais)
 
 **Ce que nous attendons** :
 - Reconnaissance et legitimite
@@ -37,6 +38,8 @@ Les ministeres concernes dans chaque pays :
 3. Acces a une interface dediee
 4. Partage d'informations selon protocole defini
 
+---
+
 ### Partenaires operationnels
 
 #### ONG et associations
@@ -49,7 +52,7 @@ Organisations travaillant sur :
 
 **Integration possible** :
 - Compte utilisateur avec role "ONG"
-- Acces aux statistiques et exports
+- Acces aux statistiques et exports (JSON, CSV)
 - Formation a l'utilisation de la plateforme
 - Co-branding sur les supports de communication
 
@@ -62,24 +65,26 @@ Organisations travaillant sur :
 
 **Outils dedies** :
 - Compte avec role "secours"
-- Acces a la cartographie complete
+- Acces a la cartographie complete avec filtres
 - Export des donnees pour operations terrain
-- Alertes en temps reel (a developper)
+- Tri par proximite geographique
 
 #### Medias
 
 Televisions, radios, journaux, sites d'information
 
 **Collaboration proposee** :
-- Flux RSS des nouveaux signalements
-- Widget integrable sur les sites
-- Fiches formatees pour publication
+- Flux des nouveaux signalements
+- Images optimisees pour diffusion (1080x1350px)
+- Fiches PDF formatees pour publication
 - Campagnes de sensibilisation conjointes
 
 **Engagement attendu** :
 - Diffusion reguliere des signalements
 - Promotion de la plateforme
 - Couverture des cas de personnes retrouvees
+
+---
 
 ### Partenaires technologiques
 
@@ -100,8 +105,10 @@ Google, Facebook/Meta, Microsoft, startups africaines
 **Opportunites** :
 - Mecenat de competences
 - Credits cloud et infrastructure
-- Integration avec leurs services (Maps, WhatsApp)
+- Integration avec leurs services (Maps, WhatsApp, Messenger)
 - Soutien au developpement de fonctionnalites
+
+---
 
 ### Partenaires financiers
 
@@ -126,6 +133,8 @@ Toute entreprise souhaitant soutenir une cause humanitaire :
 - Visibilite sur la plateforme (page partenaires)
 - Rapports d'impact reguliers
 - Evenements de valorisation
+
+---
 
 ## Niveaux de partenariat
 
@@ -165,8 +174,10 @@ Toute entreprise souhaitant soutenir une cause humanitaire :
 **Avantages** :
 - Tous les avantages Or
 - Siege permanent au conseil d'administration
-- Droit de veto sur decisions strategiques majeures
 - Reconnaissance permanente
+- Participation aux decisions strategiques
+
+---
 
 ## Devenir partenaire
 
@@ -189,6 +200,8 @@ Pour evaluer votre demande de partenariat, merci de nous fournir :
 - Ressources que vous pouvez apporter
 - Vos attentes vis-a-vis du partenariat
 
+---
+
 ## Engagements reciproques
 
 ### Nos engagements envers nos partenaires
@@ -207,9 +220,13 @@ Pour evaluer votre demande de partenariat, merci de nous fournir :
 4. **Ethique** : Comportement exemplaire
 5. **Durabilite** : Engagement sur le moyen/long terme
 
+---
+
 ## Partenariats actuels
 
 *Cette section sera completee au fur et a mesure des partenariats etablis.*
+
+---
 
 ## FAQ Partenaires
 
@@ -224,6 +241,8 @@ R : Rapports trimestriels pour les partenaires Argent et superieurs, rapport ann
 
 **Q : Puis-je retirer mon partenariat ?**
 R : Oui, avec un preavis de 3 mois. Les engagements en cours seront honores.
+
+---
 
 ## Contact partenariats
 

@@ -13,12 +13,14 @@ Identifiez-vous avec les credentials definis dans les variables d'environnement 
 - `ADMIN_USERNAME` : Nom d'utilisateur administrateur
 - `ADMIN_PASSWORD` : Mot de passe administrateur
 
+---
+
 ## Tableau de bord
 
 Le tableau de bord affiche une vue d'ensemble :
 
-- **Statistiques globales** : Total signalements, personnes retrouvees, contributions, pays couverts
-- **Repartition par statut** : Disparus, retrouves, decedes
+- **Statistiques globales** : Total signalements, personnes retrouvees, decedees, contributions
+- **Repartition par statut** : Porte(e)s Disparu(e)s, Retrouve(e)s, Decede(e)s
 - **Signalements en attente** : Contenus signales a moderer
 - **Liste complete** : Tous les signalements avec actions rapides
 
@@ -29,26 +31,37 @@ Pour chaque fiche, vous pouvez :
 - **Modifier le statut** : Changer entre Disparu/Retrouve/Decede
 - **Supprimer** : Supprimer definitivement la fiche
 
+---
+
 ## Menu de navigation
 
 L'interface d'administration est organisee en trois sections :
 
 ### Menu principal
-- **Tableau de bord** : Vue d'ensemble
-- **Signalements** : Liste de toutes les fiches avec filtres
-- **Moderation** : Contenus signales
-- **Contributions** : Temoignages et informations recues
-- **Statistiques** : Metriques detaillees
-- **Carte** : Vue cartographique de tous les signalements
+| Page | Description |
+|------|-------------|
+| Tableau de bord | Vue d'ensemble et statistiques |
+| Signalements | Liste de toutes les fiches avec filtres |
+| Moderation | Contenus signales par les utilisateurs |
+| Contributions | Temoignages et informations a valider |
+| Statistiques | Metriques detaillees de la plateforme |
+| Carte | Vue cartographique de tous les signalements |
 
 ### Gestion
-- **Utilisateurs** : Gestion des comptes utilisateurs
-- **Roles** : Configuration des permissions
+| Page | Description |
+|------|-------------|
+| Utilisateurs | Gestion des comptes utilisateurs |
+| Roles | Configuration des permissions |
 
 ### Systeme
-- **Logs d'activite** : Journal de toutes les actions
-- **Telechargements** : Suivi des fichiers telecharges
-- **Parametres** : Configuration du site
+| Page | Description |
+|------|-------------|
+| Logs d'activite | Journal de toutes les actions |
+| Telechargements | Suivi des fichiers telecharges |
+| Parametres | Configuration du site |
+| Donnees | Export, sauvegarde, restauration |
+
+---
 
 ## Moderation
 
@@ -71,6 +84,8 @@ Selon la configuration (`require_contribution_validation`), les contributions pe
 3. Pour chaque contribution :
    - **Approuver** : La contribution devient visible publiquement
    - **Rejeter** : La contribution est supprimee
+
+---
 
 ## Gestion des utilisateurs
 
@@ -109,6 +124,8 @@ Selon la configuration (`require_contribution_validation`), les contributions pe
 2. Decochez **Compte actif**
 3. L'utilisateur ne pourra plus se connecter
 
+---
+
 ## Gestion des roles
 
 ### Roles systeme
@@ -141,6 +158,8 @@ Les roles systeme (admin, moderator, ngo, secours, user) ne peuvent pas etre sup
 | delete_content | Supprimer du contenu |
 | export_data | Exporter les donnees |
 
+---
+
 ## Statistiques
 
 La page Statistiques affiche :
@@ -148,20 +167,33 @@ La page Statistiques affiche :
 ### Vue d'ensemble
 - Total des signalements
 - Personnes retrouvees (nombre et pourcentage)
+- Personnes decedees
 - Contributions recues
 - Vues totales
 - Telechargements
 
 ### Repartitions
 - **Par pays** : Top 10 des pays avec le plus de signalements
-- **Par statut** : Graphique disparus/retrouves/decedes
+- **Par statut** : Graphique Porte(e)s Disparu(e)s / Retrouve(e)s / Decede(e)s
 - **Par ville** : Top 10 des villes
 
 ### Engagement
-- **Fiches les plus vues** : Top 5 des fiches avec le plus de consultations
-- **Fiches les plus telechargees** : Top 5 des PDF les plus telecharges
+- **Fiches les plus vues** : Top 5 des consultations
+- **Fiches les plus telechargees** : Top 5 des PDF
 - **Types de telechargement** : Repartition PDF/Images/QR codes
-- **Telechargements par pays** : Origine geographique des telechargements
+- **Telechargements par pays** : Origine geographique
+
+---
+
+## Carte interactive
+
+La page Carte affiche tous les signalements sur une carte avec :
+
+- **Filtre par pays** : Menu deroulant pour filtrer (sauvegarde automatique)
+- **Marqueurs** : Chaque signalement avec popup d'information
+- **Zoom automatique** : Geolocalisation de l'utilisateur
+
+---
 
 ## Logs d'activite
 
@@ -171,7 +203,7 @@ Le journal d'activite enregistre toutes les actions sur la plateforme.
 
 - **Type d'action** : auth, view, create, update, delete, download, security, admin
 - **Severite** : debug, info, warning, error, critical
-- **Evenements securite** : Filtrer uniquement les evenements de securite
+- **Evenements securite** : Filtrer uniquement les evenements critiques
 - **Recherche** : Par nom d'utilisateur, action, IP ou cible
 
 ### Informations enregistrees
@@ -192,6 +224,8 @@ Les evenements marques comme "securite" incluent :
 - Suppressions de contenu
 - Tentatives de rate limiting
 
+---
+
 ## Telechargements
 
 Suivi de tous les fichiers telecharges :
@@ -201,6 +235,59 @@ Suivi de tous les fichiers telecharges :
 - **Type de telechargement** : Fiche PDF, image partage, QR code
 - **Date**
 - **Origine** : Adresse IP et pays
+
+---
+
+## Gestion des donnees
+
+La page **Donnees** permet de gerer les donnees de la plateforme.
+
+### Exporter les donnees
+
+Exportez les signalements au format JSON ou CSV :
+
+1. Selectionnez le format (JSON ou CSV)
+2. Optionnel : selectionnez un pays specifique
+3. Cliquez sur **Exporter**
+
+Le fichier sera telecharge avec toutes les informations des fiches.
+
+### Sauvegarder la base
+
+Creez une sauvegarde complete de la base de donnees :
+
+1. Cliquez sur **Creer une sauvegarde**
+2. Un fichier JSON sera telecharge avec :
+   - Toutes les fiches de disparus
+   - Toutes les contributions
+   - Les parametres du site
+
+### Restaurer une sauvegarde
+
+Restaurez une sauvegarde precedente :
+
+1. Selectionnez le fichier JSON de sauvegarde
+2. Cliquez sur **Restaurer**
+3. Confirmez l'operation
+
+Les donnees existantes seront conservees, seules les nouvelles seront ajoutees.
+
+### Supprimer des donnees
+
+Supprimez toutes les donnees d'un pays specifique :
+
+1. Selectionnez le pays dans le menu deroulant
+2. Cliquez sur **Supprimer**
+3. Confirmez l'operation (irreversible)
+
+### Donnees de demonstration
+
+Pour les tests et demonstrations :
+
+- **Generer les donnees demo** : Cree 8 profils de test (Maroc + Gabon)
+- **Supprimer les donnees demo** : Supprime les profils de demonstration
+
+---
 
 ## Parametres
 
@@ -213,6 +300,8 @@ Suivi de tous les fichiers telecharges :
 | contact_email | Email de contact |
 | site_logo | Logo du site (upload) |
 | favicon | Icone du navigateur (upload) |
+| placeholder_male | Image placeholder pour hommes sans photo |
+| placeholder_female | Image placeholder pour femmes sans photo |
 
 ### Parametres SEO
 
@@ -222,8 +311,8 @@ Suivi de tous les fichiers telecharges :
 | seo_description | Meta description |
 | seo_keywords | Mots-cles |
 | seo_og_image | Image pour les reseaux sociaux |
-| seo_robots | Directive robots.txt |
-| seo_canonical_url | URL canonique |
+| seo_robots | Directive robots |
+| seo_canonical_url | URL canonique (https://disparus.org) |
 | seo_google_analytics | ID Google Analytics |
 | seo_google_tag_manager | ID Google Tag Manager |
 | seo_head_scripts | Scripts a inserer dans <head> |
@@ -246,12 +335,14 @@ Suivi de tous les fichiers telecharges :
 | require_contribution_validation | Contributions doivent etre validees |
 | allow_anonymous_reports | Autoriser les signalements anonymes |
 
+---
+
 ## Bonnes pratiques
 
 ### Moderation
 
-1. **Reagissez rapidement** : Les signalements de contenu doivent etre traites dans les 24h
-2. **Documentez vos decisions** : Utilisez les notes pour expliquer pourquoi un contenu est conserve ou supprime
+1. **Reagissez rapidement** : Les signalements doivent etre traites dans les 24h
+2. **Documentez vos decisions** : Utilisez les notes pour expliquer vos choix
 3. **Verifiez les doublons** : Avant de valider une fiche, verifiez qu'elle n'existe pas deja
 
 ### Securite
@@ -264,7 +355,15 @@ Suivi de tous les fichiers telecharges :
 
 1. **Sauvegardez regulierement** : Base de donnees et fichiers uploades
 2. **Nettoyez les fiches obsoletes** : Fiches de personnes retrouvees depuis longtemps
-3. **Verifiez les contributions** : Les contributions non verifiees peuvent contenir des informations erronees
+3. **Verifiez les contributions** : Les contributions non verifiees peuvent contenir des erreurs
+
+### SEO
+
+1. **Configurez l'URL canonique** : Utilisez https://disparus.org
+2. **Ajoutez Google Analytics** : Pour suivre le trafic
+3. **Verifiez le sitemap** : Accessible a /sitemap.xml
+
+---
 
 ## Deconnexion
 
