@@ -371,52 +371,54 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     settings = get_site_settings()
     site_name = settings.get('site_name', 'DISPARUS.ORG')
     
-    width, height = 1200, 630
+    width, height = 1080, 1350
     img = Image.new('RGB', (width, height), color='#FFFFFF')
     draw = ImageDraw.Draw(img)
     
-    draw.rectangle([0, 0, width, 140], fill='#B91C1C')
-    draw.rectangle([0, 140, width, 148], fill='#7F1D1D')
-    draw.rectangle([0, 148, width, 155], fill='#D97706')
+    draw.rectangle([0, 0, width, 180], fill='#B91C1C')
+    draw.rectangle([0, 180, width, 195], fill='#7F1D1D')
+    
+    try:
+        font_site = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42)
+        font_alert = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
+        font_name = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 44)
+        font_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+        font_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
+        font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
+        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
+        font_id = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
+    except Exception:
+        font_site = font_alert = font_name = font_label = font_value = font_medium = font_small = font_id = ImageFont.load_default()
     
     logo_path = settings.get('site_logo')
+    logo_drawn = False
     if logo_path:
         full_path = f'statics/{logo_path}' if not logo_path.startswith('statics/') else logo_path
         if os.path.exists(full_path):
             try:
                 logo = Image.open(full_path)
                 logo = logo.convert('RGBA')
-                logo.thumbnail((100, 100), Image.Resampling.LANCZOS)
-                img.paste(logo, (30, 20), logo if logo.mode == 'RGBA' else None)
+                logo.thumbnail((120, 120), Image.Resampling.LANCZOS)
+                img.paste(logo, (40, 30), logo if logo.mode == 'RGBA' else None)
+                logo_drawn = True
             except Exception:
                 pass
     
-    try:
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 40)
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
-        font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
-        font_tiny = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
-    except Exception:
-        font_title = ImageFont.load_default()
-        font_large = ImageFont.load_default()
-        font_medium = ImageFont.load_default()
-        font_small = ImageFont.load_default()
-        font_tiny = ImageFont.load_default()
+    text_x = 180 if logo_drawn else 40
+    draw.text((text_x, 50), site_name, fill='#FFFFFF', font=font_site)
+    draw.text((text_x, 105), "Plateforme citoyenne", fill='#FEE2E2', font=font_small)
+    draw.text((width - 180, 70), f"ID: {disparu.public_id}", fill='#FFFFFF', font=font_id)
     
-    draw.text((150, 45), site_name, fill='#FFFFFF', font=font_title)
-    draw.text((width - 180, 50), f"ID: {disparu.public_id}", fill='#FFFFFF', font=font_small)
+    draw.rectangle([0, 195, width, 280], fill='#FEE2E2')
+    draw.text((width//2, 220), "PERSONNE DISPARUE", fill='#B91C1C', font=font_alert, anchor='mm')
+    draw.text((width//2, 260), "MISSING PERSON", fill='#7F1D1D', font=font_medium, anchor='mm')
     
-    draw.text((width//2 - 220, 175), "PERSONNE DISPARUE", fill='#7F1D1D', font=font_large)
-    draw.text((width//2 - 120, 235), "MISSING PERSON", fill='#6B7280', font=font_medium)
+    photo_y = 310
+    photo_width = 700
+    photo_height = 520
+    photo_x = (width - photo_width) // 2
     
-    draw.line([(100, 280), (width - 100, 280)], fill='#B91C1C', width=4)
-    draw.line([(200, 286), (width - 200, 286)], fill='#D97706', width=2)
-    
-    photo_x, photo_y = 50, 310
-    photo_size = 260
-    
-    draw.rectangle([photo_x - 6, photo_y - 6, photo_x + photo_size + 6, photo_y + photo_size + 6], outline='#B91C1C', width=5)
+    draw.rectangle([photo_x - 8, photo_y - 8, photo_x + photo_width + 8, photo_y + photo_height + 8], outline='#B91C1C', width=6)
     
     photo_loaded = False
     if disparu.photo_url:
@@ -425,10 +427,19 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
             try:
                 photo = Image.open(photo_path)
                 photo = photo.convert('RGB')
-                photo.thumbnail((photo_size, photo_size), Image.Resampling.LANCZOS)
-                paste_x = photo_x + (photo_size - photo.width) // 2
-                paste_y = photo_y + (photo_size - photo.height) // 2
-                img.paste(photo, (paste_x, paste_y))
+                photo_ratio = photo.width / photo.height
+                target_ratio = photo_width / photo_height
+                if photo_ratio > target_ratio:
+                    new_height = photo_height
+                    new_width = int(new_height * photo_ratio)
+                else:
+                    new_width = photo_width
+                    new_height = int(new_width / photo_ratio)
+                photo = photo.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                left = (new_width - photo_width) // 2
+                top = (new_height - photo_height) // 2
+                photo = photo.crop((left, top, left + photo_width, top + photo_height))
+                img.paste(photo, (photo_x, photo_y))
                 photo_loaded = True
             except Exception:
                 pass
@@ -443,59 +454,79 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
                 try:
                     photo = Image.open(full_placeholder)
                     photo = photo.convert('RGB')
-                    photo.thumbnail((photo_size, photo_size), Image.Resampling.LANCZOS)
-                    paste_x = photo_x + (photo_size - photo.width) // 2
-                    paste_y = photo_y + (photo_size - photo.height) // 2
-                    img.paste(photo, (paste_x, paste_y))
+                    photo_ratio = photo.width / photo.height
+                    target_ratio = photo_width / photo_height
+                    if photo_ratio > target_ratio:
+                        new_height = photo_height
+                        new_width = int(new_height * photo_ratio)
+                    else:
+                        new_width = photo_width
+                        new_height = int(new_width / photo_ratio)
+                    photo = photo.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                    left = (new_width - photo_width) // 2
+                    top = (new_height - photo_height) // 2
+                    photo = photo.crop((left, top, left + photo_width, top + photo_height))
+                    img.paste(photo, (photo_x, photo_y))
                     photo_loaded = True
                 except Exception:
                     pass
     
     if not photo_loaded:
-        draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill='#F3F4F6')
-        draw.text((photo_x + 55, photo_y + 110), "Photo non", fill='#6B7280', font=font_medium)
-        draw.text((photo_x + 50, photo_y + 145), "disponible", fill='#6B7280', font=font_medium)
+        draw.rectangle([photo_x, photo_y, photo_x + photo_width, photo_y + photo_height], fill='#F3F4F6')
+        draw.text((width//2, photo_y + photo_height//2 - 20), "Photo non disponible", fill='#6B7280', font=font_value, anchor='mm')
+        draw.text((width//2, photo_y + photo_height//2 + 20), "Photo not available", fill='#9CA3AF', font=font_medium, anchor='mm')
     
-    info_x = 350
-    info_y = 320
-    
+    info_y = photo_y + photo_height + 40
     name = f"{disparu.first_name} {disparu.last_name}"
-    draw.text((info_x, info_y), name, fill='#1F2937', font=font_large)
+    draw.text((width//2, info_y), name.upper(), fill='#1F2937', font=font_name, anchor='mm')
     
-    info_y += 70
-    draw.rectangle([info_x - 10, info_y - 5, info_x + 450, info_y + 130], fill='#FEE2E2', outline='#B91C1C', width=2)
+    info_y += 60
+    draw.rectangle([60, info_y, width - 60, info_y + 180], fill='#F9FAFB', outline='#E5E7EB', width=2)
     
-    info_y += 10
-    draw.text((info_x + 10, info_y), f"Age: {disparu.age} ans", fill='#1F2937', font=font_medium)
-    info_y += 40
+    col1_x = 100
+    col2_x = width // 2 + 40
+    row_y = info_y + 25
+    
+    draw.text((col1_x, row_y), "AGE", fill='#6B7280', font=font_label)
+    draw.text((col1_x, row_y + 28), f"{disparu.age} ans", fill='#1F2937', font=font_value)
+    
+    sex_display = "Homme" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme', 'masculin'] else "Femme" if disparu.sex else "N/A"
+    draw.text((col2_x, row_y), "SEXE", fill='#6B7280', font=font_label)
+    draw.text((col2_x, row_y + 28), sex_display, fill='#1F2937', font=font_value)
+    
+    row_y += 85
+    draw.text((col1_x, row_y), "LOCALISATION", fill='#6B7280', font=font_label)
     location = f"{disparu.city}, {disparu.country}"
-    draw.text((info_x + 10, info_y), location[:40], fill='#1F2937', font=font_medium)
-    info_y += 40
-    if disparu.disappearance_date:
-        date_str = disparu.disappearance_date.strftime('%d/%m/%Y')
-        draw.text((info_x + 10, info_y), f"Disparu(e) le: {date_str}", fill='#B91C1C', font=font_medium)
+    if len(location) > 35:
+        location = location[:32] + "..."
+    draw.text((col1_x, row_y + 28), location, fill='#1F2937', font=font_value)
     
-    qr_x = width - 170
-    qr_y = 310
+    if disparu.disappearance_date:
+        draw.text((col2_x, row_y), "DISPARU(E) LE", fill='#6B7280', font=font_label)
+        date_str = disparu.disappearance_date.strftime('%d/%m/%Y')
+        draw.text((col2_x, row_y + 28), date_str, fill='#B91C1C', font=font_value)
+    
+    qr_section_y = info_y + 200
+    qr_size = 140
+    qr_x = width // 2 - qr_size // 2
     qr_url = f"{base_url}/disparu/{disparu.public_id}"
     try:
-        qr = qrcode.QRCode(version=1, box_size=6, border=2, error_correction=qrcode.constants.ERROR_CORRECT_H)
+        qr = qrcode.QRCode(version=1, box_size=8, border=2, error_correction=qrcode.constants.ERROR_CORRECT_H)
         qr.add_data(qr_url)
         qr.make(fit=True)
         qr_img = qr.make_image(fill_color="#7F1D1D", back_color="white")
-        qr_img = qr_img.resize((130, 130), Image.Resampling.LANCZOS)
-        
-        draw.rectangle([qr_x - 10, qr_y - 10, qr_x + 140, qr_y + 170], fill='#F3F4F6', outline='#B91C1C', width=2)
-        img.paste(qr_img, (qr_x, qr_y))
-        draw.text((qr_x - 5, qr_y + 135), "Scannez pour", fill='#6B7280', font=font_tiny)
-        draw.text((qr_x + 5, qr_y + 153), "plus d'infos", fill='#6B7280', font=font_tiny)
+        qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.LANCZOS)
+        img.paste(qr_img, (qr_x, qr_section_y))
+        draw.text((width//2, qr_section_y + qr_size + 10), "Scannez pour plus d'informations", fill='#6B7280', font=font_small, anchor='mm')
     except Exception:
         pass
     
-    draw.rectangle([0, height - 70, width, height], fill='#B91C1C')
-    draw.rectangle([0, height - 75, width, height - 70], fill='#D97706')
-    draw.text((width//2 - 150, height - 55), base_url, fill='#FFFFFF', font=font_medium)
-    draw.text((width//2 - 260, height - 25), "Aidez-nous a retrouver cette personne!", fill='#FFFFFF', font=font_small)
+    footer_y = height - 100
+    draw.rectangle([0, footer_y, width, height], fill='#B91C1C')
+    draw.rectangle([0, footer_y - 5, width, footer_y], fill='#D97706')
+    
+    draw.text((width//2, footer_y + 30), base_url, fill='#FFFFFF', font=font_site, anchor='mm')
+    draw.text((width//2, footer_y + 70), "Si vous avez des informations, contactez-nous!", fill='#FEE2E2', font=font_small, anchor='mm')
     
     buffer = io.BytesIO()
     img.save(buffer, format='PNG', quality=95)

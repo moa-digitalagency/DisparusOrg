@@ -358,9 +358,9 @@
     
     if (bounds.length > 0) {
         if (bounds.length === 1) {
-            map.setView(bounds[0], 12);
+            map.setView(bounds[0], 18);
         } else {
-            map.fitBounds(bounds, {padding: [30, 30]});
+            map.fitBounds(bounds, {padding: [30, 30], maxZoom: 18});
         }
     } else {
         map.setView([0, 20], 3);
