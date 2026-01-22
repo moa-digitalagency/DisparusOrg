@@ -376,37 +376,39 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
     draw = ImageDraw.Draw(img)
     
     try:
-        font_site = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-        font_id = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
-        font_alert = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-        font_alert_en = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-        font_name = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 44)
-        font_info = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-        font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26)
-        font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26)
-        font_contact_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
-        font_contact = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-        font_message = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20)
-        font_cta = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
+        font_cta_big = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 38)
+        font_site = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
+        font_id = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+        font_alert = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 46)
+        font_alert_en = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26)
+        font_name = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 42)
+        font_info = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26)
+        font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+        font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+        font_contact_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
+        font_contact_info = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
+        font_message = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+        font_footer = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
     except Exception:
-        font_site = font_id = font_alert = font_alert_en = font_name = font_info = font_location = font_date = font_contact_label = font_contact = font_message = font_cta = ImageFont.load_default()
+        font_cta_big = font_site = font_id = font_alert = font_alert_en = font_name = font_info = font_location = font_date = font_contact_title = font_contact_info = font_message = font_footer = ImageFont.load_default()
     
-    for y in range(70):
-        ratio = y / 70
+    for y in range(100):
+        ratio = y / 100
         r = int(185 - (185 - 127) * ratio)
         g = int(28 - (28 - 29) * ratio)
         b = int(28 - (28 - 29) * ratio)
         draw.line([(0, y), (width, y)], fill=(r, g, b))
     
-    draw.text((50, 35), site_name, fill='#FFFFFF', font=font_site, anchor='lm')
-    draw.text((width - 50, 35), f"ID: {disparu.public_id}", fill='#FFFFFF', font=font_id, anchor='rm')
+    draw.text((width//2, 35), "Aidez-nous a retrouver cette personne!", fill='#FFFFFF', font=font_cta_big, anchor='mm')
+    draw.text((50, 75), site_name, fill='#FEE2E2', font=font_site, anchor='lm')
+    draw.text((width - 50, 75), f"ID: {disparu.public_id}", fill='#FEE2E2', font=font_id, anchor='rm')
     
-    draw.rectangle([0, 70, width, 160], fill='#1F2937')
-    draw.text((width//2, 100), "PERSONNE DISPARUE", fill='#FFFFFF', font=font_alert, anchor='mm')
-    draw.text((width//2, 140), "MISSING PERSON", fill='#9CA3AF', font=font_alert_en, anchor='mm')
+    draw.rectangle([0, 100, width, 185], fill='#1F2937')
+    draw.text((width//2, 128), "PERSONNE DISPARUE", fill='#FFFFFF', font=font_alert, anchor='mm')
+    draw.text((width//2, 165), "MISSING PERSON", fill='#9CA3AF', font=font_alert_en, anchor='mm')
     
-    photo_y = 190
-    photo_size = 550
+    photo_y = 200
+    photo_size = 500
     photo_x = (width - photo_size) // 2
     
     draw.rectangle([photo_x - 4, photo_y - 4, photo_x + photo_size + 4, photo_y + photo_size + 4], outline='#E5E7EB', width=4)
@@ -454,23 +456,23 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         draw.ellipse([cx - 80, cy - 150, cx + 80, cy - 30], fill='#D1D5DB')
         draw.ellipse([cx - 110, cy - 20, cx + 110, cy + 140], fill='#D1D5DB')
     
-    info_y = photo_y + photo_size + 30
+    info_y = photo_y + photo_size + 25
     name = f"{disparu.first_name} {disparu.last_name}"
     draw.text((width//2, info_y), name.upper(), fill='#1F2937', font=font_name, anchor='mm')
     
-    info_y += 45
+    info_y += 40
     sex_text = "Homme" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme', 'masculin'] else "Femme" if disparu.sex else ""
     details = f"{disparu.age} ans"
     if sex_text:
         details += f"  •  {sex_text}"
     draw.text((width//2, info_y), details, fill='#6B7280', font=font_info, anchor='mm')
     
-    info_y += 40
+    info_y += 35
     location = f"{disparu.city}, {disparu.country}"
     draw.text((width//2, info_y), location, fill='#374151', font=font_location, anchor='mm')
     
     if disparu.disappearance_date:
-        info_y += 40
+        info_y += 35
         date_str = disparu.disappearance_date.strftime('%d/%m/%Y')
         time_str = disparu.disappearance_date.strftime('%H:%M')
         if time_str and time_str != "00:00":
@@ -478,24 +480,31 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         else:
             draw.text((width//2, info_y), f"Disparu(e) le {date_str}", fill='#B91C1C', font=font_date, anchor='mm')
     
-    contact_box_y = info_y + 50
-    contact_box_h = 120
-    draw.rectangle([80, contact_box_y, width - 80, contact_box_y + contact_box_h], outline='#B91C1C', width=3)
+    contact_box_y = info_y + 40
+    contact_box_h = 130
+    draw.rectangle([60, contact_box_y, width - 60, contact_box_y + contact_box_h], fill='#B91C1C')
     
-    draw.text((width//2, contact_box_y + 25), "CONTACTEZ-NOUS", fill='#B91C1C', font=font_contact_label, anchor='mm')
+    draw.text((width//2, contact_box_y + 30), "CONTACTEZ-NOUS SI VOUS AVEZ UNE INFORMATION", fill='#FFFFFF', font=font_contact_title, anchor='mm')
     
     contacts = getattr(disparu, 'contacts', None)
+    contact_y = contact_box_y + 65
     if contacts and len(contacts) > 0:
-        first_contact = contacts[0] if isinstance(contacts, list) else None
-        if first_contact and isinstance(first_contact, dict):
-            phone = first_contact.get('phone', '')
-            if phone:
-                draw.text((width//2, contact_box_y + 70), phone, fill='#1F2937', font=font_contact, anchor='mm')
+        for i, contact in enumerate(contacts[:2]):
+            if isinstance(contact, dict):
+                name_c = contact.get('name', '')
+                phone = contact.get('phone', '')
+                if name_c:
+                    draw.text((width//2, contact_y), name_c, fill='#FFFFFF', font=font_contact_info, anchor='mm')
+                    contact_y += 30
+                if phone:
+                    draw.text((width//2, contact_y), phone, fill='#FFFFFF', font=font_contact_info, anchor='mm')
+                    contact_y += 30
     
-    message_y = contact_box_y + contact_box_h + 25
-    draw.text((width//2, message_y), "Toute information peut permettre de retrouver cette personne", fill='#6B7280', font=font_message, anchor='mm')
+    message_y = contact_box_y + contact_box_h + 20
+    draw.text((width//2, message_y), "Toute information peut permettre de retrouver cette personne,", fill='#B91C1C', font=font_message, anchor='mm')
+    draw.text((width//2, message_y + 28), "un partage de cette image peut aider a la recherche aussi", fill='#B91C1C', font=font_message, anchor='mm')
     
-    footer_h = 70
+    footer_h = 60
     footer_y = height - footer_h
     for y in range(footer_y, height):
         ratio = (y - footer_y) / footer_h
@@ -504,7 +513,8 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         b = int(28 - (28 - 29) * ratio)
         draw.line([(0, y), (width, y)], fill=(r, g, b))
     
-    draw.text((width//2, footer_y + 35), "Aidez-nous a retrouver cette personne!", fill='#FFFFFF', font=font_cta, anchor='mm')
+    profile_url = f"{base_url}/disparu/{disparu.public_id}"
+    draw.text((width//2, footer_y + 30), profile_url, fill='#FFFFFF', font=font_footer, anchor='mm')
     
     buffer = io.BytesIO()
     img.save(buffer, format='PNG', quality=95)
