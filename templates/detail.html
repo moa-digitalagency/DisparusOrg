@@ -205,6 +205,52 @@
             </div>
             
             <div class="space-y-5">
+                {% if person.status == 'missing' and person.disappearance_date %}
+                <div class="bg-gradient-to-br from-red-600 to-red-800 rounded-xl p-5 shadow-lg text-white">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-red-100 text-xs uppercase tracking-wider font-medium">{% if get_locale() == 'fr' %}Porte disparu depuis{% else %}Missing since{% endif %}</p>
+                        </div>
+                    </div>
+                    <div id="missingTimer" class="flex justify-center gap-3 text-center">
+                        <div class="bg-white/10 backdrop-blur rounded-xl px-4 py-3 min-w-[70px]">
+                            <span id="timerDays" class="text-2xl font-bold block">--</span>
+                            <span class="text-xs text-red-200">{% if get_locale() == 'fr' %}jours{% else %}days{% endif %}</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur rounded-xl px-4 py-3 min-w-[70px]">
+                            <span id="timerHours" class="text-2xl font-bold block">--</span>
+                            <span class="text-xs text-red-200">{% if get_locale() == 'fr' %}heures{% else %}hours{% endif %}</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur rounded-xl px-4 py-3 min-w-[70px]">
+                            <span id="timerMinutes" class="text-2xl font-bold block">--</span>
+                            <span class="text-xs text-red-200">{% if get_locale() == 'fr' %}minutes{% else %}minutes{% endif %}</span>
+                        </div>
+                    </div>
+                    <p class="text-center text-red-100 text-xs mt-3">{% if get_locale() == 'fr' %}Depuis le{% else %}Since{% endif %} {{ person.disappearance_date.strftime('%d/%m/%Y') }} {% if get_locale() == 'fr' %}a{% else %}at{% endif %} {{ person.disappearance_date.strftime('%H:%M') }}</p>
+                </div>
+                <script>
+                (function() {
+                    var disappearanceDate = new Date("{{ person.disappearance_date.strftime('%Y-%m-%dT%H:%M:%S') }}");
+                    function updateTimer() {
+                        var now = new Date();
+                        var diff = now - disappearanceDate;
+                        if (diff < 0) diff = 0;
+                        var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        document.getElementById('timerDays').textContent = days;
+                        document.getElementById('timerHours').textContent = hours;
+                        document.getElementById('timerMinutes').textContent = minutes;
+                    }
+                    updateTimer();
+                    setInterval(updateTimer, 60000);
+                })();
+                </script>
+                {% endif %}
+                
                 <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="w-1 h-5 bg-red-600 rounded-full"></div>
