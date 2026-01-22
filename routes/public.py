@@ -403,3 +403,110 @@ def set_locale(locale):
         response.set_cookie('locale', locale, max_age=365*24*60*60)
         return response
     return redirect(url_for('public.index'))
+
+
+@public_bp.route('/robots.txt')
+def robots():
+    from flask import Response
+    base_url = 'https://disparus.org'
+    
+    robots_content = f"""# Robots.txt for {base_url}
+# Plateforme citoyenne pour les personnes disparues en Afrique
+
+User-agent: *
+Allow: /
+Allow: /recherche
+Allow: /disparu/
+Allow: /signaler
+
+# Pages admin - Ne pas indexer
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /moderation
+
+# Fichiers statiques autorises
+Allow: /statics/
+Allow: /manifest.json
+
+# Sitemap
+Sitemap: {base_url}/sitemap.xml
+
+# Autoriser les moteurs IA
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Crawl-delay pour eviter la surcharge
+Crawl-delay: 1
+"""
+    return Response(robots_content, mimetype='text/plain')
+
+
+@public_bp.route('/sitemap.xml')
+def sitemap():
+    from flask import Response
+    from datetime import datetime
+    
+    base_url = 'https://disparus.org'
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    disparus = Disparu.query.filter(Disparu.status.in_(['missing', 'found'])).order_by(Disparu.updated_at.desc()).all()
+    
+    xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    xml_content += f'''  <url>
+    <loc>{base_url}/</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+'''
+    
+    xml_content += f'''  <url>
+    <loc>{base_url}/recherche</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+'''
+    
+    xml_content += f'''  <url>
+    <loc>{base_url}/signaler</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+'''
+    
+    for d in disparus:
+        last_mod = d.updated_at.strftime('%Y-%m-%d') if d.updated_at else today
+        xml_content += f'''  <url>
+    <loc>{base_url}/disparu/{d.public_id}</loc>
+    <lastmod>{last_mod}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+'''
+    
+    xml_content += '</urlset>'
+    
+    return Response(xml_content, mimetype='application/xml')
