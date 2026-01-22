@@ -3,15 +3,15 @@
 # This configuration handles SEO settings for the daily indexing of missing persons.
 
 SEO_CONFIG = {
-    'title': 'Daily Missing Persons Index',
-    'description': 'Find the latest information on missing persons updated daily.',
-    'keywords': ['missing persons', 'daily update', 'indexing'],
+    'title': 'DISPARUS.ORG - Personnes Disparues en Afrique',
+    'description': 'Plateforme citoyenne pour signaler et rechercher les personnes disparues en Afrique. Mise a jour quotidienne.',
+    'keywords': ['personnes disparues', 'missing persons', 'Afrique', 'recherche', 'signalement'],
     'robots': 'index, follow',
-    'canonical': 'https://example.com/missing-persons',
+    'canonical': 'https://disparus.org',
     'og': {
-        'title': 'Daily Missing Persons Index',
-        'description': 'Stay updated with the latest information on missing persons.',
-        'url': 'https://example.com/missing-persons',
-        'image': 'https://example.com/images/missing_persons.jpg'
+        'title': 'DISPARUS.ORG - Personnes Disparues en Afrique',
+        'description': 'Plateforme citoyenne pour signaler et rechercher les personnes disparues en Afrique.',
+        'url': 'https://disparus.org',
+        'image': 'https://disparus.org/statics/img/og-image.png'
     }
 }
