@@ -65,7 +65,17 @@ def index():
         'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
         'contributions': Contribution.query.count(),
     }
-    all_disparus = Disparu.query.filter(Disparu.latitude.isnot(None)).all()
+    all_disparus_raw = Disparu.query.filter(Disparu.latitude.isnot(None)).all()
+    all_disparus = [{
+        'id': d.id,
+        'full_name': f"{d.first_name} {d.last_name}",
+        'photo_url': d.photo_url,
+        'latitude': d.latitude,
+        'longitude': d.longitude,
+        'city': d.city,
+        'country': d.country,
+        'status': d.status
+    } for d in all_disparus_raw]
     total_cities = get_total_cities()
     return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=all_disparus, total_cities=total_cities)
 
