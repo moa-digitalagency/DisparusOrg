@@ -1,16 +1,28 @@
-# Allow all web crawlers
-User-agent: *
-Disallow: /private/
-Disallow: /tmp/
-
-# Allow Googlebot
-User-agent: Googlebot
+User-agent: GPTBot
 Allow: / 
 
-# Block specific bots
-User-agent: BadBot
-Disallow: / 
+User-agent: Claude-Web
+Allow: / 
 
-# Disallow crawling of sensitive directories
-Disallow: /admin/
-Disallow: /login/
+User-agent: ChatGPT-User
+Allow: / 
+
+# Allow other AI crawlers
+User-agent: *
+Allow: /
+
+# Block unwanted bots
+User-agent: AhrefsBot
+Disallow: /
+User-agent: SemrushBot
+Disallow: /
+User-agent: DotBot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
+
+# Sitemap reference
+Sitemap: https://www.example.com/sitemap.xml
+
+# Daily indexing for missing persons
+Crawl-delay: 86400
