@@ -97,7 +97,7 @@
                         {% if person.status == 'missing' %}bg-red-600 text-white
                         {% elif person.status == 'found' %}bg-green-600 text-white
                         {% else %}bg-gray-600 text-white{% endif %}">
-                        {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}{% else %}{{ person.status }}{% endif %}
+                        {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Porte(e) Disparu(e){% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve(e){% else %}Found{% endif %}{% elif person.status == 'deceased' %}{% if get_locale() == 'fr' %}Decede(e){% else %}Deceased{% endif %}{% else %}{{ person.status }}{% endif %}
                     </span>
                 </div>
                 <div class="p-5">

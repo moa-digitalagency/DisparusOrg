@@ -22,7 +22,7 @@
                 {% elif person.status == 'found' %}bg-green-500 text-white
                 {% else %}bg-gray-500 text-white{% endif %}" data-testid="badge-status">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}{% else %}{{ person.status }}{% endif %}
+                {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Porte(e) Disparu(e){% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve(e){% else %}Found{% endif %}{% elif person.status == 'deceased' %}{% if get_locale() == 'fr' %}Decede(e){% else %}Deceased{% endif %}{% else %}{{ person.status }}{% endif %}
             </span>
             <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-person-name">
                 {{ person.first_name }} {{ person.last_name }}

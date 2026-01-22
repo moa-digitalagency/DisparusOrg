@@ -112,7 +112,7 @@
                     {% endif %}
                     <div class="absolute top-4 left-4">
                         <span class="bg-red-600 text-white text-[10px] px-3 py-1.5 rounded-xl font-semibold uppercase tracking-wide shadow-sm">
-                            {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}{% else %}{{ person.status }}{% endif %}
+                            {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Porte(e) Disparu(e){% else %}Missing{% endif %}{% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Retrouve(e){% else %}Found{% endif %}{% elif person.status == 'deceased' %}{% if get_locale() == 'fr' %}Decede(e){% else %}Deceased{% endif %}{% else %}{{ person.status }}{% endif %}
                         </span>
                     </div>
                 </div>

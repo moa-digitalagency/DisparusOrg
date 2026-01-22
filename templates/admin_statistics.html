@@ -79,9 +79,9 @@
                         {% elif status == 'deceased' %}bg-gray-500
                         {% else %}bg-gray-400{% endif %}"></span>
                     <span class="font-medium text-gray-700 capitalize">
-                        {% if status == 'missing' %}{% if get_locale() == 'fr' %}Disparus{% else %}Missing{% endif %}
-                        {% elif status == 'found' %}{% if get_locale() == 'fr' %}Retrouves{% else %}Found{% endif %}
-                        {% elif status == 'deceased' %}{% if get_locale() == 'fr' %}Decedes{% else %}Deceased{% endif %}
+                        {% if status == 'missing' %}{% if get_locale() == 'fr' %}Porte(e)s Disparu(e)s{% else %}Missing{% endif %}
+                        {% elif status == 'found' %}{% if get_locale() == 'fr' %}Retrouve(e)s{% else %}Found{% endif %}
+                        {% elif status == 'deceased' %}{% if get_locale() == 'fr' %}Decede(e)s{% else %}Deceased{% endif %}
                         {% else %}{{ status }}{% endif %}
                     </span>
                 </div>
