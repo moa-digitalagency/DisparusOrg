@@ -125,20 +125,8 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
                 except Exception:
                     pass
 
-    # Priorite 3: Favicon par defaut
+    # Priorite 3: Logo texte "DISPARUS.ORG" (jamais de favicon par defaut)
     if not logo_drawn:
-        default_favicon = 'statics/img/favicon.png'
-        if os.path.exists(default_favicon):
-            try:
-                logo = ImageReader(default_favicon)
-                p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
-                logo_drawn = True
-            except Exception:
-                pass
-
-    # Si toujours pas de logo, on met un cercle rouge par défaut
-    if not logo_drawn:
-        # Cercle rouge avec 'D'
         p.setFillColor(WHITE) 
         p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0) 
         p.setFillColor(RED_PRIMARY)
