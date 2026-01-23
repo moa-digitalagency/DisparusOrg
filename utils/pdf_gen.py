@@ -94,32 +94,47 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     logo_drawn = False
 
-    # Tentative chargement favicon.png (prioritaire)
-    favicon_path = 'statics/img/favicon.png'
-    # Gestion du chemin relatif si nécessaire
-    if not os.path.exists(favicon_path) and os.path.exists('/' + favicon_path):
-        favicon_path = '/' + favicon_path
+    # Priorite 1: Favicon configure dans les parametres
+    favicon_setting = settings.get('favicon')
+    if favicon_setting and not logo_drawn:
+        if favicon_setting.startswith('/'):
+            favicon_setting = favicon_setting[1:]
+        if not favicon_setting.startswith('statics/'):
+            favicon_setting = f'statics/{favicon_setting}'
+        if os.path.exists(favicon_setting):
+            try:
+                logo = ImageReader(favicon_setting)
+                p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
+                logo_drawn = True
+            except Exception:
+                pass
 
-    if os.path.exists(favicon_path):
-        try:
-            logo = ImageReader(favicon_path)
-            p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
-            logo_drawn = True
-        except Exception:
-            pass
-
-    # Si favicon non trouvé, on tente le logo du site via settings
+    # Priorite 2: Logo du site configure dans les parametres
     if not logo_drawn:
         logo_path = settings.get('site_logo')
         if logo_path:
-            full_path = f'statics/{logo_path}' if not logo_path.startswith('statics/') else logo_path
-            if os.path.exists(full_path):
+            if logo_path.startswith('/'):
+                logo_path = logo_path[1:]
+            if not logo_path.startswith('statics/'):
+                logo_path = f'statics/{logo_path}'
+            if os.path.exists(logo_path):
                 try:
-                    logo = ImageReader(full_path)
+                    logo = ImageReader(logo_path)
                     p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
                     logo_drawn = True
                 except Exception:
                     pass
+
+    # Priorite 3: Favicon par defaut
+    if not logo_drawn:
+        default_favicon = 'statics/img/favicon.png'
+        if os.path.exists(default_favicon):
+            try:
+                logo = ImageReader(default_favicon)
+                p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
+                logo_drawn = True
+            except Exception:
+                pass
 
     # Si toujours pas de logo, on met un cercle rouge par défaut
     if not logo_drawn:

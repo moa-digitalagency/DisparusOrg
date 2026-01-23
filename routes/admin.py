@@ -16,22 +16,26 @@ admin_bp = Blueprint('admin', __name__)
 def log_activity(action, action_type='admin', target_type=None, target_id=None, target_name=None, severity='info', is_security=False):
     """Helper function to log admin activities"""
     try:
-        log = ActivityLog(
-            username=session.get('admin_username', 'system'),
-            action=action,
-            action_type=action_type,
-            target_type=target_type,
-            target_id=str(target_id) if target_id else None,
-            target_name=target_name,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent', '')[:500],
-            severity=severity,
-            is_security_event=is_security
-        )
+        log = ActivityLog()
+        log.username = session.get('admin_username', 'system')
+        log.action = action
+        log.action_type = action_type
+        log.target_type = target_type
+        log.target_id = str(target_id) if target_id else None
+        log.target_name = target_name
+        log.ip_address = request.remote_addr
+        log.user_agent = request.headers.get('User-Agent', '')[:500] if request.headers.get('User-Agent') else None
+        log.severity = severity
+        log.is_security_event = is_security
         db.session.add(log)
         db.session.commit()
-    except Exception:
-        db.session.rollback()
+    except Exception as e:
+        import logging
+        logging.error(f"Error logging activity: {e}")
+        try:
+            db.session.rollback()
+        except:
+            pass
 
 
 def admin_required(f):
