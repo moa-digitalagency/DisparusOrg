@@ -119,12 +119,12 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
         p.setFont("Helvetica-Bold", 40)
         p.drawCentredString(logo_x + logo_size/2, logo_y + logo_size/2 - 10, "D")
 
-    # Titre du site à droite du logo
+    # Titre du site à droite du logo - toujours "DISPARUS.ORG"
     title_x = logo_x + logo_size + 0.5*cm
     title_y = height - 2.5*cm
     p.setFillColor(RED_DARK) 
     p.setFont("Helvetica-Bold", 28)
-    p.drawString(title_x, title_y, site_name)
+    p.drawString(title_x, title_y, "DISPARUS.ORG")
 
     # Slogan
     p.setFont("Helvetica", 10)
