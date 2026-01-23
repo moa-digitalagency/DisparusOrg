@@ -109,23 +109,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
             except Exception:
                 pass
 
-    # Priorite 2: Logo du site configure dans les parametres
-    if not logo_drawn:
-        logo_path = settings.get('site_logo')
-        if logo_path:
-            if logo_path.startswith('/'):
-                logo_path = logo_path[1:]
-            if not logo_path.startswith('statics/'):
-                logo_path = f'statics/{logo_path}'
-            if os.path.exists(logo_path):
-                try:
-                    logo = ImageReader(logo_path)
-                    p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
-                    logo_drawn = True
-                except Exception:
-                    pass
-
-    # Priorite 3: Logo texte "DISPARUS.ORG" (jamais de favicon par defaut)
+    # Priorite 2: Logo texte "DISPARUS.ORG" (cercle D) - jamais site_logo ni favicon par defaut
     if not logo_drawn:
         p.setFillColor(WHITE) 
         p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0) 
