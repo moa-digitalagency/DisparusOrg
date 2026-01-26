@@ -65,10 +65,19 @@ def login():
             session['admin_username'] = username
             session['admin_role'] = 'admin'
             
-            log_activity('Connexion admin reussie', action_type='auth', severity='info', is_security=True)
+            try:
+                log_activity('Connexion admin reussie', action_type='auth', severity='info', is_security=True)
+            except Exception as e:
+                import logging
+                logging.warning(f"Could not log activity: {e}")
+            
             return redirect(url_for('admin.dashboard'))
         else:
-            log_activity(f'Tentative de connexion echouee pour: {username}', action_type='auth', severity='warning', is_security=True)
+            try:
+                log_activity(f'Tentative de connexion echouee pour: {username}', action_type='auth', severity='warning', is_security=True)
+            except Exception as e:
+                import logging
+                logging.warning(f"Could not log activity: {e}")
             error = 'Identifiants invalides'
     
     return render_template('admin_login.html', error=error)
@@ -76,7 +85,11 @@ def login():
 
 @admin_bp.route('/logout')
 def logout():
-    log_activity('Deconnexion admin', action_type='auth', severity='info', is_security=True)
+    try:
+        log_activity('Deconnexion admin', action_type='auth', severity='info', is_security=True)
+    except Exception as e:
+        import logging
+        logging.warning(f"Could not log activity: {e}")
     session.pop('admin_logged_in', None)
     session.pop('admin_username', None)
     return redirect(url_for('public.index'))
@@ -85,7 +98,11 @@ def logout():
 @admin_bp.route('/')
 @admin_required
 def dashboard():
-    log_activity('Consultation tableau de bord', action_type='view', target_type='dashboard')
+    try:
+        log_activity('Consultation tableau de bord', action_type='view', target_type='dashboard')
+    except Exception as e:
+        import logging
+        logging.warning(f"Could not log activity: {e}")
     stats = {
         'total': Disparu.query.count(),
         'missing': Disparu.query.filter_by(status='missing').count(),

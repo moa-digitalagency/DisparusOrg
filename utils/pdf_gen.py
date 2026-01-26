@@ -409,7 +409,7 @@ def generate_qr_code(url, size=10):
     try:
         import qrcode
         from io import BytesIO
-        
+
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -418,9 +418,9 @@ def generate_qr_code(url, size=10):
         )
         qr.add_data(url)
         qr.make(fit=True)
-        
+
         img = qr.make_image(fill_color="black", back_color="white")
-        
+
         buffer = BytesIO()
         img.save(buffer, format='PNG')
         buffer.seek(0)
@@ -432,184 +432,245 @@ def generate_qr_code(url, size=10):
 
 
 def generate_social_media_image(disparu, base_url='https://disparus.org'):
-    """Generate a 1080x1350px portrait image for social media sharing (NO QR code)"""
+    """Generate a 1080x1350px portrait image for social media sharing matching the reference design."""
     try:
         from PIL import Image, ImageDraw, ImageFont
         from io import BytesIO
         import os
         import requests
-        
+
+        # Dimensions et Couleurs
         width, height = 1080, 1350
-        
-        RED_PRIMARY = (185, 28, 28)
-        RED_DARK = (127, 29, 29)
-        WHITE = (255, 255, 255)
-        BLACK = (0, 0, 0)
-        GRAY = (107, 114, 128)
-        
-        img = Image.new('RGB', (width, height), WHITE)
+
+        # Palette basée sur l'image de référence
+        RED_HEADER = (153, 27, 27)    # Rouge sombre en haut
+        DARK_BAR = (17, 24, 39)       # Bande bleu/noir 'Personne Disparue'
+        BG_WHITE = (255, 255, 255)
+        RED_ACCENT = (185, 28, 28)    # Rouge vif texte date
+        CONTACT_BG = (127, 29, 29)    # Fond rouge bloc contact
+        FOOTER_BAR = (88, 28, 28)     # Fond barre URL en bas
+        TEXT_BLACK = (0, 0, 0)
+        TEXT_GRAY = (80, 80, 80)
+        TEXT_WHITE = (255, 255, 255)
+
+        img = Image.new('RGB', (width, height), BG_WHITE)
         draw = ImageDraw.Draw(img)
-        
-        draw.rectangle([0, 0, width, 180], fill=RED_PRIMARY)
-        
+
+        # --- Chargement des Polices (Tailles Réduites) ---
         try:
-            font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-            font_subtitle = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-            font_name = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 56)
-            font_info = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+            # Chemins Linux communs
+            font_path_bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+            font_path_reg = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+            font_heavy = ImageFont.truetype(font_path_bold, 48) # Contact Phone
+            font_bold_large = ImageFont.truetype(font_path_bold, 36) # Titres principaux
+            font_bold_med = ImageFont.truetype(font_path_bold, 28) # Footer text
+            font_reg = ImageFont.truetype(font_path_reg, 24) # Textes normaux
+            font_small = ImageFont.truetype(font_path_reg, 20) # Petits textes
+            font_name = ImageFont.truetype(font_path_bold, 55) # Nom Prénom
         except:
-            font_title = ImageFont.load_default()
-            font_subtitle = font_title
-            font_name = font_title
-            font_info = font_title
-            font_small = font_title
-        
-        title = "AIDEZ-NOUS A RETROUVER"
-        title_bbox = draw.textbbox((0, 0), title, font=font_title)
-        title_width = title_bbox[2] - title_bbox[0]
-        draw.text(((width - title_width) / 2, 40), title, fill=WHITE, font=font_title)
-        
-        subtitle = "CETTE PERSONNE !"
-        subtitle_bbox = draw.textbbox((0, 0), subtitle, font=font_title)
-        subtitle_width = subtitle_bbox[2] - subtitle_bbox[0]
-        draw.text(((width - subtitle_width) / 2, 100), subtitle, fill=WHITE, font=font_title)
-        
-        photo_y = 200
-        photo_size = 500
+            font_heavy = ImageFont.load_default()
+            font_bold_large = font_heavy
+            font_bold_med = font_heavy
+            font_reg = font_heavy
+            font_small = font_heavy
+            font_name = font_heavy
+
+        # --- 1. Header Rouge (Top) ---
+        header_height = 120 # Reduit de 140
+        draw.rectangle([0, 0, width, header_height], fill=RED_HEADER)
+
+        # Texte Header
+        header_text = "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!"
+        bbox = draw.textbbox((0, 0), header_text, font=font_bold_large)
+        draw.text(((width - (bbox[2]-bbox[0])) // 2, 40), header_text, fill=TEXT_WHITE, font=font_bold_large)
+
+        # Sous-textes header (gauche/droite)
+        draw.text((30, 85), "DISPARUS.ORG", fill=TEXT_WHITE, font=font_small)
+        id_text = f"ID : {disparu.public_id}"
+        bbox_id = draw.textbbox((0, 0), id_text, font=font_small)
+        draw.text((width - (bbox_id[2]-bbox_id[0]) - 30, 85), id_text, fill=TEXT_WHITE, font=font_small)
+
+        # --- 2. Bande Sombre 'Personne Disparue' ---
+        bar_y = header_height
+        bar_height = 90 # Reduit de 110
+        draw.rectangle([0, bar_y, width, bar_y + bar_height], fill=DARK_BAR)
+
+        main_title = "PERSONNE DISPARUE"
+        bbox_mt = draw.textbbox((0, 0), main_title, font=font_bold_large)
+        draw.text(((width - (bbox_mt[2]-bbox_mt[0])) // 2, bar_y + 15), main_title, fill=TEXT_WHITE, font=font_bold_large)
+
+        sub_title = "MISSING PERSON"
+        bbox_st = draw.textbbox((0, 0), sub_title, font=font_small)
+        draw.text(((width - (bbox_st[2]-bbox_st[0])) // 2, bar_y + 60), sub_title, fill=(200, 200, 200), font=font_small)
+
+        # --- 3. Photo Centrale (Arrondie) ---
+        photo_area_y = bar_y + bar_height + 40 # Marge reduite
+        photo_size = 420 # Reduit de 500
         photo_x = (width - photo_size) // 2
-        
+
+        # Récupération image
+        person_photo = None
         if disparu.photo_url:
             try:
                 photo_path = disparu.photo_url
                 if photo_path.startswith('/'):
                     photo_path = photo_path[1:]
+
                 if os.path.exists(photo_path):
                     person_photo = Image.open(photo_path)
                 else:
                     response = requests.get(disparu.photo_url, timeout=5)
                     person_photo = Image.open(BytesIO(response.content))
-                
-                orig_w, orig_h = person_photo.size
-                ratio = min(photo_size / orig_w, photo_size / orig_h)
-                new_w = int(orig_w * ratio)
-                new_h = int(orig_h * ratio)
-                person_photo = person_photo.resize((new_w, new_h), Image.LANCZOS)
-                
-                paste_x = photo_x + (photo_size - new_w) // 2
-                paste_y = photo_y + (photo_size - new_h) // 2
-                
-                draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240))
-                img.paste(person_photo, (paste_x, paste_y))
-                draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], outline=RED_PRIMARY, width=4)
-            except Exception as e:
-                draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240), outline=GRAY, width=2)
-                no_photo = "Photo non disponible"
-                no_photo_bbox = draw.textbbox((0, 0), no_photo, font=font_info)
-                no_photo_width = no_photo_bbox[2] - no_photo_bbox[0]
-                draw.text(((width - no_photo_width) / 2, photo_y + photo_size // 2 - 16), no_photo, fill=GRAY, font=font_info)
+            except:
+                pass
+
+        if person_photo:
+            # Redimensionner et couper en carré
+            img_w, img_h = person_photo.size
+            min_dim = min(img_w, img_h)
+            left = (img_w - min_dim) / 2
+            top = (img_h - min_dim) / 2
+            right = (img_w + min_dim) / 2
+            bottom = (img_h + min_dim) / 2
+            person_photo = person_photo.crop((left, top, right, bottom))
+            person_photo = person_photo.resize((photo_size, photo_size), Image.LANCZOS)
+
+            # Créer masque arrondi
+            mask = Image.new('L', (photo_size, photo_size), 0)
+            draw_mask = ImageDraw.Draw(mask)
+            draw_mask.rounded_rectangle([(0,0), (photo_size, photo_size)], radius=30, fill=255)
+
+            img.paste(person_photo, (photo_x, photo_area_y), mask)
         else:
-            draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240), outline=GRAY, width=2)
-            no_photo = "Photo non disponible"
-            no_photo_bbox = draw.textbbox((0, 0), no_photo, font=font_info)
-            no_photo_width = no_photo_bbox[2] - no_photo_bbox[0]
-            draw.text(((width - no_photo_width) / 2, photo_y + photo_size // 2 - 16), no_photo, fill=GRAY, font=font_info)
-        
-        info_y = photo_y + photo_size + 40
-        
-        name = f"{disparu.first_name} {disparu.last_name}"
-        name_bbox = draw.textbbox((0, 0), name, font=font_name)
-        name_width = name_bbox[2] - name_bbox[0]
-        draw.text(((width - name_width) / 2, info_y), name, fill=BLACK, font=font_name)
-        
-        info_y += 80
-        
-        age_text = f"{disparu.age} ans" if disparu.age else "Age inconnu"
-        gender_text = "Homme" if disparu.sex == 'male' else "Femme" if disparu.sex == 'female' else ""
-        age_gender = f"{age_text} - {gender_text}" if gender_text else age_text
-        age_bbox = draw.textbbox((0, 0), age_gender, font=font_info)
-        age_width = age_bbox[2] - age_bbox[0]
-        draw.text(((width - age_width) / 2, info_y), age_gender, fill=GRAY, font=font_info)
-        
-        info_y += 50
-        
-        location = f"{disparu.city}, {disparu.country}" if disparu.city else disparu.country
-        loc_bbox = draw.textbbox((0, 0), location, font=font_info)
-        loc_width = loc_bbox[2] - loc_bbox[0]
-        draw.text(((width - loc_width) / 2, info_y), location, fill=GRAY, font=font_info)
-        
-        info_y += 50
-        
+            # Placeholder gris
+            draw.rounded_rectangle([photo_x, photo_area_y, photo_x+photo_size, photo_area_y+photo_size], radius=30, fill=(230, 230, 230))
+            draw.text((photo_x + 100, photo_area_y + 200), "Photo non disponible", fill=TEXT_GRAY, font=font_reg)
+
+        # --- 4. Informations Principales ---
+        text_y_cursor = photo_area_y + photo_size + 30 # Marge reduite
+
+        # NOM PRENOM
+        name_str = f"{disparu.first_name} {disparu.last_name}".upper()
+        # Tronquer si trop long
+        if len(name_str) > 30:
+            name_str = name_str[:27] + "..."
+        bbox_name = draw.textbbox((0, 0), name_str, font=font_name)
+        draw.text(((width - (bbox_name[2]-bbox_name[0])) // 2, text_y_cursor), name_str, fill=TEXT_BLACK, font=font_name)
+        text_y_cursor += 70 # Espacement reduit
+
+        # Age - Sexe
+        age_sex = f"{disparu.age} ans - " + ("Homme" if disparu.sex == 'male' else "Femme")
+        bbox_as = draw.textbbox((0, 0), age_sex, font=font_bold_large)
+        draw.text(((width - (bbox_as[2]-bbox_as[0])) // 2, text_y_cursor), age_sex, fill=TEXT_GRAY, font=font_bold_large)
+        text_y_cursor += 50
+
+        # Ville, Pays
+        loc = f"{disparu.city}, {disparu.country}"
+        bbox_loc = draw.textbbox((0, 0), loc, font=font_bold_large)
+        draw.text(((width - (bbox_loc[2]-bbox_loc[0])) // 2, text_y_cursor), loc, fill=TEXT_GRAY, font=font_bold_large)
+        text_y_cursor += 50
+
+        # Date disparition
+        date_str = ""
         if disparu.disappearance_date:
-            date_str = disparu.disappearance_date.strftime("%d/%m/%Y")
-            date_text = f"Disparu(e) le {date_str}"
-            date_bbox = draw.textbbox((0, 0), date_text, font=font_info)
-            date_width = date_bbox[2] - date_bbox[0]
-            draw.text(((width - date_width) / 2, info_y), date_text, fill=RED_PRIMARY, font=font_info)
-            info_y += 50
-        
+            d = disparu.disappearance_date.strftime("%d/%m/%Y")
+            h = disparu.disappearance_date.strftime("%H:%M")
+            date_str = f"Disparu(e) le {d} a {h}"
+
+        bbox_date = draw.textbbox((0, 0), date_str, font=font_bold_large)
+        draw.text(((width - (bbox_date[2]-bbox_date[0])) // 2, text_y_cursor), date_str, fill=RED_ACCENT, font=font_bold_large)
+        text_y_cursor += 50
+
+        # --- 5. Description (Ajouté selon demande, entre date et contact) ---
         if disparu.physical_description:
-            desc = disparu.physical_description[:150] + "..." if len(disparu.physical_description) > 150 else disparu.physical_description
-            desc_bbox = draw.textbbox((0, 0), desc, font=font_small)
-            desc_width = desc_bbox[2] - desc_bbox[0]
-            if desc_width > width - 100:
-                words = desc.split()
-                lines = []
-                current_line = ""
-                for word in words:
-                    test_line = current_line + " " + word if current_line else word
-                    test_bbox = draw.textbbox((0, 0), test_line, font=font_small)
-                    if test_bbox[2] - test_bbox[0] < width - 100:
-                        current_line = test_line
-                    else:
-                        lines.append(current_line)
-                        current_line = word
-                if current_line:
-                    lines.append(current_line)
-                for line in lines[:3]:
-                    line_bbox = draw.textbbox((0, 0), line, font=font_small)
-                    line_width = line_bbox[2] - line_bbox[0]
-                    draw.text(((width - line_width) / 2, info_y), line, fill=BLACK, font=font_small)
-                    info_y += 35
-            else:
-                draw.text(((width - desc_width) / 2, info_y), desc, fill=BLACK, font=font_small)
-        
-        contacts = disparu.contacts if disparu.contacts else []
+            desc_text = disparu.physical_description
+            # Simple wrapping logic
+            margin = 80
+            max_desc_width = width - (2 * margin)
+
+            # Decoupage simple en lignes
+            words = desc_text.split()
+            lines = []
+            current_line = []
+
+            for word in words:
+                test_line = ' '.join(current_line + [word])
+                bbox_test = draw.textbbox((0, 0), test_line, font=font_reg)
+                if (bbox_test[2] - bbox_test[0]) <= max_desc_width:
+                    current_line.append(word)
+                else:
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+            if current_line:
+                lines.append(' '.join(current_line))
+
+            # Limiter à 3 lignes max
+            lines = lines[:3] 
+
+            for line in lines:
+                bbox_l = draw.textbbox((0, 0), line, font=font_reg)
+                draw.text(((width - (bbox_l[2]-bbox_l[0])) // 2, text_y_cursor), line, fill=TEXT_BLACK, font=font_reg)
+                text_y_cursor += 30
+
+            text_y_cursor += 15 # Marge après description
+
+        # --- 6. Bloc Contact ---
+        # Fond rouge sombre
+        box_margin = 120
+        box_height = 160
+        box_y = text_y_cursor + 10
+
+        draw.rectangle([box_margin, box_y, width - box_margin, box_y + box_height], fill=CONTACT_BG)
+
+        # Texte titre box
+        c_title = "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION"
+        bbox_ct = draw.textbbox((0, 0), c_title, font=font_small) # Font plus petite pour etre sur que ca rentre
+        draw.text(((width - (bbox_ct[2]-bbox_ct[0])) // 2, box_y + 20), c_title, fill=TEXT_WHITE, font=font_small)
+
+        # Info Contact
+        contacts = getattr(disparu, 'contacts', [])
         if contacts:
-            info_y += 20
-            contact_title = "CONTACTS:"
-            contact_title_bbox = draw.textbbox((0, 0), contact_title, font=font_info)
-            contact_title_width = contact_title_bbox[2] - contact_title_bbox[0]
-            draw.text(((width - contact_title_width) / 2, info_y), contact_title, fill=RED_PRIMARY, font=font_info)
-            info_y += 40
-            
-            for contact in contacts[:2]:
-                contact_name = contact.get('name', '')
-                contact_phone = contact.get('phone', '')
-                contact_text = f"{contact_name}: {contact_phone}" if contact_name else contact_phone
-                if contact_text:
-                    contact_bbox = draw.textbbox((0, 0), contact_text, font=font_info)
-                    contact_width = contact_bbox[2] - contact_bbox[0]
-                    draw.text(((width - contact_width) / 2, info_y), contact_text, fill=BLACK, font=font_info)
-                    info_y += 40
-        
-        draw.rectangle([0, height - 120, width, height], fill=RED_DARK)
-        
-        footer1 = "DISPARUS.ORG"
-        footer1_bbox = draw.textbbox((0, 0), footer1, font=font_title)
-        footer1_width = footer1_bbox[2] - footer1_bbox[0]
-        draw.text(((width - footer1_width) / 2, height - 100), footer1, fill=WHITE, font=font_title)
-        
-        footer2 = "Plateforme citoyenne pour personnes disparues"
-        footer2_bbox = draw.textbbox((0, 0), footer2, font=font_small)
-        footer2_width = footer2_bbox[2] - footer2_bbox[0]
-        draw.text(((width - footer2_width) / 2, height - 45), footer2, fill=WHITE, font=font_small)
-        
+            c = contacts[0] # Premier contact
+            c_name = c.get('name', '').upper()
+            c_phone = c.get('phone', '')
+
+            bbox_cn = draw.textbbox((0, 0), c_name, font=font_bold_med)
+            draw.text(((width - (bbox_cn[2]-bbox_cn[0])) // 2, box_y + 60), c_name, fill=TEXT_WHITE, font=font_bold_med)
+
+            bbox_cp = draw.textbbox((0, 0), c_phone, font=font_heavy) # Gros pour le tel
+            draw.text(((width - (bbox_cp[2]-bbox_cp[0])) // 2, box_y + 100), c_phone, fill=TEXT_WHITE, font=font_heavy)
+
+        # --- 7. Footer Texte Rouge ---
+        # Calculer l'espace restant avant le footer du bas
+        footer_bar_y = height - 60
+        remaining_space = footer_bar_y - (box_y + box_height)
+
+        # On centre le texte d'avertissement dans l'espace restant, s'il y a de la place
+        if remaining_space > 60:
+            footer_warn_y = (box_y + box_height) + (remaining_space // 2) - 40
+
+            line1 = "Toute information peut permettre de retrouver cette personne,"
+            line2 = "un partage de cette image peut aider a la recherche aussi"
+
+            bbox_f1 = draw.textbbox((0, 0), line1, font=font_reg)
+            draw.text(((width - (bbox_f1[2]-bbox_f1[0])) // 2, footer_warn_y), line1, fill=RED_ACCENT, font=font_reg)
+
+            bbox_f2 = draw.textbbox((0, 0), line2, font=font_reg)
+            draw.text(((width - (bbox_f2[2]-bbox_f2[0])) // 2, footer_warn_y + 35), line2, fill=RED_ACCENT, font=font_reg)
+
+        # --- 8. Barre URL Bas ---
+        url_text = f"{base_url}/disparu/{disparu.public_id}".upper()
+
+        draw.rectangle([0, footer_bar_y, width, height], fill=FOOTER_BAR)
+        bbox_url = draw.textbbox((0, 0), url_text, font=font_small)
+        draw.text(((width - (bbox_url[2]-bbox_url[0])) // 2, footer_bar_y + 15), url_text, fill=TEXT_WHITE, font=font_small)
+
         buffer = BytesIO()
         img.save(buffer, format='PNG', quality=95)
         buffer.seek(0)
         return buffer
-        
+
     except Exception as e:
         import logging
         logging.error(f"Error generating social media image: {e}")
