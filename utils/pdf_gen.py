@@ -490,8 +490,17 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
                     response = requests.get(disparu.photo_url, timeout=5)
                     person_photo = Image.open(BytesIO(response.content))
                 
-                person_photo = person_photo.resize((photo_size, photo_size), Image.LANCZOS)
-                img.paste(person_photo, (photo_x, photo_y))
+                orig_w, orig_h = person_photo.size
+                ratio = min(photo_size / orig_w, photo_size / orig_h)
+                new_w = int(orig_w * ratio)
+                new_h = int(orig_h * ratio)
+                person_photo = person_photo.resize((new_w, new_h), Image.LANCZOS)
+                
+                paste_x = photo_x + (photo_size - new_w) // 2
+                paste_y = photo_y + (photo_size - new_h) // 2
+                
+                draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240))
+                img.paste(person_photo, (paste_x, paste_y))
                 draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], outline=RED_PRIMARY, width=4)
             except Exception as e:
                 draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240), outline=GRAY, width=2)
@@ -564,6 +573,25 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
                     info_y += 35
             else:
                 draw.text(((width - desc_width) / 2, info_y), desc, fill=BLACK, font=font_small)
+        
+        contacts = disparu.contacts if disparu.contacts else []
+        if contacts:
+            info_y += 20
+            contact_title = "CONTACTS:"
+            contact_title_bbox = draw.textbbox((0, 0), contact_title, font=font_info)
+            contact_title_width = contact_title_bbox[2] - contact_title_bbox[0]
+            draw.text(((width - contact_title_width) / 2, info_y), contact_title, fill=RED_PRIMARY, font=font_info)
+            info_y += 40
+            
+            for contact in contacts[:2]:
+                contact_name = contact.get('name', '')
+                contact_phone = contact.get('phone', '')
+                contact_text = f"{contact_name}: {contact_phone}" if contact_name else contact_phone
+                if contact_text:
+                    contact_bbox = draw.textbbox((0, 0), contact_text, font=font_info)
+                    contact_width = contact_bbox[2] - contact_bbox[0]
+                    draw.text(((width - contact_width) / 2, info_y), contact_text, fill=BLACK, font=font_info)
+                    info_y += 40
         
         draw.rectangle([0, height - 120, width, height], fill=RED_DARK)
         
