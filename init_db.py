@@ -132,6 +132,37 @@ def init_admin_user():
         print("  Admin user already exists")
 
 
+def create_missing_tables():
+    """Create any missing tables for VPS deployments"""
+    print("Checking for missing tables...")
+    
+    inspector = inspect(db.engine)
+    existing_tables = inspector.get_table_names()
+    
+    required_tables = [
+        'disparus_flask',
+        'contributions_flask', 
+        'moderation_reports_flask',
+        'users_flask',
+        'roles_flask',
+        'activity_logs_flask',
+        'downloads_flask',
+        'site_settings_flask'
+    ]
+    
+    missing_tables = [t for t in required_tables if t not in existing_tables]
+    
+    if missing_tables:
+        print(f"  Missing tables: {', '.join(missing_tables)}")
+        print("  Creating all tables...")
+        db.create_all()
+        print("  Tables created successfully!")
+    else:
+        print("  All tables exist")
+    
+    return missing_tables
+
+
 def run_migrations():
     """Run database migrations for VPS deployments"""
     print("Running migrations...")
@@ -213,9 +244,12 @@ def init_database():
     print("\n=== DISPARUS.ORG Database Initialization ===\n")
     
     with app.app_context():
-        print("1. Creating database tables...")
-        db.create_all()
-        print("   Tables created successfully!\n")
+        print("1. Checking and creating missing tables...")
+        missing = create_missing_tables()
+        if missing:
+            print(f"   Created tables: {', '.join(missing)}\n")
+        else:
+            print("   All required tables exist!\n")
         
         print("2. Running migrations...")
         run_migrations()
