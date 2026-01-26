@@ -10,3 +10,6 @@ werkzeug
 Pillow
 qrcode
 reportlab
+qrcode
+sqlalchemy
+requests

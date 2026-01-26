@@ -402,3 +402,187 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p.save()
     buffer.seek(0)
     return buffer
+
+
+def generate_qr_code(url, size=10):
+    """Generate a QR code for a URL and return as PNG buffer"""
+    try:
+        import qrcode
+        from io import BytesIO
+        
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=size,
+            border=2,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        return buffer
+    except Exception as e:
+        import logging
+        logging.error(f"Error generating QR code: {e}")
+        return None
+
+
+def generate_social_media_image(disparu, base_url='https://disparus.org'):
+    """Generate a 1080x1350px portrait image for social media sharing (NO QR code)"""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        from io import BytesIO
+        import os
+        import requests
+        
+        width, height = 1080, 1350
+        
+        RED_PRIMARY = (185, 28, 28)
+        RED_DARK = (127, 29, 29)
+        WHITE = (255, 255, 255)
+        BLACK = (0, 0, 0)
+        GRAY = (107, 114, 128)
+        
+        img = Image.new('RGB', (width, height), WHITE)
+        draw = ImageDraw.Draw(img)
+        
+        draw.rectangle([0, 0, width, 180], fill=RED_PRIMARY)
+        
+        try:
+            font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
+            font_subtitle = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
+            font_name = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 56)
+            font_info = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
+            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+        except:
+            font_title = ImageFont.load_default()
+            font_subtitle = font_title
+            font_name = font_title
+            font_info = font_title
+            font_small = font_title
+        
+        title = "AIDEZ-NOUS A RETROUVER"
+        title_bbox = draw.textbbox((0, 0), title, font=font_title)
+        title_width = title_bbox[2] - title_bbox[0]
+        draw.text(((width - title_width) / 2, 40), title, fill=WHITE, font=font_title)
+        
+        subtitle = "CETTE PERSONNE !"
+        subtitle_bbox = draw.textbbox((0, 0), subtitle, font=font_title)
+        subtitle_width = subtitle_bbox[2] - subtitle_bbox[0]
+        draw.text(((width - subtitle_width) / 2, 100), subtitle, fill=WHITE, font=font_title)
+        
+        photo_y = 200
+        photo_size = 500
+        photo_x = (width - photo_size) // 2
+        
+        if disparu.photo_url:
+            try:
+                photo_path = disparu.photo_url
+                if photo_path.startswith('/'):
+                    photo_path = photo_path[1:]
+                if os.path.exists(photo_path):
+                    person_photo = Image.open(photo_path)
+                else:
+                    response = requests.get(disparu.photo_url, timeout=5)
+                    person_photo = Image.open(BytesIO(response.content))
+                
+                person_photo = person_photo.resize((photo_size, photo_size), Image.LANCZOS)
+                img.paste(person_photo, (photo_x, photo_y))
+                draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], outline=RED_PRIMARY, width=4)
+            except Exception as e:
+                draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240), outline=GRAY, width=2)
+                no_photo = "Photo non disponible"
+                no_photo_bbox = draw.textbbox((0, 0), no_photo, font=font_info)
+                no_photo_width = no_photo_bbox[2] - no_photo_bbox[0]
+                draw.text(((width - no_photo_width) / 2, photo_y + photo_size // 2 - 16), no_photo, fill=GRAY, font=font_info)
+        else:
+            draw.rectangle([photo_x, photo_y, photo_x + photo_size, photo_y + photo_size], fill=(240, 240, 240), outline=GRAY, width=2)
+            no_photo = "Photo non disponible"
+            no_photo_bbox = draw.textbbox((0, 0), no_photo, font=font_info)
+            no_photo_width = no_photo_bbox[2] - no_photo_bbox[0]
+            draw.text(((width - no_photo_width) / 2, photo_y + photo_size // 2 - 16), no_photo, fill=GRAY, font=font_info)
+        
+        info_y = photo_y + photo_size + 40
+        
+        name = f"{disparu.first_name} {disparu.last_name}"
+        name_bbox = draw.textbbox((0, 0), name, font=font_name)
+        name_width = name_bbox[2] - name_bbox[0]
+        draw.text(((width - name_width) / 2, info_y), name, fill=BLACK, font=font_name)
+        
+        info_y += 80
+        
+        age_text = f"{disparu.age} ans" if disparu.age else "Age inconnu"
+        gender_text = "Homme" if disparu.sex == 'male' else "Femme" if disparu.sex == 'female' else ""
+        age_gender = f"{age_text} - {gender_text}" if gender_text else age_text
+        age_bbox = draw.textbbox((0, 0), age_gender, font=font_info)
+        age_width = age_bbox[2] - age_bbox[0]
+        draw.text(((width - age_width) / 2, info_y), age_gender, fill=GRAY, font=font_info)
+        
+        info_y += 50
+        
+        location = f"{disparu.city}, {disparu.country}" if disparu.city else disparu.country
+        loc_bbox = draw.textbbox((0, 0), location, font=font_info)
+        loc_width = loc_bbox[2] - loc_bbox[0]
+        draw.text(((width - loc_width) / 2, info_y), location, fill=GRAY, font=font_info)
+        
+        info_y += 50
+        
+        if disparu.disappearance_date:
+            date_str = disparu.disappearance_date.strftime("%d/%m/%Y")
+            date_text = f"Disparu(e) le {date_str}"
+            date_bbox = draw.textbbox((0, 0), date_text, font=font_info)
+            date_width = date_bbox[2] - date_bbox[0]
+            draw.text(((width - date_width) / 2, info_y), date_text, fill=RED_PRIMARY, font=font_info)
+            info_y += 50
+        
+        if disparu.physical_description:
+            desc = disparu.physical_description[:150] + "..." if len(disparu.physical_description) > 150 else disparu.physical_description
+            desc_bbox = draw.textbbox((0, 0), desc, font=font_small)
+            desc_width = desc_bbox[2] - desc_bbox[0]
+            if desc_width > width - 100:
+                words = desc.split()
+                lines = []
+                current_line = ""
+                for word in words:
+                    test_line = current_line + " " + word if current_line else word
+                    test_bbox = draw.textbbox((0, 0), test_line, font=font_small)
+                    if test_bbox[2] - test_bbox[0] < width - 100:
+                        current_line = test_line
+                    else:
+                        lines.append(current_line)
+                        current_line = word
+                if current_line:
+                    lines.append(current_line)
+                for line in lines[:3]:
+                    line_bbox = draw.textbbox((0, 0), line, font=font_small)
+                    line_width = line_bbox[2] - line_bbox[0]
+                    draw.text(((width - line_width) / 2, info_y), line, fill=BLACK, font=font_small)
+                    info_y += 35
+            else:
+                draw.text(((width - desc_width) / 2, info_y), desc, fill=BLACK, font=font_small)
+        
+        draw.rectangle([0, height - 120, width, height], fill=RED_DARK)
+        
+        footer1 = "DISPARUS.ORG"
+        footer1_bbox = draw.textbbox((0, 0), footer1, font=font_title)
+        footer1_width = footer1_bbox[2] - footer1_bbox[0]
+        draw.text(((width - footer1_width) / 2, height - 100), footer1, fill=WHITE, font=font_title)
+        
+        footer2 = "Plateforme citoyenne pour personnes disparues"
+        footer2_bbox = draw.textbbox((0, 0), footer2, font=font_small)
+        footer2_width = footer2_bbox[2] - footer2_bbox[0]
+        draw.text(((width - footer2_width) / 2, height - 45), footer2, fill=WHITE, font=font_small)
+        
+        buffer = BytesIO()
+        img.save(buffer, format='PNG', quality=95)
+        buffer.seek(0)
+        return buffer
+        
+    except Exception as e:
+        import logging
+        logging.error(f"Error generating social media image: {e}")
+        return None
