@@ -79,49 +79,6 @@ def create_app(config_name='default'):
 
 def register_utility_routes(app):
     
-    @app.route('/moderation')
-    def moderation():
-        from flask import render_template
-        from models import Disparu, Contribution, ModerationReport
-        
-        reports = ModerationReport.query.filter_by(status='pending').order_by(ModerationReport.created_at.desc()).all()
-        flagged = Disparu.query.filter_by(is_flagged=True).all()
-        stats = {
-            'pending': len(reports),
-            'flagged': len(flagged),
-            'total_disparus': Disparu.query.count(),
-            'total_contributions': Contribution.query.count(),
-        }
-        return render_template('moderation.html', reports=reports, flagged_disparus=flagged, stats=stats)
-    
-    @app.route('/moderation/<int:report_id>/resolve', methods=['POST'])
-    def resolve_report(report_id):
-        from flask import redirect, url_for, request
-        from datetime import datetime
-        from models import Disparu, ModerationReport
-        
-        report = ModerationReport.query.get_or_404(report_id)
-        
-        report.status = 'resolved'
-        report.reviewed_by = 'admin'
-        report.reviewed_at = datetime.utcnow()
-        
-        action = request.form.get('action')
-        
-        if action == 'remove':
-            if report.target_type == 'disparu':
-                disparu = Disparu.query.get(report.target_id)
-                if disparu:
-                    db.session.delete(disparu)
-        elif action == 'unflag':
-            if report.target_type == 'disparu':
-                disparu = Disparu.query.get(report.target_id)
-                if disparu:
-                    disparu.is_flagged = False
-        
-        db.session.commit()
-        return redirect(url_for('moderation'))
-    
     @app.route('/manifest.json')
     def manifest():
         return jsonify({
