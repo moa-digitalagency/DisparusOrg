@@ -113,7 +113,8 @@ def dashboard():
         'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
     }
     disparus = Disparu.query.order_by(Disparu.created_at.desc()).all()
-    return render_template('admin.html', stats=stats, disparus=disparus)
+    disparus_list = [d.to_dict() for d in disparus]
+    return render_template('admin.html', stats=stats, disparus=disparus, disparus_list=disparus_list)
 
 
 @admin_bp.route('/moderation')
@@ -293,7 +294,8 @@ def statistics():
 def map_view():
     log_activity('Consultation carte', action_type='view', target_type='map')
     disparus = Disparu.query.all()
-    return render_template('admin_map.html', disparus=disparus)
+    disparus_list = [d.to_dict() for d in disparus]
+    return render_template('admin_map.html', disparus=disparus, disparus_list=disparus_list)
 
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])

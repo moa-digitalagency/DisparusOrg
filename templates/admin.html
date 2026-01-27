@@ -146,7 +146,7 @@
         attribution: 'OpenStreetMap'
     }).addTo(map);
     
-    const disparus = {{ disparus|tojson|safe if disparus else '[]' }};
+    const disparus = {{ disparus_list|tojson|safe if disparus_list else '[]' }};
     disparus.forEach(function(d) {
         if (d.latitude && d.longitude) {
             const color = d.status === 'found' ? 'green' : (d.is_flagged ? 'orange' : 'red');
