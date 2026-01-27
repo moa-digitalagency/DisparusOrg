@@ -7,6 +7,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting
+from models.settings import invalidate_settings_cache
 from services.analytics import get_platform_stats
 from utils.geo import get_countries
 
@@ -391,6 +392,7 @@ def settings():
                     db.session.add(new_setting)
         log_activity(f'Modification parametres', action_type='update', target_type='settings', severity='info')
         db.session.commit()
+        invalidate_settings_cache()
         flash('Parametres sauvegardes', 'success')
         return redirect(url_for('admin.settings'))
     

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
     {% set seo_title = site_settings.get('seo_title', site_settings.get('site_name', 'DISPARUS.ORG')) %}
-    {% set seo_description = site_settings.get('seo_description', 'Plateforme humanitaire citoyenne pour signaler et rechercher les personnes disparues en Afrique' if get_locale() == 'fr' else 'Citizen humanitarian platform for reporting and finding missing persons in Africa') %}
-    {% set seo_keywords = site_settings.get('seo_keywords', 'disparus, personnes disparues, Afrique, recherche, signalement, missing persons, Africa') %}
+    {% set seo_description = site_settings.get('seo_description', t('seo.description_default')) %}
+    {% set seo_keywords = site_settings.get('seo_keywords', t('seo.keywords_default')) %}
     {% set og_image = site_settings.get('seo_og_image', '') %}
     <meta name="description" content="{{ seo_description }}">
     <meta name="keywords" content="{{ seo_keywords }}">
@@ -134,7 +134,7 @@
 </head>
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-white focus:text-red-700 focus:px-4 focus:py-2 focus:rounded-xl focus:shadow-lg focus:font-bold focus:outline-none focus:ring-2 focus:ring-red-500">
-        {% if get_locale() == 'fr' %}Aller au contenu principal{% else %}Skip to main content{% endif %}
+        {{ t('accessibility.skip_to_content') }}
     </a>
     <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="max-w-7xl mx-auto px-4">
@@ -151,7 +151,7 @@
                 <div class="flex items-center gap-1.5 md:gap-2">
                     <a href="/signaler" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 md:py-2.5 md:px-6 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 text-xs md:text-sm uppercase tracking-wide" data-testid="link-report">
                         <svg class="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <span>{% if get_locale() == 'fr' %}SIGNALER{% else %}REPORT{% endif %}</span>
+                        <span>{{ t('nav.report') }}</span>
                     </a>
                     
                     <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full p-0.5 md:p-1">
@@ -172,10 +172,10 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                     <h3 class="text-white font-semibold mb-3">{{ site_settings.get('site_name', 'DISPARUS.ORG') }}</h3>
-                    <p class="text-sm">{{ site_settings.get('footer_description', 'Plateforme citoyenne de signalement de personnes disparues en Afrique' if get_locale() == 'fr' else 'Citizen platform for reporting missing persons in Africa') }}</p>
+                    <p class="text-sm">{{ site_settings.get('footer_description', t('site.description')) }}</p>
                 </div>
                 <div>
-                    <h3 class="text-white font-semibold mb-3">{{ site_settings.get('footer_col2_title', 'Liens' if get_locale() == 'fr' else 'Links') }}</h3>
+                    <h3 class="text-white font-semibold mb-3">{{ site_settings.get('footer_col2_title', t('footer.links_title')) }}</h3>
                     <ul class="space-y-2 text-sm">
                         {% set footer_links = parse_json_links(site_settings.get('footer_col2_links', '[]')) %}
                         {% if footer_links %}
@@ -183,13 +183,13 @@
                             <li><a href="{{ link.url }}" class="hover:text-white transition-colors">{{ link.label_en if get_locale() == 'en' and link.label_en else link.label }}</a></li>
                             {% endfor %}
                         {% else %}
-                            <li><a href="/recherche" class="hover:text-white">{% if get_locale() == 'fr' %}Rechercher{% else %}Search{% endif %}</a></li>
-                            <li><a href="/signaler" class="hover:text-white">{% if get_locale() == 'fr' %}Signaler{% else %}Report{% endif %}</a></li>
+                            <li><a href="/recherche" class="hover:text-white">{{ t('nav.search') }}</a></li>
+                            <li><a href="/signaler" class="hover:text-white">{{ t('nav.report')|capitalize }}</a></li>
                         {% endif %}
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-white font-semibold mb-3">{{ site_settings.get('footer_col3_title', 'Reseaux sociaux' if get_locale() == 'fr' else 'Social Media') }}</h3>
+                    <h3 class="text-white font-semibold mb-3">{{ site_settings.get('footer_col3_title', t('footer.social_media_title')) }}</h3>
                     <div class="flex flex-wrap gap-3">
                         {% if site_settings.get('footer_facebook') %}
                         <a href="{{ site_settings.get('footer_facebook') }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-gray-700 hover:bg-blue-600 flex items-center justify-center transition-colors">
@@ -223,7 +223,7 @@
                         {% endif %}
                     </div>
                     {% if not site_settings.get('footer_facebook') and not site_settings.get('footer_twitter') and not site_settings.get('footer_instagram') and not site_settings.get('footer_linkedin') and not site_settings.get('footer_youtube') and not site_settings.get('footer_whatsapp') %}
-                    <p class="text-sm text-gray-400">{% if get_locale() == 'fr' %}Configurez vos reseaux sociaux dans les parametres{% else %}Configure your social media in settings{% endif %}</p>
+                    <p class="text-sm text-gray-400">{{ t('footer.configure_social') }}</p>
                     {% endif %}
                 </div>
             </div>

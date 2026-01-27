@@ -13,6 +13,7 @@ csrf = CSRFProtect()
 
 def get_locale():
     locale = request.cookies.get('locale')
+    print(f"DEBUG: get_locale called. Cookie: {locale}")
     if locale in ['fr', 'en']:
         return locale
     return request.accept_languages.best_match(['fr', 'en'], default='fr')
@@ -56,6 +57,7 @@ def create_app(config_name='default'):
     @app.context_processor
     def inject_site_settings():
         from models.settings import get_all_settings_dict
+        from utils.i18n import get_translation
         import json
         site_settings = get_all_settings_dict()
         
@@ -65,9 +67,13 @@ def create_app(config_name='default'):
             except:
                 return []
         
+        def t(key):
+            return get_translation(key, get_locale())
+
         return {
             'site_settings': site_settings,
-            'parse_json_links': parse_json_links
+            'parse_json_links': parse_json_links,
+            't': t
         }
     
     register_blueprints(app)
