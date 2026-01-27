@@ -1,3 +1,10 @@
+"""
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Routes pour l'administration
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
 import os
 import json
 import csv
@@ -10,6 +17,7 @@ from models import db, Disparu, Contribution, ModerationReport, User, Role, Acti
 from models.settings import invalidate_settings_cache
 from services.analytics import get_platform_stats
 from utils.geo import get_countries
+from security.rate_limit import rate_limit
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -49,6 +57,7 @@ def admin_required(f):
 
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
+@rate_limit(max_requests=5, window=60)
 def login():
     if session.get('admin_logged_in'):
         return redirect(url_for('admin.dashboard'))
@@ -61,7 +70,13 @@ def login():
         admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
         admin_password = os.environ.get('ADMIN_PASSWORD', '')
         
-        if username == admin_username and password == admin_password and admin_password:
+        if not admin_password:
+            try:
+                log_activity(f'Tentative connexion avec ADMIN_PASSWORD vide', action_type='auth', severity='error', is_security=True)
+            except: pass
+            error = 'Erreur configuration: Mot de passe admin non defini'
+        elif username == admin_username and password == admin_password:
+            session.permanent = True  # Enable session expiration
             session['admin_logged_in'] = True
             session['admin_username'] = username
             session['admin_role'] = 'admin'
@@ -765,9 +780,20 @@ def export_data():
     if export_format == 'csv':
         output = io.StringIO()
         if data:
+            # Sanitize data for CSV injection
+            sanitized_data = []
+            for row in data:
+                sanitized_row = {}
+                for k, v in row.items():
+                    if isinstance(v, str) and v.startswith(('=', '+', '-', '@')):
+                        sanitized_row[k] = "'" + v
+                    else:
+                        sanitized_row[k] = v
+                sanitized_data.append(sanitized_row)
+
             writer = csv.DictWriter(output, fieldnames=data[0].keys())
             writer.writeheader()
-            writer.writerows(data)
+            writer.writerows(sanitized_data)
         response = make_response(output.getvalue())
         response.headers['Content-Type'] = 'text/csv; charset=utf-8'
         response.headers['Content-Disposition'] = f'attachment; filename={filename}.csv'
