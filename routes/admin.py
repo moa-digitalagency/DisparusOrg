@@ -112,9 +112,26 @@ def dashboard():
         'contributions': Contribution.query.count(),
         'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
     }
-    disparus = Disparu.query.order_by(Disparu.created_at.desc()).all()
-    disparus_list = [d.to_dict() for d in disparus]
-    return render_template('admin.html', stats=stats, disparus=disparus, disparus_list=disparus_list)
+    # Optimization: Only fetch 5 recent for the list
+    recent_disparus = Disparu.query.order_by(Disparu.created_at.desc()).limit(5).all()
+
+    # Optimization: For map, fetch only needed fields to avoid hydrating all objects
+    map_data = db.session.query(
+        Disparu.latitude, Disparu.longitude, Disparu.first_name,
+        Disparu.last_name, Disparu.public_id, Disparu.status, Disparu.is_flagged
+    ).filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None)).all()
+
+    disparus_list = [{
+        'latitude': d.latitude,
+        'longitude': d.longitude,
+        'first_name': d.first_name,
+        'last_name': d.last_name,
+        'public_id': d.public_id,
+        'status': d.status,
+        'is_flagged': d.is_flagged
+    } for d in map_data]
+
+    return render_template('admin.html', stats=stats, disparus=recent_disparus, disparus_list=disparus_list)
 
 
 @admin_bp.route('/moderation')
@@ -665,20 +682,40 @@ def data_management():
     log_activity('Consultation gestion donnees', action_type='view', target_type='data')
     countries = get_countries()
     
+    # Optimization: Use aggregation instead of N+1 queries
+
+    # 1. Disparus count
+    disparus_stats = db.session.query(
+        Disparu.country, db.func.count(Disparu.id)
+    ).filter(Disparu.country.isnot(None), Disparu.country != '').group_by(Disparu.country).all()
+    disparus_map = {c: count for c, count in disparus_stats}
+
+    # 2. Contributions count (linked to Disparu)
+    contrib_stats = db.session.query(
+        Disparu.country, db.func.count(Contribution.id)
+    ).join(Contribution, Contribution.disparu_id == Disparu.id).filter(
+        Disparu.country.isnot(None), Disparu.country != ''
+    ).group_by(Disparu.country).all()
+    contrib_map = {c: count for c, count in contrib_stats}
+
+    # 3. Reports count (linked to Disparu)
+    report_stats = db.session.query(
+        Disparu.country, db.func.count(ModerationReport.id)
+    ).join(ModerationReport, (ModerationReport.target_id == Disparu.id) & (ModerationReport.target_type == 'disparu')).filter(
+        Disparu.country.isnot(None), Disparu.country != ''
+    ).group_by(Disparu.country).all()
+    report_map = {c: count for c, count in report_stats}
+
     country_stats = []
-    country_list = db.session.query(Disparu.country).distinct().all()
-    for (country,) in country_list:
-        if country:
-            disparus_count = Disparu.query.filter_by(country=country).count()
-            disparu_ids = [d.id for d in Disparu.query.filter_by(country=country).all()]
-            contributions_count = Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).count() if disparu_ids else 0
-            reports_count = ModerationReport.query.filter(ModerationReport.target_type == 'disparu', ModerationReport.target_id.in_(disparu_ids)).count() if disparu_ids else 0
-            country_stats.append({
-                'country': country,
-                'disparus_count': disparus_count,
-                'contributions_count': contributions_count,
-                'reports_count': reports_count
-            })
+    all_countries_in_db = set(disparus_map.keys()) | set(contrib_map.keys()) | set(report_map.keys())
+
+    for country in all_countries_in_db:
+         country_stats.append({
+            'country': country,
+            'disparus_count': disparus_map.get(country, 0),
+            'contributions_count': contrib_map.get(country, 0),
+            'reports_count': report_map.get(country, 0)
+        })
     
     country_stats.sort(key=lambda x: x['disparus_count'], reverse=True)
     
