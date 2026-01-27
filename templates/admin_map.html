@@ -1,3 +1,10 @@
+<!--
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Carte interactive de l'administration
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+ -->
 {% extends "admin_base.html" %}
 
 {% block title %}Carte - Admin DISPARUS.ORG{% endblock %}
@@ -170,8 +177,8 @@
             marker.bindPopup(
                 '<div class="text-center">' +
                 (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-2 border-2 border-red-100">' : '') +
-                '<strong class="text-base">' + d.first_name + ' ' + d.last_name + '</strong><br>' +
-                '<span class="text-gray-500 text-sm">' + d.city + ', ' + d.country + '</span><br>' +
+                '<strong class="text-base">' + escapeHtml(d.first_name) + ' ' + escapeHtml(d.last_name) + '</strong><br>' +
+                '<span class="text-gray-500 text-sm">' + escapeHtml(d.city) + ', ' + escapeHtml(d.country) + '</span><br>' +
                 '<a href="/disparu/' + d.public_id + '" class="text-red-600 hover:underline text-sm mt-1 inline-block">{% if get_locale() == "fr" %}Voir la fiche{% else %}View profile{% endif %}</a>' +
                 '</div>'
             );

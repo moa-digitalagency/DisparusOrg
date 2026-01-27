@@ -1,3 +1,10 @@
+"""
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Service de gestion des signalements
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
 import os
 import random
 import string

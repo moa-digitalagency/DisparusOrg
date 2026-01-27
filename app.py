@@ -1,3 +1,10 @@
+"""
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Configuration principale de l'application Flask
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
 import os
 from flask import Flask, request, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -39,6 +46,13 @@ def create_app(config_name='default'):
     app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
     app.config['UPLOAD_FOLDER'] = 'statics/uploads'
     
+    # Secure Session Cookies
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    # Enable Secure cookie if in production
+    if os.environ.get('FLASK_ENV') == 'production':
+        app.config['SESSION_COOKIE_SECURE'] = True
+
     db.init_app(app)
     csrf.init_app(app)
     
@@ -79,6 +93,28 @@ def create_app(config_name='default'):
     register_blueprints(app)
     
     register_utility_routes(app)
+
+    @app.after_request
+    def add_security_headers(response):
+        # Security Headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+        # Content Security Policy (CSP)
+        # Permissive enough for CDNs and inline scripts used in templates
+        csp = (
+            "default-src 'self' https: data:; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; "
+            "style-src 'self' 'unsafe-inline' https:; "
+            "img-src 'self' data: https: blob:; "
+            "font-src 'self' https: data:; "
+            "connect-src 'self' https:;"
+        )
+        response.headers['Content-Security-Policy'] = csp
+
+        return response
     
     return app
 

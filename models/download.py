@@ -1,3 +1,10 @@
+"""
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Modele pour le suivi des telechargements
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
 from models import db
 
 

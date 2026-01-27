@@ -1,3 +1,10 @@
+<!--
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Fiche detaillee d'un disparu
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+ -->
 {% extends "base.html" %}
 
 {% block title %}{{ person.first_name }} {{ person.last_name }} ({{ person.public_id }}) - {{ t('site.name') }}{% endblock %}
@@ -416,7 +423,12 @@
     
     {% if person.latitude and person.longitude %}
     const mainMarker = L.marker([{{ person.latitude }}, {{ person.longitude }}], {icon: redIcon}).addTo(map);
-    mainMarker.bindPopup('<strong>{{ t("detail.location_short") }}</strong><br>{{ person.city }}, {{ person.country }}<br>{{ person.disappearance_date.strftime("%d/%m/%Y") if person.disappearance_date else "" }}');
+    const locLabel = {{ t("detail.location_short") | tojson }};
+    const city = {{ person.city | tojson }};
+    const country = {{ person.country | tojson }};
+    const dateStr = {{ (person.disappearance_date.strftime("%d/%m/%Y") if person.disappearance_date else "") | tojson }};
+
+    mainMarker.bindPopup(`<strong>${escapeHtml(locLabel)}</strong><br>${escapeHtml(city)}, ${escapeHtml(country)}<br>${escapeHtml(dateStr)}`);
     bounds.push([{{ person.latitude }}, {{ person.longitude }}]);
     markers.push(mainMarker);
     {% endif %}
@@ -424,16 +436,22 @@
     {% for c in contributions %}
     {% if c.latitude and c.longitude %}
     (function() {
-        const icon = '{{ c.contribution_type }}' === 'found' ? greenIcon : blueIcon;
+        const contributionType = {{ c.contribution_type | tojson }};
+        const icon = contributionType === 'found' ? greenIcon : blueIcon;
         const marker = L.marker([{{ c.latitude }}, {{ c.longitude }}], {icon: icon}).addTo(map);
+
         const typeLabel = {
-            'seen': '{{ t("detail.sighting") }}',
-            'found': '{{ t("detail.person_found") }}',
-            'info': '{{ t("detail.important_info") }}',
-            'police': '{{ t("detail.police") }}',
-            'other': '{{ t("detail.other") }}'
-        }['{{ c.contribution_type }}'] || '{{ c.contribution_type }}';
-        marker.bindPopup('<strong>' + typeLabel + '</strong><br>{{ c.location_name or "" }}<br>{{ c.created_at.strftime("%d/%m/%Y %H:%M") if c.created_at else "" }}');
+            'seen': {{ t("detail.sighting") | tojson }},
+            'found': {{ t("detail.person_found") | tojson }},
+            'info': {{ t("detail.important_info") | tojson }},
+            'police': {{ t("detail.police") | tojson }},
+            'other': {{ t("detail.other") | tojson }}
+        }[contributionType] || contributionType;
+
+        const locationName = {{ (c.location_name or "") | tojson }};
+        const createdAt = {{ (c.created_at.strftime("%d/%m/%Y %H:%M") if c.created_at else "") | tojson }};
+
+        marker.bindPopup(`<strong>${escapeHtml(typeLabel)}</strong><br>${escapeHtml(locationName)}<br>${escapeHtml(createdAt)}`);
         bounds.push([{{ c.latitude }}, {{ c.longitude }}]);
         markers.push(marker);
     })();

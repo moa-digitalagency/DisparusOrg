@@ -1,3 +1,10 @@
+"""
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Routes publiques
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
 import os
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash
@@ -6,6 +13,7 @@ from werkzeug.utils import secure_filename
 from models import db, Disparu, Contribution, ModerationReport, ActivityLog
 from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cities
 from services.signalement import create_signalement, generate_public_id
+from security.rate_limit import rate_limit
 
 public_bp = Blueprint('public', __name__)
 
@@ -126,6 +134,7 @@ def search():
 
 
 @public_bp.route('/signaler', methods=['GET', 'POST'])
+@rate_limit(max_requests=10, window=3600)
 def report():
     if request.method == 'GET':
         log_public_activity('Page signaler', target_type='report')
@@ -213,6 +222,7 @@ def detail(public_id):
 
 
 @public_bp.route('/disparu/<public_id>/contribute', methods=['POST'])
+@rate_limit(max_requests=20, window=3600)
 def contribute(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
     log_public_activity('Contribution ajoutee', action_type='create', target_type='contribution', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
@@ -261,6 +271,7 @@ def contribute(public_id):
 
 
 @public_bp.route('/disparu/<public_id>/report', methods=['POST'])
+@rate_limit(max_requests=5, window=3600)
 def report_content(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
     log_public_activity('Signalement contenu', action_type='create', target_type='moderation', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')

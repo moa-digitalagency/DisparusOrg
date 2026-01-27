@@ -1,3 +1,10 @@
+"""
+ * Nom de l'application : DISPARUS.ORG
+ * Description : Point d'entree de l'application
+ * Produit de : MOA Digital Agency, www.myoneart.com
+ * Fait par : Aisance KALONJI, www.aisancekalonji.com
+ * Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
 from app import create_app
 
 app = create_app()
