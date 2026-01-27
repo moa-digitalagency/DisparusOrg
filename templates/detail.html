@@ -74,7 +74,7 @@
                 <div class="bg-white rounded-xl border border-red-100 overflow-hidden shadow-sm">
                     <div class="aspect-video bg-gray-100 relative">
                         {% if person.photo_url %}
-                        <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover">
+                        <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity" onclick="openImageModal()">
                         {% else %}
                         <div class="absolute inset-0 flex items-center justify-center">
                             <svg class="w-24 h-24 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -473,6 +473,15 @@
     }
 </script>
 
+<div id="imageModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm" style="background-color: rgba(0, 0, 0, 0.95);">
+    <button onclick="closeImageModal()" class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-[101]">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+    <div class="w-full h-full flex items-center justify-center" onclick="closeImageModal()">
+        <img id="fullScreenImage" src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" onclick="event.stopPropagation()">
+    </div>
+</div>
+
 <div id="shareModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-2xl">
@@ -573,6 +582,27 @@ function copyLink() {
 
 document.getElementById('shareModal').addEventListener('click', function(e) {
     if (e.target === this) {
+        closeShareModal();
+    }
+});
+
+function openImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
         closeShareModal();
     }
 });
