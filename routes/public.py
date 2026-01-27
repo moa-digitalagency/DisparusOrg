@@ -1,4 +1,13 @@
+"""
+Nom de l'application : DISPARUS.ORG
+Description : Plateforme citoyenne de signalement de personnes disparues en Afrique
+Produit de : MOA Digital Agency, www.myoneart.com
+Fait par : Aisance KALONJI, www.aisancekalonji.com
+Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
+
 import os
+import bleach
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash
 from werkzeug.utils import secure_filename
@@ -24,6 +33,15 @@ def allowed_file(filename, file_obj=None):
         if file_obj.content_type not in ALLOWED_MIMETYPES:
             return False
     return True
+
+
+def sanitize(text):
+    """Sanitize input text using bleach"""
+    if not text:
+        return text
+    if not isinstance(text, str):
+        return text
+    return bleach.clean(text, strip=True)
 
 
 def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None):
@@ -83,10 +101,10 @@ def index():
 @public_bp.route('/recherche')
 def search():
     log_public_activity('Page recherche', target_type='search')
-    query = request.args.get('q', '')
-    status_filter = request.args.get('status', 'all')
-    person_type = request.args.get('type', 'all')
-    country = request.args.get('country', '')
+    query = sanitize(request.args.get('q', ''))
+    status_filter = sanitize(request.args.get('status', 'all'))
+    person_type = sanitize(request.args.get('type', 'all'))
+    country = sanitize(request.args.get('country', ''))
     has_photo = request.args.get('photo', '') == 'on'
     
     q = Disparu.query
@@ -146,14 +164,14 @@ def report():
             
             contacts = []
             for i in range(3):
-                name = request.form.get(f'contact_name_{i}')
-                phone = request.form.get(f'contact_phone_{i}')
+                name = sanitize(request.form.get(f'contact_name_{i}'))
+                phone = sanitize(request.form.get(f'contact_phone_{i}'))
                 if name and phone:
                     contacts.append({
                         'name': name,
                         'phone': phone,
-                        'email': request.form.get(f'contact_email_{i}', ''),
-                        'relation': request.form.get(f'contact_relation_{i}', '')
+                        'email': sanitize(request.form.get(f'contact_email_{i}', '')),
+                        'relation': sanitize(request.form.get(f'contact_relation_{i}', ''))
                     })
             
             lat = request.form.get('latitude')
@@ -161,21 +179,21 @@ def report():
             
             disparu = Disparu(
                 public_id=generate_public_id(),
-                person_type=request.form['person_type'],
-                first_name=request.form['first_name'],
-                last_name=request.form['last_name'],
+                person_type=sanitize(request.form['person_type']),
+                first_name=sanitize(request.form['first_name']),
+                last_name=sanitize(request.form['last_name']),
                 age=int(request.form['age']),
-                sex=request.form['sex'],
-                country=request.form['country'],
-                city=request.form['city'],
-                physical_description=request.form['physical_description'],
+                sex=sanitize(request.form['sex']),
+                country=sanitize(request.form['country']),
+                city=sanitize(request.form['city']),
+                physical_description=sanitize(request.form['physical_description']),
                 photo_url=photo_url,
                 disappearance_date=datetime.fromisoformat(request.form['disappearance_date']),
-                circumstances=request.form['circumstances'],
+                circumstances=sanitize(request.form['circumstances']),
                 latitude=float(lat) if lat else None,
                 longitude=float(lng) if lng else None,
-                clothing=request.form.get('clothing', ''),
-                objects=request.form.get('objects', ''),
+                clothing=sanitize(request.form.get('clothing', '')),
+                objects=sanitize(request.form.get('objects', '')),
                 contacts=contacts,
             )
             
@@ -234,18 +252,18 @@ def contribute(public_id):
         
         contribution = Contribution(
             disparu_id=disparu.id,
-            contribution_type=request.form['contribution_type'],
-            details=request.form['details'],
+            contribution_type=sanitize(request.form['contribution_type']),
+            details=sanitize(request.form['details']),
             latitude=float(lat) if lat else None,
             longitude=float(lng) if lng else None,
-            location_name=request.form.get('location_name', ''),
+            location_name=sanitize(request.form.get('location_name', '')),
             observation_date=datetime.fromisoformat(obs_date) if obs_date else None,
             proof_url=proof_url,
-            person_state=request.form.get('person_state'),
-            return_circumstances=request.form.get('return_circumstances'),
-            contact_name=request.form.get('contact_name'),
-            contact_phone=request.form.get('contact_phone'),
-            contact_email=request.form.get('contact_email'),
+            person_state=sanitize(request.form.get('person_state')),
+            return_circumstances=sanitize(request.form.get('return_circumstances')),
+            contact_name=sanitize(request.form.get('contact_name')),
+            contact_phone=sanitize(request.form.get('contact_phone')),
+            contact_email=sanitize(request.form.get('contact_email')),
         )
         
         if request.form['contribution_type'] == 'found':
@@ -269,9 +287,9 @@ def report_content(public_id):
         report = ModerationReport(
             target_type='disparu',
             target_id=disparu.id,
-            reason=request.form['reason'],
-            details=request.form.get('details'),
-            reporter_contact=request.form.get('reporter_contact'),
+            reason=sanitize(request.form['reason']),
+            details=sanitize(request.form.get('details')),
+            reporter_contact=sanitize(request.form.get('reporter_contact')),
         )
         
         db.session.add(report)

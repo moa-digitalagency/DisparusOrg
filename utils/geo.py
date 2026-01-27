@@ -1,3 +1,11 @@
+"""
+Nom de l'application : DISPARUS.ORG
+Description : Plateforme citoyenne de signalement de personnes disparues en Afrique
+Produit de : MOA Digital Agency, www.myoneart.com
+Fait par : Aisance KALONJI, www.aisancekalonji.com
+Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
+
 COUNTRIES_CITIES = {
     "Afrique du Sud": ["Johannesbourg", "Le Cap", "Durban", "Pretoria", "Port Elizabeth", "Bloemfontein", "Nelspruit", "Kimberley", "Polokwane", "Pietermaritzburg"],
     "Algerie": ["Alger", "Oran", "Constantine", "Annaba", "Blida", "Batna", "Setif", "Djelfa", "Biskra", "Tebessa"],

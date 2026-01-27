@@ -1,3 +1,11 @@
+"""
+Nom de l'application : DISPARUS.ORG
+Description : Plateforme citoyenne de signalement de personnes disparues en Afrique
+Produit de : MOA Digital Agency, www.myoneart.com
+Fait par : Aisance KALONJI, www.aisancekalonji.com
+Auditer par : La CyberConfiance, www.cyberconfiance.com
+"""
+
 class SitemapGenerator:
     def __init__(self, base_url):
         self.base_url = base_url

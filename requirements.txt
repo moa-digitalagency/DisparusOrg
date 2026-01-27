@@ -10,6 +10,8 @@ werkzeug
 Pillow
 qrcode
 reportlab
-qrcode
 sqlalchemy
 requests
+Flask-Limiter
+Flask-Talisman
+bleach
