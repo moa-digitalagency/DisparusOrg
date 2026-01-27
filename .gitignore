@@ -4,3 +4,11 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+__pycache__/
+*.pyc
+*.pyo
+instance/
+.env
+.venv
+env/
+venv/

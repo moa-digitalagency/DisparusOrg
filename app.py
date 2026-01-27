@@ -55,10 +55,9 @@ def create_app(config_name='default'):
     
     @app.context_processor
     def inject_site_settings():
-        from models.settings import SiteSetting
+        from models.settings import get_all_settings_dict
         import json
-        settings_list = SiteSetting.query.all()
-        site_settings = {s.key: s.value for s in settings_list}
+        site_settings = get_all_settings_dict()
         
         def parse_json_links(json_str):
             try:
