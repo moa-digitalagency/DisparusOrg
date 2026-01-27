@@ -101,7 +101,7 @@
                 {% if get_locale() == 'fr' %}Supprimer donnees demo{% else %}Delete Demo Data{% endif %}
             </h2>
         </div>
-        <form action="{{ url_for('admin.delete_demo_data') }}" method="POST" class="p-4 space-y-4" onsubmit="return confirm('{% if get_locale() == \'fr\' %}Supprimer toutes les donnees de demonstration?{% else %}Delete all demo data?{% endif %}')">
+        <form action="{{ url_for('admin.delete_demo_data') }}" method="POST" class="p-4 space-y-4" onsubmit="return confirm('{% if get_locale() == 'fr' %}Supprimer toutes les donnees de demonstration?{% else %}Delete all demo data?{% endif %}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <p class="text-sm text-gray-600">{% if get_locale() == 'fr' %}Supprime les 8 profils de demonstration (Maroc et Gabon) crees par le script init_db_demo.py{% else %}Deletes the 8 demo profiles (Morocco and Gabon) created by init_db_demo.py script{% endif %}</p>
             <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
