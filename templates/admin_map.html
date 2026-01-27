@@ -93,7 +93,7 @@
     }).addTo(map);
     
     const hoverCard = document.getElementById('hover-card');
-    const allDisparus = {{ disparus|tojson|safe if disparus else '[]' }};
+    const allDisparus = {{ disparus_list|tojson|safe if disparus_list else '[]' }};
     const adminCountryFilter = document.getElementById('admin-country-filter');
     const adminCount = document.getElementById('admin-count');
     let mapMarkers = [];
