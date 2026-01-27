@@ -1,5 +1,18 @@
 from models import db
 
+_settings_cache = None
+
+def get_all_settings_dict():
+    global _settings_cache
+    if _settings_cache is None:
+        settings_list = SiteSetting.query.all()
+        _settings_cache = {s.key: s.value for s in settings_list}
+    return _settings_cache
+
+def invalidate_settings_cache():
+    global _settings_cache
+    _settings_cache = None
+
 
 class SiteSetting(db.Model):
     __tablename__ = 'site_settings_flask'
@@ -57,6 +70,7 @@ class SiteSetting(db.Model):
             )
             db.session.add(setting)
         db.session.commit()
+        invalidate_settings_cache()
         return setting
     
     def to_dict(self):
