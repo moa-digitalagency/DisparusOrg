@@ -489,45 +489,50 @@ def sitemap():
     base_url = 'https://disparus.org'
     today = datetime.now().strftime('%Y-%m-%d')
     
-    disparus = Disparu.query.filter(Disparu.status.in_(['missing', 'found'])).order_by(Disparu.updated_at.desc()).all()
-    
-    xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    
-    xml_content += f'''  <url>
+    def generate_sitemap():
+        yield '<?xml version="1.0" encoding="UTF-8"?>\n'
+        yield '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+
+        yield f'''  <url>
     <loc>{base_url}/</loc>
     <lastmod>{today}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 '''
-    
-    xml_content += f'''  <url>
+
+        yield f'''  <url>
     <loc>{base_url}/recherche</loc>
     <lastmod>{today}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 '''
-    
-    xml_content += f'''  <url>
+
+        yield f'''  <url>
     <loc>{base_url}/signaler</loc>
     <lastmod>{today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 '''
-    
-    for d in disparus:
-        last_mod = d.updated_at.strftime('%Y-%m-%d') if d.updated_at else today
-        xml_content += f'''  <url>
-    <loc>{base_url}/disparu/{d.public_id}</loc>
+
+        # Optimize memory usage by fetching only necessary columns and yielding results
+        query = Disparu.query.with_entities(Disparu.public_id, Disparu.updated_at)\
+            .filter(Disparu.status.in_(['missing', 'found']))\
+            .order_by(Disparu.updated_at.desc())\
+            .execution_options(yield_per=1000)
+
+        for public_id, updated_at in query:
+            last_mod = updated_at.strftime('%Y-%m-%d') if updated_at else today
+            yield f'''  <url>
+    <loc>{base_url}/disparu/{public_id}</loc>
     <lastmod>{last_mod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
 '''
+
+        yield '</urlset>'
     
-    xml_content += '</urlset>'
-    
-    return Response(xml_content, mimetype='application/xml')
+    return Response(generate_sitemap(), mimetype='application/xml')
