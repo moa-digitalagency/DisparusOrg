@@ -148,6 +148,10 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # On remonte tout le bloc de 0.5 cm vers le haut (avant height - 6*cm)
     main_title_y = height - 5.5*cm 
 
+    is_animal = (disparu.person_type == 'animal')
+    main_title_text = "ANIMAL DISPARU" if is_animal else "PERSONNE DISPARUE"
+    sub_title_text = "MISSING ANIMAL" if is_animal else "MISSING PERSON"
+
     # Fond rouge léger (10% opacité) derrière tout le bloc
     p.saveState()
     # Création couleur rouge avec alpha 0.1
@@ -162,12 +166,12 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     p.setFillColor(RED_DARK) # Rouge sombre pour le titre principal
     p.setFont("Helvetica-Bold", 36)
-    p.drawCentredString(width/2, main_title_y, "PERSONNE DISPARUE")
+    p.drawCentredString(width/2, main_title_y, main_title_text)
 
     # Sous-titre
     p.setFillColor(GRAY_MEDIUM)
     p.setFont("Helvetica-Bold", 20)
-    p.drawCentredString(width/2, main_title_y - 1*cm, "MISSING PERSON")
+    p.drawCentredString(width/2, main_title_y - 1*cm, sub_title_text)
 
     # Lignes décoratives
     p.setStrokeColor(RED_PRIMARY)
@@ -233,9 +237,14 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
         if t_str and t_str != "00:00":
              heure_val = t_str
 
+    if is_animal:
+        sex_display = "Male" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme'] else "Femelle"
+    else:
+        sex_display = "Homme" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme'] else "Femme"
+
     details = [
         ("Age:", f"{disparu.age} ans / years old"),
-        ("Sexe / Gender:", "Homme" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme'] else "Femme"),
+        ("Sexe / Gender:", sex_display),
         ("Lieu / Location:", f"{disparu.city}, {disparu.country}"),
         ("Date:", date_val), 
     ]
@@ -320,10 +329,17 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     section_y = draw_section_block("DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION", desc, section_y)
 
     clothing = disparu.clothing or "Non disponible."
-    section_y = draw_section_block("VETEMENTS / CLOTHING", clothing, section_y)
+    clothing_title = "COLLIER / ACCESSOIRES / ACCESSORIES" if is_animal else "VETEMENTS / CLOTHING"
+    section_y = draw_section_block(clothing_title, clothing, section_y)
 
     circ = disparu.circumstances or "Non disponible."
-    section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
+    # Hide circumstances for animals if empty or placeholder
+    show_circ = True
+    if is_animal and (not circ or circ == "-" or circ == "Non disponible."):
+        show_circ = False
+
+    if show_circ:
+        section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
 
     # --- 5. Contacts (Bloc dédié) ---
     if section_y < 8*cm: # Si on est trop bas
@@ -503,11 +519,12 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         bar_height = 90 # Reduit de 110
         draw.rectangle([0, bar_y, width, bar_y + bar_height], fill=DARK_BAR)
 
-        main_title = "PERSONNE DISPARUE"
+        is_animal = (disparu.person_type == 'animal')
+        main_title = "ANIMAL DISPARU" if is_animal else "PERSONNE DISPARUE"
         bbox_mt = draw.textbbox((0, 0), main_title, font=font_bold_large)
         draw.text(((width - (bbox_mt[2]-bbox_mt[0])) // 2, bar_y + 15), main_title, fill=TEXT_WHITE, font=font_bold_large)
 
-        sub_title = "MISSING PERSON"
+        sub_title = "MISSING ANIMAL" if is_animal else "MISSING PERSON"
         bbox_st = draw.textbbox((0, 0), sub_title, font=font_small)
         draw.text(((width - (bbox_st[2]-bbox_st[0])) // 2, bar_y + 60), sub_title, fill=(200, 200, 200), font=font_small)
 
@@ -567,7 +584,12 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         text_y_cursor += 70 # Espacement reduit
 
         # Age - Sexe
-        age_sex = f"{disparu.age} ans - " + ("Homme" if disparu.sex == 'male' else "Femme")
+        if is_animal:
+            sex_str = "Male" if disparu.sex == 'male' else "Femelle"
+        else:
+            sex_str = "Homme" if disparu.sex == 'male' else "Femme"
+
+        age_sex = f"{disparu.age} ans - {sex_str}"
         bbox_as = draw.textbbox((0, 0), age_sex, font=font_bold_large)
         draw.text(((width - (bbox_as[2]-bbox_as[0])) // 2, text_y_cursor), age_sex, fill=TEXT_GRAY, font=font_bold_large)
         text_y_cursor += 50

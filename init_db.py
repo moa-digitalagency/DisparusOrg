@@ -96,7 +96,7 @@ def init_default_settings():
         ('rate_limit_per_minute', '60', 'string', 'security'),
         ('enable_ip_logging', 'true', 'boolean', 'security'),
         ('max_upload_size_mb', '5', 'string', 'security'),
-        ('default_search_filter', 'all', 'string', 'appearance'),
+        ('default_search_filter', 'all', 'string', 'general'),
         ('moderator_whatsapp_number', '', 'string', 'integrations'),
     ]
     

@@ -81,8 +81,8 @@
             <div class="flex items-center gap-2">
                 <select id="type-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="all">{% if get_locale() == 'fr' %}Tous les disparus{% else %}All missing{% endif %}</option>
-                    <option value="person">{% if get_locale() == 'fr' %}Disparus Personne{% else %}Missing Persons{% endif %}</option>
-                    <option value="animal">{% if get_locale() == 'fr' %}Disparus Animaux{% else %}Missing Animals{% endif %}</option>
+                    <option value="person">{% if get_locale() == 'fr' %}Personnes{% else %}Persons{% endif %}</option>
+                    <option value="animal">{% if get_locale() == 'fr' %}Animaux{% else %}Animals{% endif %}</option>
                 </select>
                 <select id="country-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">{{ t('sections.all_countries') }}</option>
@@ -510,15 +510,22 @@
                     weight: 2,
                     fillOpacity: 0.9
                 }).addTo(map);
-                marker.bindPopup(
-                    '<div class="text-center">' +
-                    (d.photo_url ? '<img src="' + d.photo_url + '" class="w-12 h-12 mx-auto rounded-lg object-cover mb-2">' : '') +
-                    '<strong>' + escapeHtml(d.first_name) + ' ' + escapeHtml(d.last_name) + '</strong><br>' +
-                    '<span class="text-gray-500 text-sm">' + escapeHtml(d.city) + ', ' + escapeHtml(d.country) + '</span>' +
-                    (d.distance ? '<br><span class="text-xs text-blue-600">' + Math.round(d.distance) + ' km</span>' : '') +
-                    '<br><a href="/disparu/' + d.public_id + '" class="text-red-600 text-sm">{{ t("common.view") }}</a>' +
-                    '</div>'
-                );
+                const tooltipContent = '<div class="text-center p-2">' +
+                    (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-2 shadow-sm">' : '') +
+                    '<div class="font-bold text-gray-900">' + escapeHtml(d.first_name) + ' ' + (d.person_type !== 'animal' ? escapeHtml(d.last_name) : '') + '</div>' +
+                    '<div class="text-xs text-gray-500">' + escapeHtml(d.city) + ', ' + escapeHtml(d.country) + '</div>' +
+                    '</div>';
+
+                marker.bindTooltip(tooltipContent, {
+                    permanent: false,
+                    direction: 'top',
+                    className: 'custom-map-tooltip'
+                });
+
+                marker.on('click', function() {
+                    window.location.href = '/disparu/' + d.public_id;
+                });
+
                 markers.push(marker);
             }
         });
