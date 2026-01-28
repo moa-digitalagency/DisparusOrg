@@ -233,12 +233,28 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
         if t_str and t_str != "00:00":
              heure_val = t_str
 
-    details = [
-        ("Age:", f"{disparu.age} ans / years old"),
-        ("Sexe / Gender:", "Homme" if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme'] else "Femme"),
-        ("Lieu / Location:", f"{disparu.city}, {disparu.country}"),
-        ("Date:", date_val), 
-    ]
+    # Logic for Animal vs Person details
+    is_animal = (disparu.person_type == 'animal')
+
+    sex_label = "Femme"
+    if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme']:
+        sex_label = "Homme"
+
+    if is_animal:
+        if sex_label == "Homme":
+            sex_label = "Mâle"
+        else:
+            sex_label = "Femelle"
+
+    details = []
+
+    # Hide age if -1 (unknown/irrelevant)
+    if disparu.age != -1:
+        details.append(("Age:", f"{disparu.age} ans / years old"))
+
+    details.append(("Sexe / Gender:", sex_label))
+    details.append(("Lieu / Location:", f"{disparu.city}, {disparu.country}"))
+    details.append(("Date:", date_val))
 
     # Affichage des détails standard
     for label, value in details:
@@ -320,10 +336,12 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     section_y = draw_section_block("DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION", desc, section_y)
 
     clothing = disparu.clothing or "Non disponible."
-    section_y = draw_section_block("VETEMENTS / CLOTHING", clothing, section_y)
+    clothing_label = "COLLIER / ACCESSOIRES" if is_animal else "VETEMENTS / CLOTHING"
+    section_y = draw_section_block(clothing_label, clothing, section_y)
 
-    circ = disparu.circumstances or "Non disponible."
-    section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
+    if not is_animal:
+        circ = disparu.circumstances or "Non disponible."
+        section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
 
     # --- 5. Contacts (Bloc dédié) ---
     if section_y < 8*cm: # Si on est trop bas
@@ -567,7 +585,15 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         text_y_cursor += 70 # Espacement reduit
 
         # Age - Sexe
-        age_sex = f"{disparu.age} ans - " + ("Homme" if disparu.sex == 'male' else "Femme")
+        sex_str = "Homme" if disparu.sex == 'male' else "Femme"
+        if disparu.person_type == 'animal':
+             sex_str = "Mâle" if disparu.sex == 'male' else "Femelle"
+
+        if disparu.age != -1:
+            age_sex = f"{disparu.age} ans - {sex_str}"
+        else:
+            age_sex = sex_str
+
         bbox_as = draw.textbbox((0, 0), age_sex, font=font_bold_large)
         draw.text(((width - (bbox_as[2]-bbox_as[0])) // 2, text_y_cursor), age_sex, fill=TEXT_GRAY, font=font_bold_large)
         text_y_cursor += 50
