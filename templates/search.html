@@ -128,7 +128,7 @@
                     <h3 class="font-semibold text-gray-900 text-base mb-1">{{ person.first_name }} {% if person.person_type != 'animal' %}{{ person.last_name }}{% endif %}</h3>
                     <p class="text-gray-500 text-sm mb-3 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        {{ person.age }} {{ t('detail.age_years') }} - {{ person.city }}
+                        {% if person.age != -1 %}{{ person.age }} {{ t('detail.age_years') }} - {% endif %}{{ person.city }}
                     </p>
                     <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                         <span class="text-xs text-gray-400 font-mono">ID: {{ person.public_id }}</span>

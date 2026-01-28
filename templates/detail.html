@@ -72,7 +72,7 @@
             </h1>
             <div class="w-16 h-1 bg-white/50 rounded-full mx-auto mb-4"></div>
             <p class="text-base text-red-100 opacity-90">
-                {{ person.age }} {{ t('detail.age_years') }} - {{ person.city }}, {{ person.country }}
+                {% if person.age != -1 %}{{ person.age }} {{ t('detail.age_years') }} - {% endif %}{{ person.city }}, {{ person.country }}
             </p>
             <span class="inline-block mt-3 text-xs font-mono bg-white/20 px-3 py-1 rounded-xl" data-testid="text-id">ID: {{ person.public_id }}</span>
         </div>
@@ -137,6 +137,7 @@
                                 <p class="text-gray-600 text-sm leading-relaxed pl-3">{{ person.objects }}</p>
                             </div>
                             {% endif %}
+                            {% if person.circumstances %}
                             <div>
                                 <h3 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
                                     <div class="w-1 h-4 bg-red-600 rounded-full"></div>
@@ -144,6 +145,7 @@
                                 </h3>
                                 <p class="text-gray-600 text-sm leading-relaxed pl-3">{{ person.circumstances }}</p>
                             </div>
+                            {% endif %}
                         </div>
                         
                         {% if person.contacts %}

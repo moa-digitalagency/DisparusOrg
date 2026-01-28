@@ -6,10 +6,10 @@ INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a
  * Running on http://127.0.0.1:5000
  * Running on http://192.168.0.2:5000
 INFO:werkzeug:[33mPress CTRL+C to quit[0m
-INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:32] "GET /signaler HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:33] "GET /sw.js HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:34] "GET /manifest.json HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:34] "GET /statics/img/favicon.png HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 15:53:19] "GET /signaler HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 15:53:20] "GET /sw.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 15:53:21] "GET /manifest.json HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 15:53:21] "GET /statics/img/favicon.png HTTP/1.1" 200 -
 DEBUG: get_locale called. Cookie: None
 DEBUG: get_locale called. Cookie: None
 DEBUG: get_translation seo.description_default fr
@@ -193,209 +193,12 @@ DEBUG: get_translation sections.all_countries fr
 DEBUG: get_locale called. Cookie: None
 DEBUG: get_translation sections.view_all fr
 DEBUG: get_locale called. Cookie: None
+DEBUG: get_translation sections.no_reports fr
 DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation detail.age_years fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation detail.status_missing fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation detail.age_years fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.understanding_causes fr
-DEBUG: get_locale called. Cookie: NoneINFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:34] "GET / HTTP/1.1" 200 -
-
-DEBUG: get_translation causes.abductions_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.abductions_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.ritual_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.ritual_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.runaways_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.runaways_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.message fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.crucial fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.better fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.button fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.map_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.contribution_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.intro fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.decisive_link fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.outro fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.share_info fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.testimony fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.update fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.share fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.how_to_update fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.step1_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.step1_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.step2_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.step2_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.step3_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.step3_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation contribution.search_contribute fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.safety_advice fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation safety.photos_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation safety.photos_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation safety.contacts_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation safety.contacts_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation safety.immediate_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation safety.immediate_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.why_act_now fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation why_act.network_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation why_act.network_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation why_act.verification_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation why_act.verification_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation why_act.free_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation why_act.free_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.become_moderator fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.volunteer_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.join_team fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.how_to_help fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation help.report fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation help.report_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation help.witness fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation help.witness_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation help.spread fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation help.spread_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation site.description fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation footer.links_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation footer.social_media_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation footer.configure_social fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation common.view fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation seo.description_default fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation seo.keywords_default fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation site.name fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation accessibility.skip_to_content fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation nav.report fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.badge_countries fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.badge_cities fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.subtitle fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.description fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.search_placeholder fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation hero.search_button fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation stats.reports fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation stats.found fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation stats.countries fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation stats.tips fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.reports_near_you fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.all_countries fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.view_all fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation detail.age_years fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation detail.status_missing fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation detail.age_years fr
+DEBUG: get_translation sections.first_report fr
 DEBUG: get_locale called. Cookie: None
 DEBUG: get_translation sections.understanding_causes fr
 DEBUG: get_locale called. Cookie: None
 DEBUG: get_translation causes.abductions_title fr
 DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.abductions_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.ritual_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.ritual_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.runaways_title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation causes.runaways_desc fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.title fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.message fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.crucial fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.better fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation cta.button fr
-DEBUG: get_locale called. Cookie: None
-DEBUG: get_translation sections.map_title frINFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:36] "GET / HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [28/Jan/2026 14:42:37] "GET /recherche HTTP/1.1" 200 -
+DEBUG: get_translation causes.abductions_desc frINFO:werkzeug:127.0.0.1 - - [28/Jan/2026 15:53:21] "GET / HTTP/1.1" 200 -
