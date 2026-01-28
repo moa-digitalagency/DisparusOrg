@@ -734,39 +734,28 @@ def data_management():
     log_activity('Consultation gestion donnees', action_type='view', target_type='data')
     countries = get_countries()
     
-    # Optimization: Use aggregation instead of N+1 queries
-
-    # 1. Disparus count
-    disparus_stats = db.session.query(
-        Disparu.country, db.func.count(Disparu.id)
-    ).filter(Disparu.country.isnot(None), Disparu.country != '').group_by(Disparu.country).all()
-    disparus_map = {c: count for c, count in disparus_stats}
-
-    # 2. Contributions count (linked to Disparu)
-    contrib_stats = db.session.query(
-        Disparu.country, db.func.count(Contribution.id)
-    ).join(Contribution, Contribution.disparu_id == Disparu.id).filter(
-        Disparu.country.isnot(None), Disparu.country != ''
+    # Optimization: Use single aggregation query instead of multiple queries
+    stats = db.session.query(
+        Disparu.country,
+        db.func.count(db.distinct(Disparu.id)).label('disparus_count'),
+        db.func.count(db.distinct(Contribution.id)).label('contributions_count'),
+        db.func.count(db.distinct(ModerationReport.id)).label('reports_count')
+    ).outerjoin(
+        Contribution, Contribution.disparu_id == Disparu.id
+    ).outerjoin(
+        ModerationReport, (ModerationReport.target_id == Disparu.id) & (ModerationReport.target_type == 'disparu')
+    ).filter(
+        Disparu.country.isnot(None),
+        Disparu.country != ''
     ).group_by(Disparu.country).all()
-    contrib_map = {c: count for c, count in contrib_stats}
-
-    # 3. Reports count (linked to Disparu)
-    report_stats = db.session.query(
-        Disparu.country, db.func.count(ModerationReport.id)
-    ).join(ModerationReport, (ModerationReport.target_id == Disparu.id) & (ModerationReport.target_type == 'disparu')).filter(
-        Disparu.country.isnot(None), Disparu.country != ''
-    ).group_by(Disparu.country).all()
-    report_map = {c: count for c, count in report_stats}
 
     country_stats = []
-    all_countries_in_db = set(disparus_map.keys()) | set(contrib_map.keys()) | set(report_map.keys())
-
-    for country in all_countries_in_db:
-         country_stats.append({
+    for country, d_count, c_count, r_count in stats:
+        country_stats.append({
             'country': country,
-            'disparus_count': disparus_map.get(country, 0),
-            'contributions_count': contrib_map.get(country, 0),
-            'reports_count': report_map.get(country, 0)
+            'disparus_count': d_count,
+            'contributions_count': c_count,
+            'reports_count': r_count
         })
     
     country_stats.sort(key=lambda x: x['disparus_count'], reverse=True)
