@@ -30,6 +30,11 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
+            <select id="admin-type-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <option value="">{% if get_locale() == 'fr' %}Tous les types{% else %}All types{% endif %}</option>
+                <option value="person">{% if get_locale() == 'fr' %}Personnes{% else %}Persons{% endif %}</option>
+                <option value="animal">{% if get_locale() == 'fr' %}Animaux{% else %}Animals{% endif %}</option>
+            </select>
             <select id="admin-country-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
                 <option value="">{% if get_locale() == 'fr' %}Tous les pays{% else %}All countries{% endif %}</option>
                 {% set countries = disparus|map(attribute='country')|unique|sort %}
@@ -102,6 +107,7 @@
     const hoverCard = document.getElementById('hover-card');
     const allDisparus = {{ disparus_list|tojson|safe if disparus_list else '[]' }};
     const adminCountryFilter = document.getElementById('admin-country-filter');
+    const adminTypeFilter = document.getElementById('admin-type-filter');
     const adminCount = document.getElementById('admin-count');
     let mapMarkers = [];
     
@@ -115,10 +121,17 @@
         mapMarkers = [];
         
         const selectedCountry = adminCountryFilter.value;
+        const selectedType = adminTypeFilter.value;
         let filtered = allDisparus;
         
         if (selectedCountry) {
-            filtered = allDisparus.filter(d => d.country === selectedCountry);
+            filtered = filtered.filter(d => d.country === selectedCountry);
+        }
+
+        if (selectedType === 'person') {
+            filtered = filtered.filter(d => d.person_type !== 'animal');
+        } else if (selectedType === 'animal') {
+            filtered = filtered.filter(d => d.person_type === 'animal');
         }
         
         adminCount.textContent = filtered.length + ' {% if get_locale() == "fr" %}signalements{% else %}reports{% endif %}';
@@ -166,6 +179,8 @@
         localStorage.setItem('disparus_admin_country_filter', this.value);
         updateAdminMap();
     });
+
+    adminTypeFilter.addEventListener('change', updateAdminMap);
     
     hoverCard.addEventListener('mouseleave', function() {
         hoverCard.classList.add('hidden');

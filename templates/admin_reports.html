@@ -9,13 +9,24 @@
 
 {% block title %}Signalements - Admin DISPARUS.ORG{% endblock %}
 
-{% block page_title %}{% if get_locale() == 'fr' %}Tous les signalements{% else %}All reports{% endif %}{% endblock %}
-{% block page_subtitle %}{% if get_locale() == 'fr' %}Liste complete des personnes disparues{% else %}Complete list of missing persons{% endif %}{% endblock %}
+{% block page_title %}
+    {% if type_filter == 'person' %}
+        {% if get_locale() == 'fr' %}Signalements Personnes{% else %}Person Reports{% endif %}
+    {% elif type_filter == 'animal' %}
+        {% if get_locale() == 'fr' %}Signalements Animaux{% else %}Animal Reports{% endif %}
+    {% else %}
+        {% if get_locale() == 'fr' %}Tous les signalements{% else %}All reports{% endif %}
+    {% endif %}
+{% endblock %}
+{% block page_subtitle %}{% if get_locale() == 'fr' %}Liste complete des signalements{% else %}Complete list of reports{% endif %}{% endblock %}
 
 {% block admin_content %}
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
     <div class="p-4 border-b border-gray-100">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
+            {% if type_filter %}
+            <input type="hidden" name="type" value="{{ type_filter }}">
+            {% endif %}
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{% if get_locale() == 'fr' %}Statut{% else %}Status{% endif %}</label>
                 <select name="status" class="rounded-xl border-gray-200 text-sm px-3 py-2">
@@ -38,7 +49,7 @@
                 {% if get_locale() == 'fr' %}Filtrer{% else %}Filter{% endif %}
             </button>
             {% if status_filter or country_filter %}
-            <a href="{{ url_for('admin.all_reports') }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm">
+            <a href="{{ url_for('admin.all_reports', type=type_filter) }}" class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm">
                 {% if get_locale() == 'fr' %}Reinitialiser{% else %}Reset{% endif %}
             </a>
             {% endif %}
@@ -125,12 +136,12 @@
         </div>
         <div class="flex gap-2">
             {% if disparus.has_prev %}
-            <a href="{{ url_for('admin.all_reports', page=disparus.prev_num, status=status_filter, country=country_filter) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+            <a href="{{ url_for('admin.all_reports', page=disparus.prev_num, status=status_filter, country=country_filter, type=type_filter) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
                 {% if get_locale() == 'fr' %}Precedent{% else %}Previous{% endif %}
             </a>
             {% endif %}
             {% if disparus.has_next %}
-            <a href="{{ url_for('admin.all_reports', page=disparus.next_num, status=status_filter, country=country_filter) }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white transition-colors">
+            <a href="{{ url_for('admin.all_reports', page=disparus.next_num, status=status_filter, country=country_filter, type=type_filter) }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white transition-colors">
                 {% if get_locale() == 'fr' %}Suivant{% else %}Next{% endif %}
             </a>
             {% endif %}
