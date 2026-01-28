@@ -15,6 +15,8 @@ class Disparu(db.Model):
     public_id = db.Column(db.String(6), unique=True, nullable=False, index=True)
     
     person_type = db.Column(db.String(20), nullable=False)
+    animal_type = db.Column(db.String(50))  # e.g., 'dog', 'cat', 'other'
+    breed = db.Column(db.String(100))       # e.g., 'Labrador', 'Siamese'
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer, nullable=False)
@@ -51,6 +53,8 @@ class Disparu(db.Model):
             'id': self.id,
             'public_id': self.public_id,
             'person_type': self.person_type,
+            'animal_type': self.animal_type,
+            'breed': self.breed,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'age': self.age,

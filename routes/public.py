@@ -71,7 +71,12 @@ def index():
 
     recent_query = Disparu.query.filter_by(status='missing')
     if default_filter != 'all':
-        recent_query = recent_query.filter_by(person_type=default_filter)
+        if default_filter == 'person':
+            recent_query = recent_query.filter(Disparu.person_type.in_(['child', 'adult', 'elderly']))
+        elif default_filter == 'animal':
+            recent_query = recent_query.filter_by(person_type='animal')
+        else:
+            recent_query = recent_query.filter_by(person_type=default_filter)
     recent = recent_query.order_by(Disparu.created_at.desc()).limit(6).all()
 
     stats = {
@@ -102,7 +107,7 @@ def index():
 
     all_disparus = [{
         'id': d.id,
-        'full_name': f"{d.first_name} {d.last_name}",
+        'full_name': f"{d.first_name} {d.last_name}" if d.person_type != 'animal' else d.first_name,
         'photo_url': d.photo_url,
         'latitude': d.latitude,
         'longitude': d.longitude,
@@ -221,11 +226,25 @@ def report():
             lat = request.form.get('latitude')
             lng = request.form.get('longitude')
             
+            person_type = request.form['person_type']
+            animal_type = None
+            breed = None
+            last_name = request.form.get('last_name')
+
+            if person_type == 'animal':
+                animal_type = request.form.get('animal_type')
+                breed = request.form.get('breed')
+                # Handle NOT NULL constraint for last_name
+                if not last_name:
+                    last_name = "-"
+
             disparu = Disparu(
                 public_id=generate_public_id(),
-                person_type=request.form['person_type'],
+                person_type=person_type,
+                animal_type=animal_type,
+                breed=breed,
                 first_name=request.form['first_name'],
-                last_name=request.form['last_name'],
+                last_name=last_name,
                 age=int(request.form['age']),
                 sex=request.form['sex'],
                 country=request.form['country'],

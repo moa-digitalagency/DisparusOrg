@@ -7,17 +7,17 @@
  -->
 {% extends "base.html" %}
 
-{% block title %}{{ person.first_name }} {{ person.last_name }} ({{ person.public_id }}) - {{ t('site.name') }}{% endblock %}
+{% block title %}{{ person.first_name }}{% if person.person_type != 'animal' %} {{ person.last_name }}{% endif %} ({{ person.public_id }}) - {{ t('site.name') }}{% endblock %}
 
 {% block og_type %}article{% endblock %}
 
 {% block og_title %}{{ t('detail.title_help') }}{% endblock %}
 
-{% block og_description %}{{ person.first_name }} {{ person.last_name }} - {{ person.city }}, {{ person.country }}{% endblock %}
+{% block og_description %}{{ person.first_name }}{% if person.person_type != 'animal' %} {{ person.last_name }}{% endif %} - {{ person.city }}, {{ person.country }}{% endblock %}
 
 {% block twitter_title %}{{ t('detail.title_help') }}{% endblock %}
 
-{% block twitter_description %}{{ person.first_name }} {{ person.last_name }} - {{ person.city }}, {{ person.country }}{% endblock %}
+{% block twitter_description %}{{ person.first_name }}{% if person.person_type != 'animal' %} {{ person.last_name }}{% endif %} - {{ person.city }}, {{ person.country }}{% endblock %}
 
 {% block og_image_meta %}
 {% if person.photo_url %}
@@ -68,7 +68,7 @@
                 {% endif %}
             </span>
             <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-person-name">
-                {{ person.first_name }} {{ person.last_name }}
+                {{ person.first_name }} {% if person.person_type != 'animal' %}{{ person.last_name }}{% endif %}
             </h1>
             <div class="w-16 h-1 bg-white/50 rounded-full mx-auto mb-4"></div>
             <p class="text-base text-red-100 opacity-90">
