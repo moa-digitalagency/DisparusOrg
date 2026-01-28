@@ -79,6 +79,11 @@
                 <span id="user-location-badge" class="hidden text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"></span>
             </div>
             <div class="flex items-center gap-2">
+                <select id="type-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="all">{% if get_locale() == 'fr' %}Tous les disparus{% else %}All missing{% endif %}</option>
+                    <option value="person">{% if get_locale() == 'fr' %}Disparus Personne{% else %}Missing Persons{% endif %}</option>
+                    <option value="animal">{% if get_locale() == 'fr' %}Disparus Animaux{% else %}Missing Animals{% endif %}</option>
+                </select>
                 <select id="country-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">{{ t('sections.all_countries') }}</option>
                     {% for country in countries %}
@@ -96,7 +101,7 @@
         {% if recent %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for person in recent %}
-            <a href="/disparu/{{ person.public_id }}" class="bg-white rounded-xl border border-red-100 overflow-hidden hover:shadow-lg transition-all group shadow-sm" data-testid="card-person-{{ person.public_id }}">
+            <a href="/disparu/{{ person.public_id }}" data-person-type="{{ person.person_type }}" data-country="{{ person.country }}" class="disparu-card bg-white rounded-xl border border-red-100 overflow-hidden hover:shadow-lg transition-all group shadow-sm" data-testid="card-person-{{ person.public_id }}">
                 <div class="aspect-video bg-gray-100 relative">
                     {% if person.photo_url %}
                     <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
@@ -107,14 +112,21 @@
                     {% endif %}
                     <div class="absolute top-4 left-4">
                         <span class="bg-red-600 text-white text-[10px] px-3 py-1.5 rounded-xl font-semibold uppercase tracking-wide shadow-sm">
-                            {% if person.status == 'missing' %}
-                                {{ t('detail.status_missing') }}
-                            {% elif person.status == 'found' %}
-                                {{ t('detail.status_found') }}
-                            {% elif person.status == 'deceased' %}
-                                {{ t('detail.deceased') }}
+                            {% if person.person_type == 'animal' %}
+                                {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Animal Disparu{% else %}Missing Animal{% endif %}
+                                {% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Animal Retrouvé{% else %}Found Animal{% endif %}
+                                {% elif person.status == 'deceased' %}{% if get_locale() == 'fr' %}Animal Décédé{% else %}Deceased Animal{% endif %}
+                                {% else %}{{ person.status }}{% endif %}
                             {% else %}
-                                {{ person.status }}
+                                {% if person.status == 'missing' %}
+                                    {{ t('detail.status_missing') }}
+                                {% elif person.status == 'found' %}
+                                    {{ t('detail.status_found') }}
+                                {% elif person.status == 'deceased' %}
+                                    {{ t('detail.deceased') }}
+                                {% else %}
+                                    {{ person.status }}
+                                {% endif %}
                             {% endif %}
                         </span>
                     </div>
@@ -370,7 +382,7 @@
             <div class="bg-red-700 p-6 rounded-xl text-white shadow-sm flex flex-col justify-center">
                 <h3 class="text-xl font-bold mb-3">{{ t('sections.become_moderator') }}</h3>
                 <p class="mb-5 opacity-90 leading-relaxed text-sm">{{ t('sections.volunteer_desc') }}</p>
-                <a href="#" class="inline-block bg-white text-red-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all w-fit shadow-sm">{{ t('sections.join_team') }}</a>
+                <a href="#" id="moderator-link" onclick="openModeratorWhatsapp(event)" class="inline-block bg-white text-red-700 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all w-fit shadow-sm">{{ t('sections.join_team') }}</a>
             </div>
         </div>
     </div>
@@ -423,9 +435,13 @@
     let userLocation = null;
     let markers = [];
     const countryFilter = document.getElementById('country-filter');
+    const typeFilter = document.getElementById('type-filter');
     const locationBadge = document.getElementById('user-location-badge');
     const cardsContainer = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
     
+    // Initialize type filter from default setting
+    typeFilter.value = "{{ default_filter }}";
+
     const savedCountry = localStorage.getItem('disparus_country_filter');
     if (savedCountry) {
         countryFilter.value = savedCountry;
@@ -448,10 +464,33 @@
         markers = [];
         
         const selectedCountry = countryFilter.value;
+        const selectedType = typeFilter.value;
+
+        // Filter Cards
+        const cards = document.querySelectorAll('.disparu-card');
+        cards.forEach(card => {
+            const cardType = card.dataset.personType;
+            const cardCountry = card.dataset.country;
+            let visible = true;
+
+            if (selectedCountry && cardCountry !== selectedCountry) visible = false;
+            if (selectedType && selectedType !== 'all') {
+                if (selectedType === 'animal' && cardType !== 'animal') visible = false;
+                if (selectedType === 'person' && cardType === 'animal') visible = false;
+            }
+
+            card.style.display = visible ? 'block' : 'none';
+        });
+
+        // Filter Map
         let filtered = allDisparus;
         
         if (selectedCountry) {
-            filtered = allDisparus.filter(d => d.country === selectedCountry);
+            filtered = filtered.filter(d => d.country === selectedCountry);
+        }
+
+        if (selectedType && selectedType !== 'all') {
+            filtered = filtered.filter(d => d.person_type === selectedType || (selectedType === 'person' && d.person_type !== 'animal'));
         }
         
         if (userLocation) {
@@ -498,7 +537,32 @@
         localStorage.setItem('disparus_country_filter', this.value);
         updateMarkers();
     });
+
+    typeFilter.addEventListener('change', function() {
+        updateMarkers();
+    });
     
+    function openModeratorWhatsapp(e) {
+        e.preventDefault();
+        const number = "{{ site_settings.get('moderator_whatsapp_number', '') }}";
+        if (!number) {
+            alert("Configuration manquante: Numero WhatsApp non defini");
+            return;
+        }
+
+        let countryName = "inconnu";
+        if (userLocation && locationBadge.textContent) {
+            // Extract country from "City, Country" or just "Country"
+            const parts = locationBadge.textContent.split(',');
+            countryName = parts[parts.length - 1].trim();
+        }
+
+        const siteName = "{{ site_settings.get('site_name', 'DISPARUS.ORG') }}";
+        const message = `Bonjour, j'ai vu la plateforme ${siteName} et j'aimerai être modérateur, je suis du ${countryName}.`;
+        const url = `https://wa.me/${number.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    }
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             function(position) {
