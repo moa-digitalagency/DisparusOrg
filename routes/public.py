@@ -198,6 +198,9 @@ def report():
         log_public_activity('Page signaler', target_type='report')
     if request.method == 'POST':
         try:
+            if not request.form.get('consent'):
+                raise ValueError("Vous devez accepter les conditions pour publier un signalement.")
+
             photo_url = None
             if 'photo' in request.files:
                 file = request.files['photo']
@@ -231,12 +234,18 @@ def report():
             breed = None
             last_name = request.form.get('last_name')
 
+            circumstances = request.form.get('circumstances', '')
+            objects = request.form.get('objects', '')
+
             if person_type == 'animal':
                 animal_type = request.form.get('animal_type')
                 breed = request.form.get('breed')
                 # Handle NOT NULL constraint for last_name
                 if not last_name:
                     last_name = "-"
+                # Force empty strings for animal
+                circumstances = ""
+                objects = ""
 
             disparu = Disparu(
                 public_id=generate_public_id(),
@@ -252,11 +261,11 @@ def report():
                 physical_description=request.form['physical_description'],
                 photo_url=photo_url,
                 disappearance_date=datetime.fromisoformat(request.form['disappearance_date']),
-                circumstances=request.form.get('circumstances', ''),
+                circumstances=circumstances,
                 latitude=float(lat) if lat else None,
                 longitude=float(lng) if lng else None,
                 clothing=request.form.get('clothing', ''),
-                objects=request.form.get('objects', ''),
+                objects=objects,
                 contacts=contacts,
             )
             
