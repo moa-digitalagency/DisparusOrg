@@ -73,7 +73,17 @@ def index():
         'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
         'contributions': Contribution.query.count(),
     }
-    all_disparus_raw = Disparu.query.filter(Disparu.latitude.isnot(None)).all()
+    all_disparus_raw = db.session.query(
+        Disparu.id,
+        Disparu.first_name,
+        Disparu.last_name,
+        Disparu.photo_url,
+        Disparu.latitude,
+        Disparu.longitude,
+        Disparu.city,
+        Disparu.country,
+        Disparu.status
+    ).filter(Disparu.latitude.isnot(None)).all()
     all_disparus = [{
         'id': d.id,
         'full_name': f"{d.first_name} {d.last_name}",
