@@ -292,6 +292,14 @@ def init_database():
     print("\n=== DISPARUS.ORG Database Initialization ===\n")
     
     with app.app_context():
+        # Ensure the instance folder exists if using SQLite
+        if 'sqlite' in str(db.engine.url):
+            try:
+                # Naive check for instance folder in standard Flask setup
+                os.makedirs('instance', exist_ok=True)
+            except OSError:
+                pass
+
         print("1. Checking and creating missing tables...")
         missing = create_missing_tables()
         if missing:
