@@ -73,6 +73,7 @@ def create_app(config_name='default'):
         from models.settings import get_all_settings_dict
         from utils.i18n import get_translation
         import json
+        # Use cached settings to avoid DB query on every request
         site_settings = get_all_settings_dict()
         
         def parse_json_links(json_str):
