@@ -228,6 +228,7 @@ def all_reports():
     per_page = 20
     status_filter = request.args.get('status', '')
     country_filter = request.args.get('country', '')
+    type_filter = request.args.get('type', '')
     
     query = Disparu.query
     if status_filter:
@@ -235,6 +236,11 @@ def all_reports():
     if country_filter:
         query = query.filter_by(country=country_filter)
     
+    if type_filter == 'person':
+        query = query.filter(Disparu.person_type != 'animal')
+    elif type_filter == 'animal':
+        query = query.filter(Disparu.person_type == 'animal')
+
     disparus = query.order_by(Disparu.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     countries = db.session.query(Disparu.country).distinct().all()
     
@@ -242,7 +248,8 @@ def all_reports():
                          disparus=disparus, 
                          countries=[c[0] for c in countries],
                          status_filter=status_filter,
-                         country_filter=country_filter)
+                         country_filter=country_filter,
+                         type_filter=type_filter)
 
 
 @admin_bp.route('/contributions')
@@ -343,7 +350,8 @@ def map_view():
         Disparu.status,
         Disparu.is_flagged,
         Disparu.photo_url,
-        Disparu.disappearance_date
+        Disparu.disappearance_date,
+        Disparu.person_type
     ).all()
 
     disparus_list = []
@@ -360,7 +368,8 @@ def map_view():
             'status': row.status,
             'is_flagged': row.is_flagged,
             'photo_url': row.photo_url,
-            'disappearance_date': row.disappearance_date.isoformat() if row.disappearance_date else None
+            'disappearance_date': row.disappearance_date.isoformat() if row.disappearance_date else None,
+            'person_type': row.person_type
         })
 
     return render_template('admin_map.html', disparus=results, disparus_list=disparus_list)
