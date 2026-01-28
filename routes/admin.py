@@ -132,10 +132,13 @@ def dashboard():
     recent_disparus = Disparu.query.order_by(Disparu.created_at.desc()).limit(5).all()
 
     # Optimization: For map, fetch only needed fields to avoid hydrating all objects
+    # Limit to 1000 most recent for performance
     map_data = db.session.query(
         Disparu.latitude, Disparu.longitude, Disparu.first_name,
         Disparu.last_name, Disparu.public_id, Disparu.status, Disparu.is_flagged
-    ).filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None)).all()
+    ).filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))\
+    .order_by(Disparu.created_at.desc())\
+    .limit(1000).all()
 
     disparus_list = [{
         'latitude': d.latitude,
