@@ -15,11 +15,16 @@ Includes migration support for VPS deployments
 import os
 import sys
 from datetime import datetime
+import logging
 
 from app import create_app
 from models import db, User, Role, Disparu, Contribution, ModerationReport, ActivityLog, Download, SiteSetting
 from werkzeug.security import generate_password_hash
-from sqlalchemy import text, inspect
+from sqlalchemy import text, inspect, Integer, Boolean, String, Text, Float, DateTime, JSON
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = create_app()
 
@@ -66,9 +71,9 @@ def init_default_roles():
         if not existing:
             role = Role(**role_data)
             db.session.add(role)
-            print(f"  Created role: {role_data['name']}")
+            logger.info(f"  Created role: {role_data['name']}")
         else:
-            print(f"  Role already exists: {role_data['name']}")
+            logger.info(f"  Role already exists: {role_data['name']}")
     
     db.session.commit()
 
@@ -104,9 +109,9 @@ def init_default_settings():
                 updated_by='system'
             )
             db.session.add(setting)
-            print(f"  Created setting: {key}")
+            logger.info(f"  Created setting: {key}")
         else:
-            print(f"  Setting already exists: {key}")
+            logger.info(f"  Setting already exists: {key}")
     
     db.session.commit()
 
@@ -115,12 +120,12 @@ def init_admin_user():
     """Initialize default admin user if ADMIN_PASSWORD is set"""
     admin_password = os.environ.get('ADMIN_PASSWORD')
     if not admin_password:
-        print("  ADMIN_PASSWORD not set, skipping admin user creation")
+        logger.info("  ADMIN_PASSWORD not set, skipping admin user creation")
         return
     
     admin_role = Role.query.filter_by(name='admin').first()
     if not admin_role:
-        print("  Admin role not found, skipping admin user creation")
+        logger.info("  Admin role not found, skipping admin user creation")
         return
     
     existing = User.query.filter_by(username='admin').first()
@@ -134,93 +139,107 @@ def init_admin_user():
         )
         db.session.add(admin)
         db.session.commit()
-        print("  Created admin user")
+        logger.info("  Created admin user")
     else:
-        print("  Admin user already exists")
+        logger.info("  Admin user already exists")
 
 
 def create_missing_tables():
     """Create any missing tables for VPS deployments"""
-    print("Checking for missing tables...")
+    logger.info("Checking for missing tables...")
     
     inspector = inspect(db.engine)
     existing_tables = inspector.get_table_names()
     
-    required_tables = [
-        'disparus_flask',
-        'contributions_flask', 
-        'moderation_reports_flask',
-        'users_flask',
-        'roles_flask',
-        'activity_logs_flask',
-        'downloads_flask',
-        'site_settings_flask'
-    ]
-    
-    missing_tables = [t for t in required_tables if t not in existing_tables]
+    # Check all models defined in SQLAlchemy metadata
+    missing_tables = []
+    for table_name in db.metadata.tables.keys():
+        if table_name not in existing_tables:
+            missing_tables.append(table_name)
     
     if missing_tables:
-        print(f"  Missing tables: {', '.join(missing_tables)}")
-        print("  Creating all tables...")
+        logger.info(f"  Missing tables: {', '.join(missing_tables)}")
+        logger.info("  Creating all tables...")
         db.create_all()
-        print("  Tables created successfully!")
+        logger.info("  Tables created successfully!")
     else:
-        print("  All tables exist")
+        logger.info("  All tables exist")
     
     return missing_tables
 
 
-def run_migrations():
-    """Run database migrations for VPS deployments"""
-    print("Running migrations...")
+def sync_schema_columns():
+    """
+    Robust migration: Iterates through all models and adds missing columns.
+    This ensures the DB schema matches the code even if 'db.create_all()' was skipped
+    or if the DB is from an older version.
+    """
+    logger.info("Syncing schema columns (Auto-Migration)...")
     
     inspector = inspect(db.engine)
     existing_tables = inspector.get_table_names()
+    dialect = db.session.get_bind().dialect.name
     
     migrations_applied = 0
     
-    if 'disparus_flask' in existing_tables:
-        columns = [col['name'] for col in inspector.get_columns('disparus_flask')]
+    for table_name, table_obj in db.metadata.tables.items():
+        if table_name not in existing_tables:
+            continue
+
+        existing_columns = [col['name'] for col in inspector.get_columns(table_name)]
         
-        if 'view_count' not in columns:
-            try:
-                db.session.execute(text('ALTER TABLE disparus_flask ADD COLUMN view_count INTEGER DEFAULT 0'))
-                db.session.commit()
-                print("  + Added column: disparus_flask.view_count")
-                migrations_applied += 1
-            except Exception as e:
-                db.session.rollback()
-                print(f"  - Migration view_count skipped: {e}")
-        
-        if 'is_flagged' not in columns:
-            try:
-                db.session.execute(text('ALTER TABLE disparus_flask ADD COLUMN is_flagged BOOLEAN DEFAULT FALSE'))
-                db.session.commit()
-                print("  + Added column: disparus_flask.is_flagged")
-                migrations_applied += 1
-            except Exception as e:
-                db.session.rollback()
-                print(f"  - Migration is_flagged skipped: {e}")
+        for column in table_obj.columns:
+            if column.name not in existing_columns:
+                logger.info(f"  Found missing column: {table_name}.{column.name}")
+
+                # Determine SQL type
+                col_type = column.type.compile(db.engine.dialect)
+
+                # Handle default for NOT NULL constraint mitigation
+                default_val = ""
+                if not column.nullable:
+                    if isinstance(column.type, (Integer, Float)):
+                        default_val = " DEFAULT 0"
+                    elif isinstance(column.type, Boolean):
+                        default_val = " DEFAULT FALSE" # PostgreSQL/SQLite compatible usually
+                        if dialect == 'sqlite':
+                            default_val = " DEFAULT 0"
+                    elif isinstance(column.type, (String, Text)):
+                        default_val = " DEFAULT ''"
+                    elif isinstance(column.type, DateTime):
+                         # For DateTime, it's tricky. Let's use current timestamp or a fixed date if needed.
+                         # CURRENT_TIMESTAMP works in both usually.
+                         default_val = " DEFAULT CURRENT_TIMESTAMP"
+
+                try:
+                    # Construct ALTER TABLE statement
+                    # SQLite 'ADD COLUMN' syntax is standard-ish
+                    sql = f'ALTER TABLE {table_name} ADD COLUMN {column.name} {col_type}{default_val}'
+                    db.session.execute(text(sql))
+                    db.session.commit()
+                    logger.info(f"  + Added column {column.name} to {table_name}")
+                    migrations_applied += 1
+                except Exception as e:
+                    logger.error(f"  - Failed to add column {column.name} to {table_name}: {e}")
+                    db.session.rollback()
     
-    if 'contributions_flask' in existing_tables:
-        columns = [col['name'] for col in inspector.get_columns('contributions_flask')]
-        
-        if 'is_approved' not in columns:
-            try:
-                db.session.execute(text('ALTER TABLE contributions_flask ADD COLUMN is_approved BOOLEAN DEFAULT FALSE'))
-                db.session.commit()
-                print("  + Added column: contributions_flask.is_approved")
-                migrations_applied += 1
-            except Exception as e:
-                db.session.rollback()
-                print(f"  - Migration is_approved skipped: {e}")
+    if migrations_applied > 0:
+        logger.info(f"  {migrations_applied} column migrations applied successfully.")
+    else:
+        logger.info("  Schema is up to date. No columns missing.")
+
+
+def run_migrations():
+    """Run database specific optimizations and migrations"""
+    logger.info("Running specific migrations/optimizations...")
+
+    # Generic Sync (Covers the manual checks previously here)
+    sync_schema_columns()
     
-    # Postgres-specific optimizations
+    # Postgres-specific optimizations (Indexes)
     if db.session.get_bind().dialect.name == 'postgresql':
         try:
             # Create GIN index for Full Text Search
-            # We use 'french' configuration as it's the primary language
-            # We concatenate searchable fields: first_name, last_name, public_id, city
             sql = """
             CREATE INDEX IF NOT EXISTS idx_disparu_fulltext
             ON disparus_flask
@@ -233,16 +252,10 @@ def run_migrations():
             """
             db.session.execute(text(sql))
             db.session.commit()
-            print("  + Verified/Created Postgres GIN index for full text search")
-            migrations_applied += 1
+            logger.info("  + Verified/Created Postgres GIN index for full text search")
         except Exception as e:
             db.session.rollback()
-            print(f"  - Postgres optimization skipped/failed: {e}")
-
-    if migrations_applied > 0:
-        print(f"  {migrations_applied} migrations applied")
-    else:
-        print("  No migrations needed")
+            logger.warning(f"  - Postgres optimization skipped/failed: {e}")
 
 
 def generate_demo_images():
@@ -256,18 +269,20 @@ def generate_demo_images():
         'demo_adult_female.jpg'
     ]
     
+    # Check if we need to generate images
     missing_images = [img for img in demo_images if not os.path.exists(os.path.join(demo_folder, img))]
     
     if missing_images:
-        print("  Generating demo images...")
+        logger.info("  Generating demo images...")
         try:
+            # We import here to avoid dependency issues if script is missing
             from scripts.generate_demo_images import generate_all_demo_images
             generate_all_demo_images()
         except ImportError:
-            print("  Warning: Could not import demo image generator")
+            logger.warning("  Warning: Could not import demo image generator (scripts.generate_demo_images)")
             os.makedirs(demo_folder, exist_ok=True)
     else:
-        print("  Demo images already exist")
+        logger.info("  Demo images already exist")
 
 
 def init_database():
@@ -282,7 +297,7 @@ def init_database():
         else:
             print("   All required tables exist!\n")
         
-        print("2. Running migrations...")
+        print("2. Running migrations and schema sync...")
         run_migrations()
         print("   Migrations complete!\n")
         
