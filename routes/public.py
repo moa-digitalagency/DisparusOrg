@@ -10,7 +10,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash
 from werkzeug.utils import secure_filename
 
-from models import db, Disparu, Contribution, ModerationReport, ActivityLog
+from models import db, Disparu, Contribution, ModerationReport, ActivityLog, SiteSetting
 from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cities
 from services.signalement import create_signalement, generate_public_id
 from security.rate_limit import rate_limit
@@ -66,14 +66,22 @@ def get_locale():
 @public_bp.route('/')
 def index():
     log_public_activity('Page accueil', target_type='home')
-    recent = Disparu.query.filter_by(status='missing').order_by(Disparu.created_at.desc()).limit(6).all()
+
+    default_filter = SiteSetting.get('default_search_filter', 'all')
+
+    recent_query = Disparu.query.filter_by(status='missing')
+    if default_filter != 'all':
+        recent_query = recent_query.filter_by(person_type=default_filter)
+    recent = recent_query.order_by(Disparu.created_at.desc()).limit(6).all()
+
     stats = {
         'total': Disparu.query.count(),
         'found': Disparu.query.filter_by(status='found').count(),
         'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
         'contributions': Contribution.query.count(),
     }
-    all_disparus_raw = db.session.query(
+
+    map_query = db.session.query(
         Disparu.id,
         Disparu.first_name,
         Disparu.last_name,
@@ -82,8 +90,16 @@ def index():
         Disparu.longitude,
         Disparu.city,
         Disparu.country,
-        Disparu.status
-    ).filter(Disparu.latitude.isnot(None)).all()
+        Disparu.status,
+        Disparu.person_type
+    ).filter(Disparu.latitude.isnot(None))
+
+    # We do not filter map data here to allow frontend toggling
+    # if default_filter != 'all':
+    #    map_query = map_query.filter(Disparu.person_type == default_filter)
+
+    all_disparus_raw = map_query.all()
+
     all_disparus = [{
         'id': d.id,
         'full_name': f"{d.first_name} {d.last_name}",
@@ -92,18 +108,23 @@ def index():
         'longitude': d.longitude,
         'city': d.city,
         'country': d.country,
-        'status': d.status
+        'status': d.status,
+        'person_type': d.person_type
     } for d in all_disparus_raw]
+
     total_cities = get_total_cities()
-    return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=all_disparus, total_cities=total_cities)
+    return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=all_disparus, total_cities=total_cities, default_filter=default_filter)
 
 
 @public_bp.route('/recherche')
 def search():
     log_public_activity('Page recherche', target_type='search')
+
+    default_filter = SiteSetting.get('default_search_filter', 'all')
+
     query = request.args.get('q', '')
     status_filter = request.args.get('status', 'all')
-    person_type = request.args.get('type', 'all')
+    person_type = request.args.get('type', default_filter)
     country = request.args.get('country', '')
     has_photo = request.args.get('photo', '') == 'on'
     
@@ -143,7 +164,10 @@ def search():
         q = q.filter_by(status=status_filter)
     
     if person_type and person_type != 'all':
-        q = q.filter_by(person_type=person_type)
+        if person_type == 'person':
+            q = q.filter(Disparu.person_type.in_(['child', 'adult', 'elderly']))
+        else:
+            q = q.filter_by(person_type=person_type)
     
     if country:
         q = q.filter_by(country=country)

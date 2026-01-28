@@ -45,14 +45,26 @@
                 {% elif person.status == 'found' %}bg-green-500 text-white
                 {% else %}bg-gray-500 text-white{% endif %}" data-testid="badge-status">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                {% if person.status == 'missing' %}
-                    {{ t('detail.status_missing') }}
-                {% elif person.status == 'found' %}
-                    {{ t('detail.status_found') }}
-                {% elif person.status == 'deceased' %}
-                    {{ t('detail.deceased') }}
+                {% if person.person_type == 'animal' %}
+                    {% if person.status == 'missing' %}
+                        {% if get_locale() == 'fr' %}Animal Disparu{% else %}Missing Animal{% endif %}
+                    {% elif person.status == 'found' %}
+                        {% if get_locale() == 'fr' %}Animal Retrouvé{% else %}Found Animal{% endif %}
+                    {% elif person.status == 'deceased' %}
+                        {% if get_locale() == 'fr' %}Animal Décédé{% else %}Deceased Animal{% endif %}
+                    {% else %}
+                        {{ person.status }}
+                    {% endif %}
                 {% else %}
-                    {{ person.status }}
+                    {% if person.status == 'missing' %}
+                        {{ t('detail.status_missing') }}
+                    {% elif person.status == 'found' %}
+                        {{ t('detail.status_found') }}
+                    {% elif person.status == 'deceased' %}
+                        {{ t('detail.deceased') }}
+                    {% else %}
+                        {{ person.status }}
+                    {% endif %}
                 {% endif %}
             </span>
             <h1 class="text-xl md:text-2xl font-bold mb-3 tracking-tight leading-tight" data-testid="text-person-name">
