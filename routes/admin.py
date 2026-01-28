@@ -329,9 +329,41 @@ def statistics():
 @admin_required
 def map_view():
     log_activity('Consultation carte', action_type='view', target_type='map')
-    disparus = Disparu.query.all()
-    disparus_list = [d.to_dict() for d in disparus]
-    return render_template('admin_map.html', disparus=disparus, disparus_list=disparus_list)
+
+    # Optimized query: select only needed fields
+    results = db.session.query(
+        Disparu.id,
+        Disparu.public_id,
+        Disparu.first_name,
+        Disparu.last_name,
+        Disparu.latitude,
+        Disparu.longitude,
+        Disparu.country,
+        Disparu.city,
+        Disparu.status,
+        Disparu.is_flagged,
+        Disparu.photo_url,
+        Disparu.disappearance_date
+    ).all()
+
+    disparus_list = []
+    for row in results:
+        disparus_list.append({
+            'id': row.id,
+            'public_id': row.public_id,
+            'first_name': row.first_name,
+            'last_name': row.last_name,
+            'latitude': row.latitude,
+            'longitude': row.longitude,
+            'country': row.country,
+            'city': row.city,
+            'status': row.status,
+            'is_flagged': row.is_flagged,
+            'photo_url': row.photo_url,
+            'disappearance_date': row.disappearance_date.isoformat() if row.disappearance_date else None
+        })
+
+    return render_template('admin_map.html', disparus=results, disparus_list=disparus_list)
 
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
