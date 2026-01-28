@@ -215,6 +215,30 @@ def run_migrations():
                 db.session.rollback()
                 print(f"  - Migration is_approved skipped: {e}")
     
+    # Postgres-specific optimizations
+    if db.session.get_bind().dialect.name == 'postgresql':
+        try:
+            # Create GIN index for Full Text Search
+            # We use 'french' configuration as it's the primary language
+            # We concatenate searchable fields: first_name, last_name, public_id, city
+            sql = """
+            CREATE INDEX IF NOT EXISTS idx_disparu_fulltext
+            ON disparus_flask
+            USING gin(to_tsvector('french',
+                coalesce(first_name,'') || ' ' ||
+                coalesce(last_name,'') || ' ' ||
+                coalesce(public_id,'') || ' ' ||
+                coalesce(city,'')
+            ));
+            """
+            db.session.execute(text(sql))
+            db.session.commit()
+            print("  + Verified/Created Postgres GIN index for full text search")
+            migrations_applied += 1
+        except Exception as e:
+            db.session.rollback()
+            print(f"  - Postgres optimization skipped/failed: {e}")
+
     if migrations_applied > 0:
         print(f"  {migrations_applied} migrations applied")
     else:

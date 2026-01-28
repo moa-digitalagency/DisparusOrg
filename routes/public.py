@@ -110,15 +110,34 @@ def search():
     q = Disparu.query
     
     if query:
-        search_term = f"%{query}%"
-        q = q.filter(
-            db.or_(
-                Disparu.first_name.ilike(search_term),
-                Disparu.last_name.ilike(search_term),
-                Disparu.public_id.ilike(search_term),
-                Disparu.city.ilike(search_term),
+        # Optimized search for Postgres (uses Full Text Search)
+        if db.session.get_bind().dialect.name == 'postgresql':
+            # Use Full Text Search with exact index matching
+            # We use db.text to ensure the SQL matches the index definition exactly (literals vs params)
+            # The index uses: to_tsvector('french', coalesce(first_name,'') || ' ' || ...)
+            # plainto_tsquery handles user input safety (e.g. spaces, special chars)
+            # Note: This performs word-based matching rather than substring matching
+
+            sql_search = db.text("""
+                to_tsvector('french',
+                    coalesce(first_name,'') || ' ' ||
+                    coalesce(last_name,'') || ' ' ||
+                    coalesce(public_id,'') || ' ' ||
+                    coalesce(city,'')
+                ) @@ plainto_tsquery('french', :query)
+            """)
+            q = q.filter(sql_search).params(query=query)
+        else:
+            # Fallback for SQLite/Other (Leading wildcard scan)
+            search_term = f"%{query}%"
+            q = q.filter(
+                db.or_(
+                    Disparu.first_name.ilike(search_term),
+                    Disparu.last_name.ilike(search_term),
+                    Disparu.public_id.ilike(search_term),
+                    Disparu.city.ilike(search_term),
+                )
             )
-        )
     
     if status_filter and status_filter != 'all':
         q = q.filter_by(status=status_filter)
