@@ -62,6 +62,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="hidden" name="person_type" id="person_type_input" value="adult">
 
+                    <!-- Person Fields -->
                     <div id="block-person-type">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.person_type') }} *</label>
                         <select id="person_type_select" onchange="document.getElementById('person_type_input').value = this.value" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="select-person-type">
@@ -70,6 +71,22 @@
                             <option value="elderly">{{ t('report_form.elderly') }}</option>
                         </select>
                     </div>
+
+                    <!-- Animal Fields -->
+                    <div id="block-animal-type" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Type d'animal{% else %}Animal Type{% endif %} *</label>
+                        <select name="animal_type" id="animal_type_select" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm">
+                            <option value="dog">{% if get_locale() == 'fr' %}Chien{% else %}Dog{% endif %}</option>
+                            <option value="cat">{% if get_locale() == 'fr' %}Chat{% else %}Cat{% endif %}</option>
+                            <option value="other">{% if get_locale() == 'fr' %}Autre{% else %}Other{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <div id="block-breed" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Race / Espèce{% else %}Breed / Species{% endif %}</label>
+                        <input type="text" name="breed" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm">
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.sex') }} *</label>
                         <select name="sex" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="select-sex">
@@ -82,9 +99,9 @@
                         <label id="label-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.first_name') }} *</label>
                         <input type="text" name="first_name" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-first-name">
                     </div>
-                    <div>
+                    <div id="block-last-name">
                         <label id="label-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.last_name') }} *</label>
-                        <input type="text" name="last_name" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-last-name">
+                        <input type="text" name="last_name" id="input-last-name" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm" data-testid="input-last-name">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.age') }} *</label>
@@ -289,27 +306,56 @@
         const tabPerson = document.getElementById('tab-person');
         const tabAnimal = document.getElementById('tab-animal');
 
-        tabPerson.className = type === 'person' ? activeClass : inactiveClass;
-        tabAnimal.className = type === 'animal' ? activeClass : inactiveClass;
+        if (tabPerson) tabPerson.className = type === 'person' ? activeClass : inactiveClass;
+        if (tabAnimal) tabAnimal.className = type === 'animal' ? activeClass : inactiveClass;
+
+        const blockPersonType = document.getElementById('block-person-type');
+        const blockAnimalType = document.getElementById('block-animal-type');
+        const blockBreed = document.getElementById('block-breed');
+        const blockLastName = document.getElementById('block-last-name');
+
+        const sexMale = document.getElementById('sex_option_male');
+        const sexFemale = document.getElementById('sex_option_female');
 
         // Logic
         if (type === 'animal') {
-            document.getElementById('block-person-type').style.display = 'none';
+            blockPersonType.style.display = 'none';
+            blockAnimalType.style.display = 'block';
+            blockBreed.style.display = 'block';
+            blockLastName.style.display = 'none';
+
+            // Disable requirement for Last Name
+            document.getElementById('input-last-name').required = false;
+
             document.getElementById('person_type_input').value = 'animal';
 
             // Update labels for Animal
             document.getElementById('label-first-name').textContent = "{% if get_locale() == 'fr' %}Nom de l'animal{% else %}Animal Name{% endif %} *";
-            document.getElementById('label-last-name').textContent = "{% if get_locale() == 'fr' %}Espèce / Race{% else %}Species / Breed{% endif %} *";
             document.getElementById('label-clothing').textContent = "{% if get_locale() == 'fr' %}Collier / Accessoires / Signes distinctifs{% else %}Collar / Accessories / Distinctive marks{% endif %} *";
+
+            // Sex Options
+            sexMale.textContent = "{% if get_locale() == 'fr' %}Mâle{% else %}Male{% endif %}";
+            sexFemale.textContent = "{% if get_locale() == 'fr' %}Femelle{% else %}Female{% endif %}";
+
         } else {
-             document.getElementById('block-person-type').style.display = 'block';
+             blockPersonType.style.display = 'block';
+             blockAnimalType.style.display = 'none';
+             blockBreed.style.display = 'none';
+             blockLastName.style.display = 'block';
+
+             // Enable requirement for Last Name
+             document.getElementById('input-last-name').required = true;
+
              // Reset input value from select
              document.getElementById('person_type_input').value = document.getElementById('person_type_select').value;
 
              // Reset labels for Person
              document.getElementById('label-first-name').textContent = "{{ t('report_form.first_name') }} *";
-             document.getElementById('label-last-name').textContent = "{{ t('report_form.last_name') }} *";
              document.getElementById('label-clothing').textContent = "{{ t('report_form.clothing') }} *";
+
+             // Sex Options
+             sexMale.textContent = "{{ t('report_form.male') }}";
+             sexFemale.textContent = "{{ t('report_form.female') }}";
         }
     }
 </script>
