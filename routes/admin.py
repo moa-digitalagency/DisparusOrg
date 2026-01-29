@@ -14,7 +14,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting
-from models.settings import invalidate_settings_cache
+from models.settings import invalidate_settings_cache, get_all_settings_dict
 from services.analytics import get_platform_stats
 from utils.geo import get_countries
 from security.rate_limit import rate_limit
@@ -444,6 +444,9 @@ def settings():
                 setting_key = key[8:]
                 value = request.form[key]
 
+                if isinstance(value, str):
+                    value = value.strip()
+
                 # Convert checkbox 'on' to 'true'
                 if value == 'on':
                     value = 'true'
@@ -452,6 +455,7 @@ def settings():
                 if existing:
                     existing.value = value
                     existing.updated_by = session.get('admin_username')
+                    db.session.add(existing)
                 else:
                     category = 'footer' if setting_key.startswith('footer_') else 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
                     value_type = 'boolean' if value in ['true', 'false'] else 'text' if setting_key.endswith('_scripts') or setting_key.endswith('_description') else 'string'
@@ -469,8 +473,11 @@ def settings():
         flash('Parametres sauvegardes', 'success')
         return redirect(url_for('admin.settings'))
     
+    # Use standard fetch method that returns typed values
+    settings_dict = get_all_settings_dict()
+
+    # Still need list for structure iteration if needed, but the template uses settings_dict for values
     settings_list = SiteSetting.query.order_by(SiteSetting.category, SiteSetting.key).all()
-    settings_dict = {s.key: s.value for s in settings_list}
     settings_by_category = {}
     for s in settings_list:
         if s.category not in settings_by_category:
