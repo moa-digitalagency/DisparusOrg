@@ -20,7 +20,6 @@ csrf = CSRFProtect()
 
 def get_locale():
     locale = request.cookies.get('locale')
-    print(f"DEBUG: get_locale called. Cookie: {locale}")
     if locale in ['fr', 'en']:
         return locale
     return request.accept_languages.best_match(['fr', 'en'], default='fr')

@@ -12,3 +12,5 @@ instance/
 .venv
 env/
 venv/
+flask.log
+statics/verification/
