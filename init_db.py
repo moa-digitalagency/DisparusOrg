@@ -294,16 +294,16 @@ def generate_demo_images():
 
 def init_database():
     """Main initialization function"""
-    print("\n=== DISPARUS.ORG Database Initialization ===\n")
+    logger.info("=== DISPARUS.ORG Database Initialization ===")
     
     with app.app_context():
         # Log database connection info
         try:
             db_url = db.engine.url.render_as_string(hide_password=True)
-            print(f"   Using Database: {db_url}")
+            logger.info(f"   Using Database: {db_url}")
         except:
             # Fallback for older SQLAlchemy versions or if something goes wrong
-            print(f"   Using Database: {db.engine.url}")
+            logger.info(f"   Using Database: {db.engine.url}")
 
         # Ensure the instance folder exists if using SQLite
         if 'sqlite' in str(db.engine.url):
@@ -313,34 +313,34 @@ def init_database():
             except OSError:
                 pass
 
-        print("1. Checking and creating missing tables...")
+        logger.info("1. Checking and creating missing tables...")
         missing = create_missing_tables()
         if missing:
-            print(f"   Created tables: {', '.join(missing)}\n")
+            logger.info(f"   Created tables: {', '.join(missing)}")
         else:
-            print("   All required tables exist!\n")
+            logger.info("   All required tables exist!")
         
-        print("2. Running migrations and schema sync...")
+        logger.info("2. Running migrations and schema sync...")
         run_migrations()
-        print("   Migrations complete!\n")
+        logger.info("   Migrations complete!")
         
-        print("3. Initializing default roles...")
+        logger.info("3. Initializing default roles...")
         init_default_roles()
-        print("   Roles initialized!\n")
+        logger.info("   Roles initialized!")
         
-        print("4. Initializing default settings...")
+        logger.info("4. Initializing default settings...")
         init_default_settings()
-        print("   Settings initialized!\n")
+        logger.info("   Settings initialized!")
         
-        print("5. Checking admin user...")
+        logger.info("5. Checking admin user...")
         init_admin_user()
-        print("   Admin check complete!\n")
+        logger.info("   Admin check complete!")
         
-        print("6. Checking demo images...")
+        logger.info("6. Checking demo images...")
         generate_demo_images()
-        print("   Demo images ready!\n")
+        logger.info("   Demo images ready!")
         
-        print("=== Database initialization complete! ===\n")
+        logger.info("=== Database initialization complete! ===")
 
 
 if __name__ == '__main__':

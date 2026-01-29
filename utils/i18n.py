@@ -32,7 +32,6 @@ def load_translations():
 
 def get_translation(key, locale='fr'):
     load_translations()
-    print(f"DEBUG: get_translation {key} {locale}")
 
     # Handle locale fallback
     if locale not in ['fr', 'en']:
