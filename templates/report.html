@@ -153,11 +153,13 @@
                     </div>
 
                     <div id="location-map" class="h-56 rounded-xl border border-gray-200 mb-2"></div>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="getGeoLocation()" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all" data-testid="button-geolocate">
-                            {{ t('report_form.my_gps') }}
-                        </button>
-                        <span class="text-sm text-gray-500 flex items-center" id="coords-display">{{ t('report_form.click_map') }}</span>
+                    <div class="flex flex-col gap-2">
+                        <span class="text-sm text-gray-500" id="coords-display">{{ t('report_form.click_map') }}</span>
+                        <div>
+                            <button type="button" onclick="getGeoLocation()" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all" data-testid="button-geolocate">
+                                {{ t('report_form.my_gps') }}
+                            </button>
+                        </div>
                     </div>
                     <input type="hidden" name="latitude" id="latitude">
                     <input type="hidden" name="longitude" id="longitude">
@@ -315,15 +317,16 @@
         btn.disabled = true;
         btn.innerHTML = '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
-        let searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-
-        // Append context if available to refine search
+        let fullQuery = query;
+        // Append context to query string to ensure search is focused on selected area
         if (city) {
-            searchUrl += `&city=${encodeURIComponent(city)}`;
+            fullQuery += `, ${city}`;
         }
         if (country) {
-            searchUrl += `&country=${encodeURIComponent(country)}`;
+            fullQuery += `, ${country}`;
         }
+
+        let searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullQuery)}`;
 
         fetch(searchUrl)
             .then(response => response.json())
