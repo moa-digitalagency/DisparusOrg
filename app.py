@@ -6,7 +6,7 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 import os
-from flask import Flask, request, send_from_directory, jsonify
+from flask import Flask, request, send_from_directory, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel
 from flask_wtf.csrf import CSRFProtect
@@ -87,6 +87,10 @@ def create_app(config_name='default'):
     register_blueprints(app)
     
     register_utility_routes(app)
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
 
     @app.after_request
     def add_security_headers(response):
