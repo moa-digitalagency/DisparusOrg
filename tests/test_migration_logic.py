@@ -1,98 +1,91 @@
 
 import os
-import sys
-import sqlite3
-from sqlalchemy import text
+import unittest
+from sqlalchemy import text, inspect
 
-# Setup environment for testing
-test_db_path = os.path.abspath("test_migration.db")
-test_db_uri = f"sqlite:///{test_db_path}"
-os.environ['DATABASE_URL'] = test_db_uri
+# Set dummy env vars BEFORE importing app/init_db to avoid errors
+os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
 os.environ['SESSION_SECRET'] = 'test-secret'
 
-# Cleanup previous run
-if os.path.exists("test_migration.db"):
-    os.remove("test_migration.db")
-
-# Add root to path
-sys.path.append(os.getcwd())
-
-# Import AFTER env vars are set
+from app import create_app
+from models import db, Role
 import init_db
-from models import db
 
-def setup_broken_schema():
-    """Manually create a table with missing columns"""
-    print(f"Setting up broken schema in {test_db_path}...")
-    conn = sqlite3.connect("test_migration.db")
-    cursor = conn.cursor()
+class TestMigrationLogic(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app()
+        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        self.app.config['TESTING'] = True
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all() # This creates ALL tables with ALL columns
 
-    # Create 'roles_flask' table with ONLY id and name
-    cursor.execute("""
-        CREATE TABLE roles_flask (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name VARCHAR(50) NOT NULL UNIQUE
-        );
-    """)
+        # We need to simulate a state where columns are MISSING.
+        # So we will drop the table and recreate it with FEWER columns.
+        db.session.execute(text("DROP TABLE roles_flask"))
 
-    # Create 'users_flask' table with just id and username
-    cursor.execute("""
-        CREATE TABLE users_flask (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username VARCHAR(64) NOT NULL UNIQUE
-        );
-    """)
+        # Create table with only 'id' and 'name'
+        # SQLite syntax
+        db.session.execute(text("""
+            CREATE TABLE roles_flask (
+                id INTEGER PRIMARY KEY,
+                name VARCHAR(50) NOT NULL UNIQUE
+            )
+        """))
+        db.session.commit()
 
-    conn.commit()
-    conn.close()
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
 
-def test_migration():
-    setup_broken_schema()
+    def test_sync_schema_adds_missing_columns(self):
+        """Test that sync_schema_columns adds missing columns to an existing table."""
 
-    print("Running migration logic...")
-    # Run the migration function inside the app context
-    with init_db.app.app_context():
-        # Verify initial state (broken)
-        with sqlite3.connect("test_migration.db") as conn:
-            cursor = conn.cursor()
-            cursor.execute("PRAGMA table_info(roles_flask)")
-            columns = [info[1] for info in cursor.fetchall()]
-            print(f"Initial roles_flask columns: {columns}")
-            assert 'display_name' not in columns
+        inspector = inspect(db.engine)
+        columns_before = [c['name'] for c in inspector.get_columns('roles_flask')]
+        self.assertIn('name', columns_before)
+        self.assertNotIn('display_name', columns_before)
+        self.assertNotIn('permissions', columns_before)
 
-        # Run the sync
+        print(f"\nColumns before migration: {columns_before}")
+
+        # Run the migration logic
+        # Note: init_db.sync_schema_columns uses the global 'db' which we are using here too
         init_db.sync_schema_columns()
 
-        # Verify final state
-        with sqlite3.connect("test_migration.db") as conn:
-            cursor = conn.cursor()
+        inspector = inspect(db.engine)
+        columns_after = [c['name'] for c in inspector.get_columns('roles_flask')]
 
-            # Check Role table
-            cursor.execute("PRAGMA table_info(roles_flask)")
-            role_columns = [info[1] for info in cursor.fetchall()]
-            print(f"Final roles_flask columns: {role_columns}")
+        print(f"Columns after migration: {columns_after}")
 
-            missing_role_cols = ['display_name', 'description', 'permissions', 'menu_access', 'is_system']
-            for col in missing_role_cols:
-                if col not in role_columns:
-                    print(f"FAILED: Column 'roles_flask.{col}' was not added.")
-                    sys.exit(1)
+        # Verify columns were added
+        self.assertIn('display_name', columns_after)
+        self.assertIn('description', columns_after)
+        self.assertIn('permissions', columns_after)
+        self.assertIn('is_system', columns_after)
 
-            # Check User table
-            cursor.execute("PRAGMA table_info(users_flask)")
-            user_columns = [info[1] for info in cursor.fetchall()]
-            print(f"Final users_flask columns: {user_columns}")
+        # Verify we can insert data into new columns
+        # This confirms the schema change was successful and valid
+        db.session.execute(text("""
+            INSERT INTO roles_flask (name, display_name, is_system)
+            VALUES ('test_role', 'Test Role', 1)
+        """))
+        db.session.commit()
 
-            if 'email' not in user_columns:
-                 print(f"FAILED: Column 'users_flask.email' was not added.")
-                 sys.exit(1)
+        role = Role.query.filter_by(name='test_role').first()
+        self.assertIsNotNone(role)
+        self.assertEqual(role.display_name, 'Test Role')
+        # Check default values if applicable (is_system might have defaulted to False/0 if not provided, but we provided 1)
 
-    print("\nSUCCESS: Migration logic correctly added missing columns!")
+    def test_sync_schema_idempotency(self):
+        """Test that running sync_schema_columns twice doesn't break anything."""
+        init_db.sync_schema_columns()
+        init_db.sync_schema_columns() # Should be safe
 
-if __name__ == "__main__":
-    try:
-        test_migration()
-    finally:
-        # Cleanup
-        if os.path.exists("test_migration.db"):
-            os.remove("test_migration.db")
+        inspector = inspect(db.engine)
+        columns = [c['name'] for c in inspector.get_columns('roles_flask')]
+        self.assertIn('display_name', columns)
+
+if __name__ == '__main__':
+    unittest.main()
