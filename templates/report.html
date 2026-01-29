@@ -144,6 +144,14 @@
                 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.geolocation') }} *</label>
+
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="address-search" placeholder="{% if get_locale() == 'fr' %}Rechercher une adresse...{% else %}Search an address...{% endif %}" class="flex-1 px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm">
+                        <button type="button" onclick="searchAddress()" id="btn-search-address" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                    </div>
+
                     <div id="location-map" class="h-56 rounded-xl border border-gray-200 mb-2"></div>
                     <div class="flex gap-2">
                         <button type="button" onclick="getGeoLocation()" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all" data-testid="button-geolocate">
@@ -291,8 +299,60 @@
         } else {
             marker = L.marker([lat, lng]).addTo(locationMap);
         }
-        locationMap.setView([lat, lng], 12);
+        locationMap.setView([lat, lng], 16);
     }
+
+    function searchAddress() {
+        const input = document.getElementById('address-search');
+        const btn = document.getElementById('btn-search-address');
+        const query = input.value;
+        const country = document.getElementById('country-select').value;
+        const city = document.getElementById('city-select').value;
+
+        if (!query) return;
+
+        const originalBtnContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+
+        let searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+
+        // Append context if available to refine search
+        if (city) {
+            searchUrl += `&city=${encodeURIComponent(city)}`;
+        }
+        if (country) {
+            searchUrl += `&country=${encodeURIComponent(country)}`;
+        }
+
+        fetch(searchUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    setLocation(lat, lon);
+                } else {
+                    alert("{% if get_locale() == 'fr' %}Adresse introuvable{% else %}Address not found{% endif %}");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("{% if get_locale() == 'fr' %}Erreur lors de la recherche{% else %}Search error{% endif %}");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+            });
+    }
+
+    // Trigger search on Enter key
+    document.getElementById('address-search').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchAddress();
+        }
+    });
     
     function getGeoLocation() {
         const btn = document.querySelector('button[onclick="getGeoLocation()"]');
