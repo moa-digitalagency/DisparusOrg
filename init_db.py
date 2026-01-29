@@ -297,6 +297,14 @@ def init_database():
     print("\n=== DISPARUS.ORG Database Initialization ===\n")
     
     with app.app_context():
+        # Log database connection info
+        try:
+            db_url = db.engine.url.render_as_string(hide_password=True)
+            print(f"   Using Database: {db_url}")
+        except:
+            # Fallback for older SQLAlchemy versions or if something goes wrong
+            print(f"   Using Database: {db.engine.url}")
+
         # Ensure the instance folder exists if using SQLite
         if 'sqlite' in str(db.engine.url):
             try:
