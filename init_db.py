@@ -180,7 +180,9 @@ def sync_schema_columns():
     
     inspector = inspect(db.engine)
     existing_tables = inspector.get_table_names()
+    # Use get_bind() to ensure we get the correct engine/connection
     dialect = db.session.get_bind().dialect.name
+    logger.info(f"  Detected Database Dialect: {dialect}")
     
     migrations_applied = 0
     
@@ -203,15 +205,18 @@ def sync_schema_columns():
                     if isinstance(column.type, (Integer, Float)):
                         default_val = " DEFAULT 0"
                     elif isinstance(column.type, Boolean):
-                        default_val = " DEFAULT FALSE" # PostgreSQL/SQLite compatible usually
+                        # PostgreSQL requires TRUE/FALSE, SQLite can take 1/0 but 0/1 is safer there too usually
+                        # but let's be specific
+                        default_val = " DEFAULT FALSE"
                         if dialect == 'sqlite':
                             default_val = " DEFAULT 0"
                     elif isinstance(column.type, (String, Text)):
                         default_val = " DEFAULT ''"
                     elif isinstance(column.type, DateTime):
-                         # For DateTime, it's tricky. Let's use current timestamp or a fixed date if needed.
-                         # CURRENT_TIMESTAMP works in both usually.
+                         # CURRENT_TIMESTAMP works in both Postgres and SQLite
                          default_val = " DEFAULT CURRENT_TIMESTAMP"
+                    elif isinstance(column.type, JSON):
+                        default_val = " DEFAULT '{}'"
 
                 try:
                     # Construct ALTER TABLE statement
