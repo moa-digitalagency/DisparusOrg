@@ -104,6 +104,8 @@ def benchmark_optimized(app):
         return end_time - start_time, len(all_disparus)
 
 if __name__ == "__main__":
+    # NOTE: We use in-memory SQLite for benchmarking to ensure consistency and isolation.
+    # This is a standalone script and does not affect the production PostgreSQL database.
     os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
     os.environ['SESSION_SECRET'] = 'test'
 

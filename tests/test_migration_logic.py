@@ -4,6 +4,8 @@ import unittest
 from sqlalchemy import text, inspect
 
 # Set dummy env vars BEFORE importing app/init_db to avoid errors
+# NOTE: We use in-memory SQLite for testing to ensure isolation and speed.
+# This does NOT affect the production environment which uses PostgreSQL.
 os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
 os.environ['SESSION_SECRET'] = 'test-secret'
 
