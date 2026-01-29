@@ -41,7 +41,7 @@ class SiteSetting(db.Model):
         setting = SiteSetting.query.filter_by(key=key).first()
         if setting:
             if setting.value_type == 'boolean':
-                return setting.value.lower() in ('true', '1', 'yes')
+                return setting.value.lower() in ('true', '1', 'yes', 'on')
             elif setting.value_type == 'integer':
                 return int(setting.value) if setting.value else default
             elif setting.value_type == 'json':

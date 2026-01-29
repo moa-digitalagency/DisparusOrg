@@ -430,10 +430,24 @@ def settings():
                         )
                         db.session.add(new_setting)
         
+        # Handle unchecked checkboxes (missing from request.form)
+        boolean_settings = SiteSetting.query.filter_by(value_type='boolean').all()
+        for setting in boolean_settings:
+            key = f'setting_{setting.key}'
+            if key not in request.form:
+                setting.value = 'false'
+                setting.updated_by = session.get('admin_username')
+                db.session.add(setting)
+
         for key in request.form:
             if key.startswith('setting_'):
                 setting_key = key[8:]
                 value = request.form[key]
+
+                # Convert checkbox 'on' to 'true'
+                if value == 'on':
+                    value = 'true'
+
                 existing = SiteSetting.query.filter_by(key=setting_key).first()
                 if existing:
                     existing.value = value
