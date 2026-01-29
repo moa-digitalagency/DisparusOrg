@@ -251,6 +251,7 @@
         </div>
     </footer>
 
+    {% if site_settings.get('pwa_enabled') %}
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js').catch(function(err) {
@@ -258,6 +259,42 @@
             });
         }
     </script>
+
+    <!-- PWA Install Button (Android/Desktop) -->
+    <button id="pwa-install-btn" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-6 z-[100] bg-red-700 hover:bg-red-800 text-white px-5 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 transition-all hover:shadow-xl">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>{% if get_locale() == 'fr' %}Installer l'application{% else %}Install App{% endif %}</span>
+    </button>
+
+    <!-- PWA iOS Banner -->
+    <div id="pwa-ios-banner" class="hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 p-4 shadow-2xl pb-8 md:pb-4">
+        <div class="max-w-md mx-auto flex items-start gap-4">
+            {% if site_settings.get('pwa_icon') %}
+            <img src="{{ site_settings.get('pwa_icon') }}" class="w-12 h-12 rounded-xl shadow-sm object-cover">
+            {% else %}
+            <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </div>
+            {% endif %}
+            <div class="flex-1">
+                <p class="font-bold text-gray-900">{% if get_locale() == 'fr' %}Installer {{ site_settings.get('pwa_short_name', 'Disparus') }}{% else %}Install {{ site_settings.get('pwa_short_name', 'Disparus') }}{% endif %}</p>
+                <p class="text-sm text-gray-600 mt-1 leading-snug">
+                    {% if get_locale() == 'fr' %}
+                    Appuyez sur <svg class="w-5 h-5 inline-block text-blue-600 mx-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg> puis sur <strong>"Sur l'écran d'accueil"</strong>
+                    {% else %}
+                    Tap <svg class="w-5 h-5 inline-block text-blue-600 mx-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg> then <strong>"Add to Home Screen"</strong>
+                    {% endif %}
+                </p>
+            </div>
+            <button id="pwa-ios-close" class="text-gray-400 hover:text-gray-600 p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="/statics/js/pwa-install.js" defer></script>
+    {% endif %}
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

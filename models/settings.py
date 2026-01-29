@@ -47,7 +47,7 @@ class SiteSetting(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     updated_by = db.Column(db.String(100))
     
-    CATEGORIES = ['general', 'seo', 'email', 'security', 'appearance', 'integrations']
+    CATEGORIES = ['general', 'seo', 'email', 'security', 'appearance', 'integrations', 'pwa']
     
     @staticmethod
     def get(key, default=None):
@@ -134,6 +134,16 @@ DEFAULT_SETTINGS = {
 
     'default_search_filter': {'value': 'all', 'type': 'string', 'category': 'appearance'},
     'moderator_whatsapp_number': {'value': '', 'type': 'string', 'category': 'integrations'},
+
+    # PWA Settings
+    'pwa_enabled': {'value': 'false', 'type': 'boolean', 'category': 'pwa'},
+    'pwa_display_mode': {'value': 'default', 'type': 'string', 'category': 'pwa'},
+    'pwa_app_name': {'value': 'DISPARUS.ORG', 'type': 'string', 'category': 'pwa'},
+    'pwa_short_name': {'value': 'Disparus', 'type': 'string', 'category': 'pwa'},
+    'pwa_description': {'value': '', 'type': 'text', 'category': 'pwa'},
+    'pwa_theme_color': {'value': '#b91c1c', 'type': 'string', 'category': 'pwa'},
+    'pwa_background_color': {'value': '#ffffff', 'type': 'string', 'category': 'pwa'},
+    'pwa_icon': {'value': '', 'type': 'string', 'category': 'pwa'},
 }
 
 
