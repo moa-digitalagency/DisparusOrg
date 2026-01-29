@@ -117,17 +117,52 @@ def register_utility_routes(app):
     
     @app.route('/manifest.json')
     def manifest():
+        from models import SiteSetting
+
+        # Check if PWA is enabled
+        if not SiteSetting.get('pwa_enabled', False):
+            return "PWA Not Enabled", 404
+
+        display_mode = SiteSetting.get('pwa_display_mode', 'default')
+
+        # Default values (Fallbacks)
+        name = SiteSetting.get('site_name', 'DISPARUS.ORG')
+        short_name = "Disparus"
+        description = SiteSetting.get('site_description', 'Plateforme citoyenne de signalement de personnes disparues en Afrique')
+        theme_color = "#b91c1c"
+        background_color = "#ffffff"
+        icon_src = "/statics/img/favicon.png"
+
+        # Override if custom
+        if display_mode == 'custom':
+            name = SiteSetting.get('pwa_app_name', name)
+            short_name = SiteSetting.get('pwa_short_name', short_name)
+            description = SiteSetting.get('pwa_description', description)
+            theme_color = SiteSetting.get('pwa_theme_color', theme_color)
+            background_color = SiteSetting.get('pwa_background_color', background_color)
+            custom_icon = SiteSetting.get('pwa_icon')
+            if custom_icon:
+                icon_src = custom_icon
+
+        # Ensure values are strings (SiteSetting.get might return None if key missing)
+        name = str(name) if name else ""
+        short_name = str(short_name) if short_name else ""
+        description = str(description) if description else ""
+        theme_color = str(theme_color) if theme_color else "#b91c1c"
+        background_color = str(background_color) if background_color else "#ffffff"
+        icon_src = str(icon_src) if icon_src else "/statics/img/favicon.png"
+
         return jsonify({
-            "name": "DISPARUS.ORG",
-            "short_name": "Disparus",
-            "description": "Plateforme citoyenne de signalement de personnes disparues en Afrique",
+            "name": name,
+            "short_name": short_name,
+            "description": description,
             "start_url": "/",
             "display": "standalone",
-            "background_color": "#ffffff",
-            "theme_color": "#b91c1c",
+            "background_color": background_color,
+            "theme_color": theme_color,
             "icons": [
-                {"src": "/statics/img/favicon.png", "sizes": "192x192", "type": "image/png"},
-                {"src": "/statics/img/favicon.png", "sizes": "512x512", "type": "image/png"}
+                {"src": icon_src, "sizes": "192x192", "type": "image/png"},
+                {"src": icon_src, "sizes": "512x512", "type": "image/png"}
             ]
         })
     

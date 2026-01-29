@@ -98,6 +98,15 @@ def init_default_settings():
         ('max_upload_size_mb', '5', 'string', 'security'),
         ('default_search_filter', 'all', 'string', 'appearance'),
         ('moderator_whatsapp_number', '', 'string', 'integrations'),
+        # PWA Settings
+        ('pwa_enabled', 'false', 'boolean', 'pwa'),
+        ('pwa_display_mode', 'default', 'string', 'pwa'),
+        ('pwa_app_name', 'DISPARUS.ORG', 'string', 'pwa'),
+        ('pwa_short_name', 'Disparus', 'string', 'pwa'),
+        ('pwa_description', '', 'text', 'pwa'),
+        ('pwa_theme_color', '#b91c1c', 'string', 'pwa'),
+        ('pwa_background_color', '#ffffff', 'string', 'pwa'),
+        ('pwa_icon', '', 'string', 'pwa'),
     ]
     
     for key, value, value_type, category in default_settings:

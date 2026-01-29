@@ -313,6 +313,88 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Application Mobile (PWA){% else %}Mobile App (PWA){% endif %}</h2>
+                    <p class="text-sm text-gray-500">{% if get_locale() == 'fr' %}Configuration de l'application installable{% else %}Installable app configuration{% endif %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="flex flex-wrap gap-6">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="setting_pwa_enabled" {% if settings.get('pwa_enabled', False) %}checked{% endif %} class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Activer la PWA{% else %}Enable PWA{% endif %}</span>
+                </label>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Mode d'affichage{% else %}Display Mode{% endif %}</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="setting_pwa_display_mode" value="default" {% if settings.get('pwa_display_mode', 'default') == 'default' %}checked{% endif %} class="text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Par defaut (Utiliser nom et favicon du site){% else %}Default (Use site name and favicon){% endif %}</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="setting_pwa_display_mode" value="custom" {% if settings.get('pwa_display_mode') == 'custom' %}checked{% endif %} class="text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">{% if get_locale() == 'fr' %}Personnalise{% else %}Custom{% endif %}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                 <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Nom de l'application{% else %}App Name{% endif %}</label>
+                    <input type="text" name="setting_pwa_app_name" value="{{ settings.get('pwa_app_name', 'DISPARUS.ORG') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm transition-colors">
+                </div>
+                 <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Nom court (Ecran d'accueil){% else %}Short Name (Home Screen){% endif %}</label>
+                    <input type="text" name="setting_pwa_short_name" value="{{ settings.get('pwa_short_name', 'Disparus') }}" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm transition-colors">
+                </div>
+                 <div class="space-y-2 md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea name="setting_pwa_description" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm transition-colors">{{ settings.get('pwa_description', '') }}</textarea>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Couleur du theme{% else %}Theme Color{% endif %}</label>
+                    <div class="flex gap-2">
+                        <input type="color" name="setting_pwa_theme_color" value="{{ settings.get('pwa_theme_color', '#b91c1c') }}" class="h-10 w-10 rounded border border-gray-200 cursor-pointer">
+                        <input type="text" name="setting_pwa_theme_color" value="{{ settings.get('pwa_theme_color', '#b91c1c') }}" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm transition-colors">
+                    </div>
+                </div>
+                 <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Couleur de fond{% else %}Background Color{% endif %}</label>
+                    <div class="flex gap-2">
+                        <input type="color" name="setting_pwa_background_color" value="{{ settings.get('pwa_background_color', '#ffffff') }}" class="h-10 w-10 rounded border border-gray-200 cursor-pointer">
+                        <input type="text" name="setting_pwa_background_color" value="{{ settings.get('pwa_background_color', '#ffffff') }}" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm transition-colors">
+                    </div>
+                </div>
+
+                 <div class="space-y-2 md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}Icone de l'application (512x512 min){% else %}App Icon (512x512 min){% endif %}</label>
+                    <div class="flex items-center gap-3">
+                        {% if settings.get('pwa_icon') %}
+                        <img src="{{ settings.get('pwa_icon') }}" alt="App Icon" class="w-16 h-16 object-contain rounded-xl border border-gray-200 bg-gray-50">
+                        {% else %}
+                        <div class="w-16 h-16 rounded-xl bg-indigo-50 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        </div>
+                        {% endif %}
+                        <div class="flex-1">
+                            <input type="file" name="upload_pwa_icon" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">

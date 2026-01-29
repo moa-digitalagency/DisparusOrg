@@ -400,7 +400,7 @@ def settings():
         upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'statics', 'uploads', 'settings')
         os.makedirs(upload_folder, exist_ok=True)
         
-        image_fields = ['og_image', 'favicon', 'logo', 'placeholder_male', 'placeholder_female']
+        image_fields = ['og_image', 'favicon', 'logo', 'placeholder_male', 'placeholder_female', 'pwa_icon']
         for field in image_fields:
             file_key = f'upload_{field}'
             if file_key in request.files:
@@ -421,11 +421,12 @@ def settings():
                         existing.value = value
                         existing.updated_by = session.get('admin_username')
                     else:
+                        category = 'seo' if field == 'og_image' else 'pwa' if field == 'pwa_icon' else 'general'
                         new_setting = SiteSetting(
                             key=setting_key,
                             value=value,
                             value_type='string',
-                            category='seo' if field == 'og_image' else 'general',
+                            category=category,
                             updated_by=session.get('admin_username')
                         )
                         db.session.add(new_setting)
@@ -457,7 +458,7 @@ def settings():
                     existing.updated_by = session.get('admin_username')
                     db.session.add(existing)
                 else:
-                    category = 'footer' if setting_key.startswith('footer_') else 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
+                    category = 'pwa' if setting_key.startswith('pwa_') else 'footer' if setting_key.startswith('footer_') else 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
                     value_type = 'boolean' if value in ['true', 'false'] else 'text' if setting_key.endswith('_scripts') or setting_key.endswith('_description') else 'string'
                     new_setting = SiteSetting(
                         key=setting_key,
