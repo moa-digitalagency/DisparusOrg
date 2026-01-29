@@ -52,12 +52,12 @@
             </div>
             <div class="mt-6 flex flex-wrap gap-6">
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="setting_require_contribution_validation" {% if settings.get('require_contribution_validation', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <input type="checkbox" name="setting_require_contribution_validation" {% if settings.get('require_contribution_validation', True) %}checked{% endif %} class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                     <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Validation des contributions requise{% else %}Require contribution validation{% endif %}</span>
                 </label>
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="setting_allow_anonymous_reports" {% if settings.get('allow_anonymous_reports', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <input type="checkbox" name="setting_allow_anonymous_reports" {% if settings.get('allow_anonymous_reports', True) %}checked{% endif %} class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                     <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Signalements anonymes{% else %}Anonymous reports{% endif %}</span>
                 </label>
@@ -259,12 +259,12 @@
         <div class="p-6 space-y-6">
             <div class="flex flex-wrap gap-6">
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="setting_enable_rate_limiting" {% if settings.get('enable_rate_limiting', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <input type="checkbox" name="setting_enable_rate_limiting" {% if settings.get('enable_rate_limiting', True) %}checked{% endif %} class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
                     <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Limiter le taux de requetes{% else %}Enable rate limiting{% endif %}</span>
                 </label>
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="setting_enable_ip_logging" {% if settings.get('enable_ip_logging', 'true') == 'true' %}checked{% endif %} class="sr-only peer">
+                    <input type="checkbox" name="setting_enable_ip_logging" {% if settings.get('enable_ip_logging', True) %}checked{% endif %} class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
                     <span class="ml-3 text-sm text-gray-700">{% if get_locale() == 'fr' %}Journaliser les IP{% else %}Log IP addresses{% endif %}</span>
                 </label>

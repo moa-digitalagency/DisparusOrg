@@ -7,18 +7,31 @@
 """
 from models import db
 
-_settings_cache = None
-
 def get_all_settings_dict():
-    global _settings_cache
-    if _settings_cache is None:
-        settings_list = SiteSetting.query.all()
-        _settings_cache = {s.key: s.value for s in settings_list}
-    return _settings_cache
+    """
+    Get all settings as a dictionary with typed values.
+    No local caching to ensure consistency across multiple workers.
+    """
+    settings_list = SiteSetting.query.all()
+    result = {}
+    for s in settings_list:
+        if s.value_type == 'boolean':
+            result[s.key] = s.value.lower() in ('true', '1', 'yes', 'on')
+        elif s.value_type == 'integer':
+            result[s.key] = int(s.value) if s.value else 0
+        elif s.value_type == 'json':
+            import json
+            try:
+                result[s.key] = json.loads(s.value)
+            except:
+                result[s.key] = []
+        else:
+            result[s.key] = s.value
+    return result
 
 def invalidate_settings_cache():
-    global _settings_cache
-    _settings_cache = None
+    # Deprecated: No local cache used anymore
+    pass
 
 
 class SiteSetting(db.Model):
