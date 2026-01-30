@@ -21,6 +21,7 @@ from app import create_app
 from models import db, User, Role, Disparu, Contribution, ModerationReport, ActivityLog, Download, SiteSetting, ContentModerationLog
 from werkzeug.security import generate_password_hash
 from sqlalchemy import text, inspect, Integer, Boolean, String, Text, Float, DateTime, JSON
+from sqlalchemy.exc import ProgrammingError, OperationalError
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -67,15 +68,23 @@ def init_default_roles():
     ]
     
     for role_data in default_roles:
-        existing = Role.query.filter_by(name=role_data['name']).first()
-        if not existing:
-            role = Role(**role_data)
-            db.session.add(role)
-            logger.info(f"  Created role: {role_data['name']}")
-        else:
-            logger.info(f"  Role already exists: {role_data['name']}")
+        try:
+            existing = Role.query.filter_by(name=role_data['name']).first()
+            if not existing:
+                role = Role(**role_data)
+                db.session.add(role)
+                logger.info(f"  Created role: {role_data['name']}")
+            else:
+                logger.info(f"  Role already exists: {role_data['name']}")
+        except Exception as e:
+            logger.error(f"  Error checking role {role_data['name']}: {e}")
+            db.session.rollback()
     
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        logger.error(f"  Error committing roles: {e}")
+        db.session.rollback()
 
 
 def init_default_settings():
@@ -110,21 +119,29 @@ def init_default_settings():
     ]
     
     for key, value, value_type, category in default_settings:
-        existing = SiteSetting.query.filter_by(key=key).first()
-        if not existing:
-            setting = SiteSetting(
-                key=key,
-                value=value,
-                value_type=value_type,
-                category=category,
-                updated_by='system'
-            )
-            db.session.add(setting)
-            logger.info(f"  Created setting: {key}")
-        else:
-            logger.info(f"  Setting already exists: {key}")
+        try:
+            existing = SiteSetting.query.filter_by(key=key).first()
+            if not existing:
+                setting = SiteSetting(
+                    key=key,
+                    value=value,
+                    value_type=value_type,
+                    category=category,
+                    updated_by='system'
+                )
+                db.session.add(setting)
+                logger.info(f"  Created setting: {key}")
+            else:
+                logger.info(f"  Setting already exists: {key}")
+        except Exception as e:
+            logger.error(f"  Error checking setting {key}: {e}")
+            db.session.rollback()
     
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        logger.error(f"  Error committing settings: {e}")
+        db.session.rollback()
 
 
 def init_admin_user():
@@ -134,49 +151,61 @@ def init_admin_user():
         logger.info("  ADMIN_PASSWORD not set, skipping admin user creation")
         return
     
-    admin_role = Role.query.filter_by(name='admin').first()
-    if not admin_role:
-        logger.info("  Admin role not found, skipping admin user creation")
-        return
-    
-    existing = User.query.filter_by(username='admin').first()
-    if not existing:
-        admin = User(
-            username='admin',
-            email='admin@disparus.org',
-            password_hash=generate_password_hash(admin_password),
-            role_id=admin_role.id,
-            is_active=True
-        )
-        db.session.add(admin)
-        db.session.commit()
-        logger.info("  Created admin user")
-    else:
-        logger.info("  Admin user already exists")
+    try:
+        admin_role = Role.query.filter_by(name='admin').first()
+        if not admin_role:
+            logger.info("  Admin role not found, skipping admin user creation")
+            return
+
+        existing = User.query.filter_by(username='admin').first()
+        if not existing:
+            admin = User(
+                username='admin',
+                email='admin@disparus.org',
+                password_hash=generate_password_hash(admin_password),
+                role_id=admin_role.id,
+                is_active=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            logger.info("  Created admin user")
+        else:
+            logger.info("  Admin user already exists")
+    except Exception as e:
+        logger.error(f"  Error initializing admin user: {e}")
+        db.session.rollback()
 
 
 def create_missing_tables():
     """Create any missing tables for VPS deployments"""
     logger.info("Checking for missing tables...")
     
-    inspector = inspect(db.engine)
-    existing_tables = inspector.get_table_names()
-    
-    # Check all models defined in SQLAlchemy metadata
-    missing_tables = []
-    for table_name in db.metadata.tables.keys():
-        if table_name not in existing_tables:
-            missing_tables.append(table_name)
-    
-    if missing_tables:
-        logger.info(f"  Missing tables: {', '.join(missing_tables)}")
-        logger.info("  Creating all tables...")
-        db.create_all()
-        logger.info("  Tables created successfully!")
-    else:
-        logger.info("  All tables exist")
-    
-    return missing_tables
+    try:
+        inspector = inspect(db.engine)
+        existing_tables = inspector.get_table_names()
+
+        # Check all models defined in SQLAlchemy metadata
+        missing_tables = []
+        for table_name in db.metadata.tables.keys():
+            if table_name not in existing_tables:
+                missing_tables.append(table_name)
+
+        if missing_tables:
+            logger.info(f"  Missing tables: {', '.join(missing_tables)}")
+            logger.info("  Creating all tables...")
+            try:
+                db.create_all()
+                logger.info("  Tables created successfully!")
+            except Exception as e:
+                logger.error(f"  Failed to create tables: {e}")
+                # Important: If create_all fails, we might still want to try syncing if some tables exist
+        else:
+            logger.info("  All tables exist")
+
+        return missing_tables
+    except Exception as e:
+        logger.error(f"  Error during table check: {e}")
+        return []
 
 
 def sync_schema_columns():
@@ -187,62 +216,82 @@ def sync_schema_columns():
     """
     logger.info("Syncing schema columns (Auto-Migration)...")
     
-    inspector = inspect(db.engine)
-    existing_tables = inspector.get_table_names()
-    # Use get_bind() to ensure we get the correct engine/connection
-    dialect = db.session.get_bind().dialect.name
-    logger.info(f"  Detected Database Dialect: {dialect}")
-    
-    migrations_applied = 0
-    
-    for table_name, table_obj in db.metadata.tables.items():
-        if table_name not in existing_tables:
-            continue
+    try:
+        inspector = inspect(db.engine)
+        existing_tables = inspector.get_table_names()
+        # Use get_bind() to ensure we get the correct engine/connection
+        try:
+            dialect = db.session.get_bind().dialect.name
+        except:
+            dialect = db.engine.dialect.name
 
-        existing_columns = [col['name'] for col in inspector.get_columns(table_name)]
+        logger.info(f"  Detected Database Dialect: {dialect}")
         
-        for column in table_obj.columns:
-            if column.name not in existing_columns:
-                logger.info(f"  Found missing column: {table_name}.{column.name}")
+        migrations_applied = 0
 
-                # Determine SQL type
-                col_type = column.type.compile(db.engine.dialect)
+        for table_name, table_obj in db.metadata.tables.items():
+            if table_name not in existing_tables:
+                continue
 
-                # Handle default for NOT NULL constraint mitigation
-                default_val = ""
-                if not column.nullable:
-                    if isinstance(column.type, (Integer, Float)):
-                        default_val = " DEFAULT 0"
-                    elif isinstance(column.type, Boolean):
-                        # PostgreSQL requires TRUE/FALSE, SQLite can take 1/0 but 0/1 is safer there too usually
-                        # but let's be specific
-                        default_val = " DEFAULT FALSE"
-                        if dialect == 'sqlite':
+            try:
+                existing_columns = [col['name'] for col in inspector.get_columns(table_name)]
+            except Exception as e:
+                logger.error(f"  Failed to inspect columns for {table_name}: {e}")
+                continue
+
+            for column in table_obj.columns:
+                if column.name not in existing_columns:
+                    logger.info(f"  Found missing column: {table_name}.{column.name}")
+
+                    # Determine SQL type
+                    col_type = column.type.compile(db.engine.dialect)
+
+                    # Handle default for NOT NULL constraint mitigation
+                    default_val = ""
+                    if not column.nullable:
+                        if isinstance(column.type, (Integer, Float)):
                             default_val = " DEFAULT 0"
-                    elif isinstance(column.type, (String, Text)):
-                        default_val = " DEFAULT ''"
-                    elif isinstance(column.type, DateTime):
-                         # CURRENT_TIMESTAMP works in both Postgres and SQLite
-                         default_val = " DEFAULT CURRENT_TIMESTAMP"
-                    elif isinstance(column.type, JSON):
-                        default_val = " DEFAULT '{}'"
+                        elif isinstance(column.type, Boolean):
+                            # PostgreSQL requires TRUE/FALSE, SQLite can take 1/0 but 0/1 is safer there too usually
+                            # but let's be specific
+                            default_val = " DEFAULT FALSE"
+                            if dialect == 'sqlite':
+                                default_val = " DEFAULT 0"
+                        elif isinstance(column.type, (String, Text)):
+                            default_val = " DEFAULT ''"
+                        elif isinstance(column.type, DateTime):
+                             # CURRENT_TIMESTAMP works in both Postgres and SQLite
+                             default_val = " DEFAULT CURRENT_TIMESTAMP"
+                        elif isinstance(column.type, JSON):
+                            default_val = " DEFAULT '{}'"
 
-                try:
-                    # Construct ALTER TABLE statement
-                    # SQLite 'ADD COLUMN' syntax is standard-ish
-                    sql = f'ALTER TABLE {table_name} ADD COLUMN {column.name} {col_type}{default_val}'
-                    db.session.execute(text(sql))
-                    db.session.commit()
-                    logger.info(f"  + Added column {column.name} to {table_name}")
-                    migrations_applied += 1
-                except Exception as e:
-                    logger.error(f"  - Failed to add column {column.name} to {table_name}: {e}")
-                    db.session.rollback()
-    
-    if migrations_applied > 0:
-        logger.info(f"  {migrations_applied} column migrations applied successfully.")
-    else:
-        logger.info("  Schema is up to date. No columns missing.")
+                    try:
+                        # Construct ALTER TABLE statement
+                        # SQLite 'ADD COLUMN' syntax is standard-ish
+                        sql = f'ALTER TABLE {table_name} ADD COLUMN {column.name} {col_type}{default_val}'
+                        db.session.execute(text(sql))
+                        db.session.commit()
+                        logger.info(f"  + Added column {column.name} to {table_name}")
+                        migrations_applied += 1
+                    except ProgrammingError as e:
+                        # Handle case where column might have been added by another process or race condition
+                        if "already exists" in str(e) or "duplicate column" in str(e):
+                            logger.info(f"  - Column {column.name} already exists (race condition handled)")
+                            db.session.rollback()
+                        else:
+                            logger.error(f"  - Failed to add column {column.name} to {table_name} (ProgrammingError): {e}")
+                            db.session.rollback()
+                    except Exception as e:
+                        logger.error(f"  - Failed to add column {column.name} to {table_name}: {e}")
+                        db.session.rollback()
+
+        if migrations_applied > 0:
+            logger.info(f"  {migrations_applied} column migrations applied successfully.")
+        else:
+            logger.info("  Schema is up to date. No columns missing.")
+
+    except Exception as e:
+        logger.error(f"  Critical error during schema sync: {e}")
 
 
 def run_migrations():
@@ -253,9 +302,16 @@ def run_migrations():
     sync_schema_columns()
     
     # Postgres-specific optimizations (Indexes)
-    if db.session.get_bind().dialect.name == 'postgresql':
+    try:
+        # Check dialect again just to be safe
+        dialect_name = db.session.get_bind().dialect.name
+    except:
+        dialect_name = 'unknown'
+
+    if dialect_name == 'postgresql':
         try:
             # Create GIN index for Full Text Search
+            # Using DO block for robustness if possible, but standard IF NOT EXISTS is good
             sql = """
             CREATE INDEX IF NOT EXISTS idx_disparu_fulltext
             ON disparus_flask
@@ -306,6 +362,15 @@ def init_database():
     logger.info("=== DISPARUS.ORG Database Initialization ===")
     
     with app.app_context():
+        # 0. Pre-flight Connection Check
+        try:
+            with db.engine.connect() as conn:
+                pass
+        except OperationalError as e:
+            logger.critical(f"FATAL: Could not connect to database: {e}")
+            logger.critical("Check DATABASE_URL and ensure database server is running.")
+            sys.exit(1)
+
         # Log database connection info
         try:
             db_url = db.engine.url.render_as_string(hide_password=True)
