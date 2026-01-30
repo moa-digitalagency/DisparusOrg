@@ -14,6 +14,7 @@ from models import db, Disparu, Contribution, ModerationReport, ActivityLog, Sit
 from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cities
 from services.signalement import create_signalement, generate_public_id
 from security.rate_limit import rate_limit
+from services.moderation import check_image_content
 
 public_bp = Blueprint('public', __name__)
 
@@ -209,6 +210,13 @@ def report():
                     if not allowed_file(filename, file):
                         flash('Type de fichier non autorise. Utilisez PNG, JPG, GIF ou WebP.', 'error')
                         return redirect(url_for('public.report'))
+
+                    # Content Moderation
+                    is_safe, reason = check_image_content(file)
+                    if not is_safe:
+                        flash(f'Contenu non autorisé : {reason}', 'error')
+                        return redirect(url_for('public.report'))
+
                     unique_name = f"{generate_public_id()}_{filename}"
                     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
                     file.save(filepath)
@@ -313,6 +321,12 @@ def contribute(public_id):
         if 'proof' in request.files:
             file = request.files['proof']
             if file and file.filename:
+                # Content Moderation
+                is_safe, reason = check_image_content(file)
+                if not is_safe:
+                    flash(f'Contenu non autorisé : {reason}', 'error')
+                    return redirect(url_for('public.detail', public_id=public_id))
+
                 filename = secure_filename(file.filename)
                 unique_name = f"proof_{generate_public_id()}_{filename}"
                 filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
