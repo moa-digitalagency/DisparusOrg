@@ -10,6 +10,43 @@
 {% block title %}{{ t('report_form.title') }} - {{ t('site.name') }}{% endblock %}
 
 {% block content %}
+{% if blocked_attempt %}
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border-2 border-red-600">
+        <div class="bg-red-600 text-white p-6 text-center">
+            <svg class="w-16 h-16 mx-auto mb-4 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <h3 class="text-2xl font-bold uppercase tracking-wide">{% if get_locale() == 'fr' %}Alerte de Sécurité{% else %}Security Alert{% endif %}</h3>
+        </div>
+        <div class="p-8 text-center space-y-4">
+            <p class="text-lg text-gray-800 font-semibold leading-relaxed">
+                {% if get_locale() == 'fr' %}
+                Vous essayez de télécharger un contenu de type <span class="text-red-600 font-bold uppercase">{{ blocked_attempt.detection_type }}</span>.
+                {% else %}
+                You are attempting to upload content of type <span class="text-red-600 font-bold uppercase">{{ blocked_attempt.detection_type }}</span>.
+                {% endif %}
+            </p>
+
+            <div class="bg-gray-100 p-4 rounded-lg text-sm text-left border border-gray-200">
+                <p class="font-mono text-gray-600 mb-1"><strong>IP:</strong> {{ blocked_attempt.ip_address }}</p>
+                <p class="font-mono text-gray-600"><strong>Location:</strong> {{ blocked_attempt.city }}, {{ blocked_attempt.country }}</p>
+            </div>
+
+            <div class="p-4 bg-red-50 border border-red-100 rounded-lg text-sm text-red-800">
+                {% if get_locale() == 'fr' %}
+                Votre action a été enregistrée avec vos informations d'identification. Une enquête est en cours. En cas de confirmation, des poursuites auprès des autorités compétentes peuvent être entreprises.
+                {% else %}
+                Your action has been recorded with your identification details. An investigation is underway. In case of confirmation, legal proceedings with the competent authorities may be undertaken.
+                {% endif %}
+            </div>
+
+            <button onclick="window.location.href='/'" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-all mt-4">
+                {% if get_locale() == 'fr' %}J'ai compris{% else %}I understand{% endif %}
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <section class="bg-gradient-to-br from-red-700 to-red-900 text-white py-12 relative overflow-hidden">
     <div class="absolute inset-0 bg-black/20"></div>
     <div class="max-w-7xl mx-auto px-4 relative z-10">
@@ -261,6 +298,39 @@
 
 {% block scripts %}
 <script>
+    // Auto-detect location via IP on load
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!document.getElementById('country-select').value) {
+            fetch('/api/geo/ip')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.country) {
+                        const countrySelect = document.getElementById('country-select');
+                        for (let i = 0; i < countrySelect.options.length; i++) {
+                            if (countrySelect.options[i].value.toLowerCase() === data.country.toLowerCase()) {
+                                countrySelect.selectedIndex = i;
+                                countrySelect.dispatchEvent(new Event('change'));
+
+                                setTimeout(() => {
+                                    if (data.city) {
+                                        const citySelect = document.getElementById('city-select');
+                                        for (let j = 0; j < citySelect.options.length; j++) {
+                                            if (citySelect.options[j].value.toLowerCase() === data.city.toLowerCase()) {
+                                                citySelect.selectedIndex = j;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }, 300);
+                                break;
+                            }
+                        }
+                    }
+                })
+                .catch(err => console.log('IP Geo failed', err));
+        }
+    });
+
     const countriesCities = {{ countries_cities|tojson|safe }};
     
     const countrySelect = document.getElementById('country-select');

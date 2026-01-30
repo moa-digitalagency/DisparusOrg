@@ -11,6 +11,7 @@ from math import radians, sin, cos, sqrt, atan2
 from models import db, Disparu, Contribution
 from utils.geo import get_countries, get_cities
 from security.rate_limit import rate_limit
+from services.moderation import get_geo_info
 
 api_bp = Blueprint('api', __name__)
 
@@ -140,3 +141,21 @@ def search_api():
     ).limit(20).all()
     
     return jsonify([d.to_dict() for d in results])
+
+
+@api_bp.route('/geo/ip')
+@rate_limit()
+def get_ip_location():
+    # Detect IP
+    if request.headers.getlist("X-Forwarded-For"):
+        ip_address = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+        ip_address = request.remote_addr
+
+    country, city = get_geo_info(ip_address)
+
+    return jsonify({
+        'country': country,
+        'city': city,
+        'ip': ip_address
+    })
