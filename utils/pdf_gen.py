@@ -219,7 +219,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     # Nom
     p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica-Bold", 25) # Réduit de 26 à 25 comme demandé
+    p.setFont("Helvetica-Bold", 20) # Réduit pour éviter dépassement
     name = f"{disparu.first_name} {disparu.last_name}"
     p.drawString(info_x, info_y_cursor, name)
     info_y_cursor -= 1.3*cm # Espacement réduit de 1.8 à 1.3 pour faire monter les détails de 0.5cm
@@ -259,11 +259,11 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # Affichage des détails standard
     for label, value in details:
         p.setFillColor(RED_DARK)
-        p.setFont("Helvetica-Bold", 14) 
+        p.setFont("Helvetica-Bold", 14)
         p.drawString(info_x, info_y_cursor, label)
 
         p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica", 14) 
+        p.setFont("Helvetica", 14)
         label_w = p.stringWidth(label, "Helvetica-Bold", 14)
         p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, value)
         info_y_cursor -= 1.0*cm 
@@ -365,7 +365,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
         if name or phone:
             p.setFillColor(BLACK)
-            p.setFont("Helvetica-Bold", 18) # Augmenté de 12 à 18 (beaucoup plus grand)
+            p.setFont("Helvetica-Bold", 18) # Revert to 18
             p.drawString(2*cm, contact_y, f"{name}: {phone}")
             contact_y -= 1.0*cm # Espacement vertical augmenté
 
@@ -492,7 +492,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
             font_bold_med = ImageFont.truetype(font_path_bold, 28) # Footer text
             font_reg = ImageFont.truetype(font_path_reg, 24) # Textes normaux
             font_small = ImageFont.truetype(font_path_reg, 20) # Petits textes
-            font_name = ImageFont.truetype(font_path_bold, 55) # Nom Prénom
+            font_name = ImageFont.truetype(font_path_bold, 40) # Nom Prénom
         except:
             font_heavy = ImageFont.load_default()
             font_bold_large = font_heavy
