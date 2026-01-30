@@ -30,6 +30,9 @@ class ContentModerator:
 
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 429:
+                current_app.logger.warning(f"Moderation API Limit Exceeded: {response.status_code}. Allowing upload.")
+                return None
             else:
                 current_app.logger.error(f"Moderation API error: {response.status_code} - {response.text}")
                 return None
@@ -65,6 +68,8 @@ class ContentModerator:
                 country = data.get('country_name', 'Unknown')
                 city = data.get('city', 'Unknown')
                 return country, city
+            elif response.status_code == 429:
+                 current_app.logger.warning("Geo API Limit Exceeded. Using default/manual location selection.")
             else:
                  current_app.logger.warning(f"Geo API error: {response.status_code} - {response.text}")
 
