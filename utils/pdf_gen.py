@@ -259,36 +259,36 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # Affichage des détails standard
     for label, value in details:
         p.setFillColor(RED_DARK)
-        p.setFont("Helvetica-Bold", 12)
+        p.setFont("Helvetica-Bold", 14)
         p.drawString(info_x, info_y_cursor, label)
 
         p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica", 12)
-        label_w = p.stringWidth(label, "Helvetica-Bold", 12)
+        p.setFont("Helvetica", 14)
+        label_w = p.stringWidth(label, "Helvetica-Bold", 14)
         p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, value)
         info_y_cursor -= 1.0*cm 
 
     # Ajout Heure sur la ligne suivante si elle existe
     if heure_val:
         p.setFillColor(RED_DARK)
-        p.setFont("Helvetica-Bold", 12)
+        p.setFont("Helvetica-Bold", 14)
         p.drawString(info_x, info_y_cursor, "Heure / Time:")
 
         p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica", 12)
-        label_w = p.stringWidth("Heure / Time:", "Helvetica-Bold", 12)
+        p.setFont("Helvetica", 14)
+        label_w = p.stringWidth("Heure / Time:", "Helvetica-Bold", 14)
         p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, heure_val)
         info_y_cursor -= 1.0*cm
 
     # Ajout ID sur la ligne suivante encore
     p.setFillColor(RED_DARK)
-    p.setFont("Helvetica-Bold", 12)
+    p.setFont("Helvetica-Bold", 14)
     label_id = "ID Disparus.org:"
     p.drawString(info_x, info_y_cursor, label_id)
 
     p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica", 12)
-    label_w = p.stringWidth(label_id, "Helvetica-Bold", 12)
+    p.setFont("Helvetica", 14)
+    label_w = p.stringWidth(label_id, "Helvetica-Bold", 14)
     p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(disparu.public_id))
     # info_y_cursor -= 1.0*cm # Pas nécessaire pour le dernier élément
 
@@ -365,7 +365,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
         if name or phone:
             p.setFillColor(BLACK)
-            p.setFont("Helvetica-Bold", 14) # Réduit pour éviter dépassement
+            p.setFont("Helvetica-Bold", 18) # Revert to 18
             p.drawString(2*cm, contact_y, f"{name}: {phone}")
             contact_y -= 1.0*cm # Espacement vertical augmenté
 
@@ -487,9 +487,9 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
             font_path_bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
             font_path_reg = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
-            font_heavy = ImageFont.truetype(font_path_bold, 36) # Contact Phone
-            font_bold_large = ImageFont.truetype(font_path_bold, 28) # Titres principaux
-            font_bold_med = ImageFont.truetype(font_path_bold, 24) # Footer text
+            font_heavy = ImageFont.truetype(font_path_bold, 48) # Contact Phone
+            font_bold_large = ImageFont.truetype(font_path_bold, 36) # Titres principaux
+            font_bold_med = ImageFont.truetype(font_path_bold, 28) # Footer text
             font_reg = ImageFont.truetype(font_path_reg, 24) # Textes normaux
             font_small = ImageFont.truetype(font_path_reg, 20) # Petits textes
             font_name = ImageFont.truetype(font_path_bold, 40) # Nom Prénom
