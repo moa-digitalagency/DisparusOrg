@@ -212,10 +212,14 @@ def report():
                         return redirect(url_for('public.report'))
 
                     # Content Moderation
-                    is_safe, reason = check_image_content(file)
+                    is_safe, reason, log_entry = check_image_content(file)
                     if not is_safe:
                         flash(f'Contenu non autorisé : {reason}', 'error')
-                        return redirect(url_for('public.report'))
+                        return render_template('report.html',
+                                             countries=get_countries(),
+                                             countries_cities=COUNTRIES_CITIES,
+                                             blocked_attempt=log_entry,
+                                             error=f'Contenu non autorisé : {reason}')
 
                     unique_name = f"{generate_public_id()}_{filename}"
                     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
@@ -322,10 +326,11 @@ def contribute(public_id):
             file = request.files['proof']
             if file and file.filename:
                 # Content Moderation
-                is_safe, reason = check_image_content(file)
+                is_safe, reason, log_entry = check_image_content(file)
                 if not is_safe:
                     flash(f'Contenu non autorisé : {reason}', 'error')
-                    return redirect(url_for('public.detail', public_id=public_id))
+                    contributions = Contribution.query.filter_by(disparu_id=disparu.id).order_by(Contribution.created_at.desc()).all()
+                    return render_template('detail.html', person=disparu, contributions=contributions, blocked_attempt=log_entry)
 
                 filename = secure_filename(file.filename)
                 unique_name = f"proof_{generate_public_id()}_{filename}"

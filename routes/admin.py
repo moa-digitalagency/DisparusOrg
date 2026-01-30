@@ -13,7 +13,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response
 
-from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting
+from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting, ContentModerationLog
 from models.settings import invalidate_settings_cache, get_all_settings_dict
 from services.analytics import get_platform_stats
 from utils.geo import get_countries
@@ -660,6 +660,16 @@ def edit_role(role_id):
         return redirect(url_for('admin.roles'))
     
     return render_template('admin_role_form.html', role=role)
+
+
+@admin_bp.route('/blocked-attempts')
+@admin_required
+def blocked_attempts():
+    log_activity('Consultation tentatives bloquees', action_type='view', target_type='security')
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    logs = ContentModerationLog.query.order_by(ContentModerationLog.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('admin_blocked_attempts.html', logs=logs)
 
 
 @admin_bp.route('/logs')
