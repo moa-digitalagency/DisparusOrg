@@ -296,5 +296,68 @@
     {% endif %}
 
     {% block scripts %}{% endblock %}
+
+    {% if blocked_attempt %}
+    <div id="moderation-alert-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border-2 border-red-600 animate-bounce-small">
+            <div class="bg-red-700 text-white p-6 text-center">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <h2 class="text-2xl font-bold uppercase tracking-wide">
+                    {% if get_locale() == 'fr' %}Contenu Bloqué{% else %}Content Blocked{% endif %}
+                </h2>
+                <p class="text-red-100 mt-1 font-medium">
+                    {% if get_locale() == 'fr' %}Détection de contenu illicite{% else %}Illicit content detected{% endif %}
+                </p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-red-800 text-sm leading-relaxed">
+                    <p class="font-bold mb-2">
+                        {% if get_locale() == 'fr' %}AVERTISSEMENT DE SÉCURITÉ{% else %}SECURITY WARNING{% endif %}
+                    </p>
+                    <p>
+                        {% if get_locale() == 'fr' %}
+                        Vous avez tenté de télécharger un contenu identifié comme <strong>{{ blocked_attempt.detection_type|upper }}</strong>.
+                        {% else %}
+                        You attempted to upload content identified as <strong>{{ blocked_attempt.detection_type|upper }}</strong>.
+                        {% endif %}
+                    </p>
+                    <p class="mt-2">
+                        {% if get_locale() == 'fr' %}
+                        Votre action a été enregistrée avec vos informations d'identification. Une enquête est en cours. En cas de confirmation, des poursuites auprès des autorités compétentes pourront être entreprises.
+                        {% else %}
+                        Your action has been logged with your identification details. An investigation is underway. If confirmed, legal action may be taken with competent authorities.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                        {% if get_locale() == 'fr' %}Informations Enregistrées{% else %}Logged Information{% endif %}
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="block text-gray-500 text-xs">IP Address</span>
+                            <span class="font-mono font-medium text-gray-900">{{ blocked_attempt.ip_address }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500 text-xs">Location</span>
+                            <span class="font-medium text-gray-900">{{ blocked_attempt.city }}, {{ blocked_attempt.country }}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="block text-gray-500 text-xs">Timestamp</span>
+                            <span class="font-mono text-gray-900">{{ blocked_attempt.created_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='/'" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 rounded-xl transition-all shadow-lg">
+                    {% if get_locale() == 'fr' %}Compris et Retour à l'accueil{% else %}Understood and Return Home{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </body>
 </html>

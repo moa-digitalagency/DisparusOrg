@@ -15,6 +15,7 @@ from models.user import User, ModerationReport, Role
 from models.activity_log import ActivityLog, log_activity
 from models.download import Download
 from models.settings import SiteSetting, init_default_settings, init_default_roles
+from models.moderation_log import ContentModerationLog
 
 __all__ = [
     'db', 
@@ -29,4 +30,5 @@ __all__ = [
     'SiteSetting',
     'init_default_settings',
     'init_default_roles',
+    'ContentModerationLog',
 ]

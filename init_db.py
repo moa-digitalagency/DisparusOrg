@@ -18,7 +18,7 @@ from datetime import datetime
 import logging
 
 from app import create_app
-from models import db, User, Role, Disparu, Contribution, ModerationReport, ActivityLog, Download, SiteSetting
+from models import db, User, Role, Disparu, Contribution, ModerationReport, ActivityLog, Download, SiteSetting, ContentModerationLog
 from werkzeug.security import generate_password_hash
 from sqlalchemy import text, inspect, Integer, Boolean, String, Text, Float, DateTime, JSON
 
