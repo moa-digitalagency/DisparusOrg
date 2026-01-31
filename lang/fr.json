@@ -34,6 +34,9 @@
   "sections": {
     "recent_reports": "Signalements recents",
     "reports_near_you": "Signalements proches de vous",
+    "all": "Tous",
+    "person": "Personne",
+    "animal": "Animal",
     "all_countries": "Tous les pays",
     "view_all": "Voir tout",
     "no_reports": "Aucun signalement pour le moment",
