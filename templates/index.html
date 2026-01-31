@@ -70,7 +70,7 @@
 
 <section class="py-12 bg-gray-50/50">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
             <div class="flex items-center gap-3">
                 <div class="w-1 h-6 bg-red-600 rounded-full"></div>
                 <h2 class="text-lg font-semibold text-gray-900" data-testid="text-recent-title">
@@ -78,19 +78,21 @@
                 </h2>
                 <span id="user-location-badge" class="hidden text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"></span>
             </div>
-            <div class="flex items-center gap-2">
-                <select id="type-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <option value="all">{% if get_locale() == 'fr' %}Tous les disparus{% else %}All missing{% endif %}</option>
-                    <option value="person">{% if get_locale() == 'fr' %}Disparus Personne{% else %}Missing Persons{% endif %}</option>
-                    <option value="animal">{% if get_locale() == 'fr' %}Disparus Animaux{% else %}Missing Animals{% endif %}</option>
-                </select>
-                <select id="country-filter" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <option value="">{{ t('sections.all_countries') }}</option>
-                    {% for country in countries %}
-                    <option value="{{ country }}">{{ country }}</option>
-                    {% endfor %}
-                </select>
-                <a href="/recherche" class="text-red-700 hover:text-red-800 font-medium text-sm flex items-center gap-1" data-testid="link-view-all">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                <div class="flex flex-col sm:flex-row gap-2 flex-1">
+                    <select id="type-filter" class="flex-1 sm:w-48 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 min-w-0">
+                        <option value="all">{% if get_locale() == 'fr' %}Tous les disparus{% else %}All missing{% endif %}</option>
+                        <option value="person">{% if get_locale() == 'fr' %}Disparus Personne{% else %}Missing Persons{% endif %}</option>
+                        <option value="animal">{% if get_locale() == 'fr' %}Disparus Animaux{% else %}Missing Animals{% endif %}</option>
+                    </select>
+                    <select id="country-filter" class="flex-1 sm:w-48 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 min-w-0">
+                        <option value="">{{ t('sections.all_countries') }}</option>
+                        {% for country in countries %}
+                        <option value="{{ country }}">{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <a href="/recherche" class="inline-flex items-center justify-center sm:justify-start gap-1 text-red-700 hover:text-red-800 font-medium text-sm py-1 whitespace-nowrap" data-testid="link-view-all">
                     {{ t('sections.view_all') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
