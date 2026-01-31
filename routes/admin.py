@@ -14,7 +14,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting, ContentModerationLog
-from models.settings import invalidate_settings_cache, get_all_settings_dict
+from models.settings import invalidate_settings_cache, get_all_settings_dict, DEFAULT_SETTINGS
 from services.analytics import get_platform_stats
 from utils.geo import get_countries
 from security.rate_limit import rate_limit
@@ -432,13 +432,40 @@ def settings():
                         db.session.add(new_setting)
         
         # Handle unchecked checkboxes (missing from request.form)
-        boolean_settings = SiteSetting.query.filter_by(value_type='boolean').all()
-        for setting in boolean_settings:
-            key = f'setting_{setting.key}'
-            if key not in request.form:
-                setting.value = 'false'
-                setting.updated_by = session.get('admin_username')
-                db.session.add(setting)
+        # We need to check both existing settings and default boolean settings
+        # to ensure even missing or wrong-typed settings are handled correctly
+        boolean_keys = set()
+
+        # 1. From Defaults
+        for k, v in DEFAULT_SETTINGS.items():
+             if v.get('type') == 'boolean':
+                 boolean_keys.add(k)
+
+        # 2. From DB (existing)
+        existing_bools = SiteSetting.query.filter_by(value_type='boolean').all()
+        for s in existing_bools:
+            boolean_keys.add(s.key)
+
+        for key in boolean_keys:
+            form_key = f'setting_{key}'
+            if form_key not in request.form:
+                # Unchecked: ensure it exists and is false
+                existing = SiteSetting.query.filter_by(key=key).first()
+                if existing:
+                    existing.value = 'false'
+                    existing.value_type = 'boolean'  # Ensure correct type
+                    existing.updated_by = session.get('admin_username')
+                    db.session.add(existing)
+                elif key in DEFAULT_SETTINGS:
+                    # Create as false if it doesn't exist but is in defaults
+                    new_setting = SiteSetting(
+                        key=key,
+                        value='false',
+                        value_type='boolean',
+                        category=DEFAULT_SETTINGS[key]['category'],
+                        updated_by=session.get('admin_username')
+                    )
+                    db.session.add(new_setting)
 
         for key in request.form:
             if key.startswith('setting_'):
