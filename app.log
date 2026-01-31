@@ -1,0 +1,14 @@
+WARNING:root:SESSION_SECRET not set. Using random secret. Sessions will not persist across restarts.
+ * Serving Flask app 'app'
+ * Debug mode: off
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [31/Jan/2026 15:28:18] "GET /admin/login HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [31/Jan/2026 15:28:20] "[32mPOST /admin/login HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [31/Jan/2026 15:28:20] "GET /admin/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [31/Jan/2026 15:28:40] "GET /admin/login HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [31/Jan/2026 15:28:41] "[32mPOST /admin/login HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [31/Jan/2026 15:28:41] "GET /admin/ HTTP/1.1" 200 -
