@@ -42,14 +42,18 @@
         <div class="text-center max-w-3xl mx-auto">
             <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-medium mb-4 shadow-sm
                 {% if person.status == 'missing' %}bg-white text-red-700
-                {% elif person.status == 'found' %}bg-green-500 text-white
+                {% elif person.status in ['found', 'found_alive'] %}bg-green-500 text-white
                 {% else %}bg-gray-500 text-white{% endif %}" data-testid="badge-status">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 {% if person.person_type == 'animal' %}
                     {% if person.status == 'missing' %}
                         {{ t('detail.animal_missing') }}
+                    {% elif person.status == 'found_alive' %}
+                        {{ t('detail.status_found_alive') }}
                     {% elif person.status == 'found' %}
                         {{ t('detail.animal_found') }}
+                    {% elif person.status == 'found_deceased' %}
+                        {{ t('detail.status_found_deceased') }}
                     {% elif person.status == 'deceased' %}
                         {{ t('detail.animal_deceased') }}
                     {% else %}
@@ -58,8 +62,12 @@
                 {% else %}
                     {% if person.status == 'missing' %}
                         {{ t('detail.status_missing') }}
+                    {% elif person.status == 'found_alive' %}
+                        {{ t('detail.status_found_alive') }}
                     {% elif person.status == 'found' %}
                         {{ t('detail.status_found') }}
+                    {% elif person.status == 'found_deceased' %}
+                        {{ t('detail.status_found_deceased') }}
                     {% elif person.status == 'deceased' %}
                         {{ t('detail.status_deceased') }}
                     {% else %}
@@ -250,37 +258,53 @@
             </div>
             
             <div class="space-y-5">
-                {% if person.status == 'missing' and person.disappearance_date %}
-                <div class="bg-gradient-to-br from-red-600 to-red-800 rounded-xl p-5 shadow-lg text-white">
+                {% if person.disappearance_date %}
+                <div class="rounded-xl p-5 shadow-lg text-white
+                    {% if person.status == 'missing' %}bg-gradient-to-br from-red-600 to-red-800
+                    {% elif person.status in ['found', 'found_alive'] %}bg-gradient-to-br from-green-600 to-green-800
+                    {% else %}bg-gradient-to-br from-gray-600 to-gray-800{% endif %}">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <div>
-                            <p class="text-red-100 text-xs uppercase tracking-wider font-medium">{{ t('detail.missing_since') }}</p>
+                            <p class="text-white/80 text-xs uppercase tracking-wider font-medium">
+                                {% if person.status == 'missing' %}
+                                    {{ t('detail.missing_since') }}
+                                {% elif person.status == 'found_alive' %}
+                                    {{ t('detail.status_found_alive') }}
+                                {% elif person.status == 'found' %}
+                                    {{ t('detail.status_found') }}
+                                {% elif person.status == 'found_deceased' %}
+                                    {{ t('detail.status_found_deceased') }}
+                                {% else %}
+                                    {{ t('detail.status_deceased') }}
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                     <div id="missingTimer" class="flex justify-center gap-3 text-center">
                         <div class="bg-white/10 backdrop-blur rounded-xl px-4 py-3 min-w-[70px]">
                             <span id="timerDays" class="text-2xl font-bold block">--</span>
-                            <span class="text-xs text-red-200">{{ t('detail.days') }}</span>
+                            <span class="text-xs text-white/70">{{ t('detail.days') }}</span>
                         </div>
                         <div class="bg-white/10 backdrop-blur rounded-xl px-4 py-3 min-w-[70px]">
                             <span id="timerHours" class="text-2xl font-bold block">--</span>
-                            <span class="text-xs text-red-200">{{ t('detail.hours') }}</span>
+                            <span class="text-xs text-white/70">{{ t('detail.hours') }}</span>
                         </div>
                         <div class="bg-white/10 backdrop-blur rounded-xl px-4 py-3 min-w-[70px]">
                             <span id="timerMinutes" class="text-2xl font-bold block">--</span>
-                            <span class="text-xs text-red-200">{{ t('detail.minutes') }}</span>
+                            <span class="text-xs text-white/70">{{ t('detail.minutes') }}</span>
                         </div>
                     </div>
-                    <p class="text-center text-red-100 text-xs mt-3">{{ t('detail.since') }} {{ person.disappearance_date.strftime('%d/%m/%Y') }} {{ t('detail.at') }} {{ person.disappearance_date.strftime('%H:%M') }}</p>
+                    <p class="text-center text-white/80 text-xs mt-3">{{ t('detail.since') }} {{ person.disappearance_date.strftime('%d/%m/%Y') }} {{ t('detail.at') }} {{ person.disappearance_date.strftime('%H:%M') }}</p>
                 </div>
                 <script>
                 (function() {
                     var disappearanceDate = new Date("{{ person.disappearance_date.strftime('%Y-%m-%dT%H:%M:%S') }}");
+                    var isMissing = {{ (person.status == 'missing') | tojson }};
                     function updateTimer() {
-                        var now = new Date();
+                        var now = isMissing ? new Date() : new Date("{{ person.updated_at.strftime('%Y-%m-%dT%H:%M:%S') if person.updated_at else person.disappearance_date.strftime('%Y-%m-%dT%H:%M:%S') }}");
                         var diff = now - disappearanceDate;
                         if (diff < 0) diff = 0;
                         var days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -291,11 +315,14 @@
                         document.getElementById('timerMinutes').textContent = minutes;
                     }
                     updateTimer();
-                    setInterval(updateTimer, 60000);
+                    if (isMissing) {
+                        setInterval(updateTimer, 60000);
+                    }
                 })();
                 </script>
                 {% endif %}
                 
+                {% if person.status == 'missing' %}
                 <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="w-1 h-5 bg-red-600 rounded-full"></div>
@@ -371,6 +398,7 @@
                         </button>
                     </form>
                 </div>
+                {% endif %}
                 
                 <div class="bg-white rounded-xl border border-red-100 p-5 shadow-sm">
                     <div class="flex items-center gap-3 mb-2">

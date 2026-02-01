@@ -6,6 +6,8 @@
   "missing": "Missing",
   "found": "Found",
   "deceased": "Deceased",
+  "found_alive": "Found alive",
+  "found_deceased": "Found deceased",
   "status_found_alive": "Found alive",
   "status_found_deceased": "Found deceased",
   "seo": {
@@ -201,6 +203,8 @@
     "status_missing": "Missing",
     "status_found": "Found",
     "status_deceased": "Deceased",
+    "status_found_alive": "Found alive",
+    "status_found_deceased": "Found deceased",
     "animal_missing": "Missing Animal",
     "animal_found": "Found Animal",
     "animal_deceased": "Deceased Animal",
