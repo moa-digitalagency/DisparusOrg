@@ -112,9 +112,9 @@
                     <div class="absolute top-4 left-4">
                         <span class="bg-red-600 text-white text-[10px] px-3 py-1.5 rounded-xl font-semibold uppercase tracking-wide shadow-sm">
                             {% if person.person_type == 'animal' %}
-                                {% if person.status == 'missing' %}{% if get_locale() == 'fr' %}Animal Disparu{% else %}Missing Animal{% endif %}
-                                {% elif person.status == 'found' %}{% if get_locale() == 'fr' %}Animal Retrouvé{% else %}Found Animal{% endif %}
-                                {% elif person.status == 'deceased' %}{% if get_locale() == 'fr' %}Animal Décédé{% else %}Deceased Animal{% endif %}
+                                {% if person.status == 'missing' %}{{ t('detail.animal_missing') }}
+                                {% elif person.status == 'found' %}{{ t('detail.animal_found') }}
+                                {% elif person.status == 'deceased' %}{{ t('detail.animal_deceased') }}
                                 {% else %}{{ person.status }}{% endif %}
                             {% else %}
                                 {% if person.status == 'missing' %}
@@ -122,7 +122,7 @@
                                 {% elif person.status == 'found' %}
                                     {{ t('detail.status_found') }}
                                 {% elif person.status == 'deceased' %}
-                                    {{ t('detail.deceased') }}
+                                    {{ t('detail.status_deceased') }}
                                 {% else %}
                                     {{ person.status }}
                                 {% endif %}
