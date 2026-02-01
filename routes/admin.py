@@ -179,7 +179,7 @@ def edit_disparu(disparu_id):
             disparu.animal_type = request.form.get('animal_type')
             disparu.breed = request.form.get('breed')
             disparu.first_name = request.form.get('first_name')
-            disparu.last_name = request.form.get('last_name')
+            disparu.last_name = request.form.get('last_name') or "-"
             disparu.age = int(request.form.get('age')) if request.form.get('age') else -1
             disparu.sex = request.form.get('sex')
             disparu.country = request.form.get('country')
@@ -278,7 +278,8 @@ def update_status(disparu_id):
         disparu.status = new_status
         log_activity(f'Changement statut: {old_status} -> {new_status}', action_type='update', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
         db.session.commit()
-    return redirect(url_for('admin.dashboard'))
+        flash(f'Statut mis à jour : {new_status}', 'success')
+    return redirect(request.referrer or url_for('admin.dashboard'))
 
 
 @admin_bp.route('/disparu/<int:disparu_id>/delete', methods=['POST'])

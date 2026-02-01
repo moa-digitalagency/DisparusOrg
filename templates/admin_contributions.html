@@ -9,8 +9,8 @@
 
 {% block title %}Contributions - Admin DISPARUS.ORG{% endblock %}
 
-{% block page_title %}Contributions{% endblock %}
-{% block page_subtitle %}{% if get_locale() == 'fr' %}Toutes les contributions des citoyens{% else %}All citizen contributions{% endif %}{% endblock %}
+{% block page_title %}{{ t('admin.contributions') }}{% endblock %}
+{% block page_subtitle %}{{ t('admin.all_citizen_contributions') }}{% endblock %}
 
 {% block admin_content %}
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -29,7 +29,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-4 mb-2">
                         <div class="flex items-center gap-3">
-                            <span class="font-medium text-gray-900">{{ contribution.contributor_name or contribution.contact_name or 'Anonyme' }}</span>
+                            <span class="font-medium text-gray-900">{{ contribution.contributor_name or contribution.contact_name or t('admin.anonymous') }}</span>
                             <span class="text-xs px-2 py-0.5 rounded-lg font-medium
                                 {% if contribution.contribution_type == 'sighting' %}bg-green-100 text-green-700
                                 {% elif contribution.contribution_type == 'information' %}bg-blue-100 text-blue-700
@@ -38,11 +38,11 @@
                             </span>
                             {% if contribution.is_approved %}
                             <span class="text-xs px-2 py-0.5 rounded-lg font-medium bg-green-100 text-green-700">
-                                {% if get_locale() == 'fr' %}Approuve{% else %}Approved{% endif %}
+                                {{ t('admin.approved') }}
                             </span>
                             {% else %}
                             <span class="text-xs px-2 py-0.5 rounded-lg font-medium bg-amber-100 text-amber-700">
-                                {% if get_locale() == 'fr' %}En attente{% else %}Pending{% endif %}
+                                {{ t('admin.pending') }}
                             </span>
                             {% endif %}
                         </div>
@@ -52,14 +52,14 @@
 
                     {% if contribution.proposed_status %}
                     <div class="mb-2 p-2 bg-blue-50 border border-blue-100 rounded-lg">
-                        <p class="text-xs font-bold text-blue-800 uppercase">{% if get_locale() == 'fr' %}Changement de statut proposé{% else %}Proposed Status Change{% endif %}</p>
+                        <p class="text-xs font-bold text-blue-800 uppercase">{{ t('admin.proposed_status_change') }}</p>
                         <p class="text-sm text-blue-700">{{ contribution.proposed_status }}</p>
                     </div>
                     {% endif %}
 
                     {% if contribution.proof_source %}
                     <div class="mb-2">
-                        <span class="text-xs font-medium text-gray-500">{% if get_locale() == 'fr' %}Source / Preuve{% else %}Source / Proof{% endif %}:</span>
+                        <span class="text-xs font-medium text-gray-500">{{ t('admin.source_proof') }}:</span>
                         <a href="{{ contribution.proof_source }}" target="_blank" class="text-xs text-blue-600 hover:underline break-all">{{ contribution.proof_source }}</a>
                     </div>
                     {% endif %}
@@ -72,24 +72,24 @@
                     {% endif %}
                     <div class="flex items-center gap-4">
                         <a href="/disparu/{{ contribution.disparu.public_id if contribution.disparu else '' }}" class="text-xs text-red-600 hover:text-red-700 font-medium">
-                            {% if get_locale() == 'fr' %}Voir la fiche{% else %}View record{% endif %}
+                            {{ t('admin.view_record') }}
                         </a>
                         {% if not contribution.is_approved %}
                         <form action="{{ url_for('admin.approve_contribution', contrib_id=contribution.id) }}" method="POST" class="inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <button type="submit" class="text-xs text-green-600 hover:text-green-700 font-medium">
-                                {% if get_locale() == 'fr' %}Approuver{% else %}Approve{% endif %}
+                                {{ t('admin.approve') }}
                             </button>
                         </form>
-                        <form action="{{ url_for('admin.reject_contribution', contrib_id=contribution.id) }}" method="POST" class="inline" onsubmit="return confirm('Rejeter cette contribution ?');">
+                        <form action="{{ url_for('admin.reject_contribution', contrib_id=contribution.id) }}" method="POST" class="inline" onsubmit="return confirm('{{ t('admin.reject_confirm') }}');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <button type="submit" class="text-xs text-red-600 hover:text-red-700 font-medium">
-                                {% if get_locale() == 'fr' %}Rejeter{% else %}Reject{% endif %}
+                                {{ t('admin.reject') }}
                             </button>
                         </form>
                         {% else %}
                         <span class="text-xs text-gray-500">
-                            {% if get_locale() == 'fr' %}Approuve par{% else %}Approved by{% endif %} {{ contribution.approved_by or 'admin' }}
+                            {{ t('admin.approved_by') }} {{ contribution.approved_by or 'admin' }}
                             {% if contribution.approved_at %}
                             {{ contribution.approved_at.strftime('%d/%m/%Y') }}
                             {% endif %}
@@ -101,7 +101,7 @@
         </div>
         {% else %}
         <div class="p-10 text-center text-gray-500">
-            {% if get_locale() == 'fr' %}Aucune contribution{% else %}No contributions{% endif %}
+            {{ t('admin.no_contributions') }}
         </div>
         {% endfor %}
     </div>
@@ -109,17 +109,17 @@
     {% if contributions.pages > 1 %}
     <div class="p-4 border-t border-gray-100 flex items-center justify-between">
         <div class="text-sm text-gray-500">
-            {% if get_locale() == 'fr' %}Page {{ contributions.page }} sur {{ contributions.pages }}{% else %}Page {{ contributions.page }} of {{ contributions.pages }}{% endif %}
+            {{ t('common.page_of', current=contributions.page, total=contributions.pages) }}
         </div>
         <div class="flex gap-2">
             {% if contributions.has_prev %}
             <a href="{{ url_for('admin.contributions', page=contributions.prev_num) }}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-                {% if get_locale() == 'fr' %}Precedent{% else %}Previous{% endif %}
+                {{ t('common.previous') }}
             </a>
             {% endif %}
             {% if contributions.has_next %}
             <a href="{{ url_for('admin.contributions', page=contributions.next_num) }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium text-white transition-colors">
-                {% if get_locale() == 'fr' %}Suivant{% else %}Next{% endif %}
+                {{ t('common.next') }}
             </a>
             {% endif %}
         </div>

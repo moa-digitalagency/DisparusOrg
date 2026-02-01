@@ -75,8 +75,14 @@ def create_app(config_name='default'):
             except:
                 return []
         
-        def t(key):
-            return get_translation(key, get_locale())
+        def t(key, **kwargs):
+            text = get_translation(key, get_locale())
+            if kwargs:
+                try:
+                    return text.format(**kwargs)
+                except:
+                    return text
+            return text
 
         return {
             'site_settings': site_settings,

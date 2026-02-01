@@ -9,7 +9,7 @@
 
 {% block title %}Modifier {{ person.first_name }} - Admin DISPARUS.ORG{% endblock %}
 
-{% block page_title %}{% if get_locale() == 'fr' %}Modifier Signalement{% else %}Edit Report{% endif %}{% endblock %}
+{% block page_title %}{{ t('admin.edit_report') }}{% endblock %}
 {% block page_subtitle %}{{ person.first_name }} {{ person.last_name }} ({{ person.public_id }}){% endblock %}
 
 {% block admin_content %}
@@ -18,82 +18,82 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Photo</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{{ t('admin.photo') }}</h3>
             <div class="flex flex-col md:flex-row gap-6 items-start">
                 <div class="w-32 h-32 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
                     <img src="{{ person.photo_url or '/statics/img/placeholder.png' }}" alt="Photo" class="w-full h-full object-cover" id="photo_preview">
                 </div>
                 <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Changer la photo{% else %}Change photo{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.edit') }}</label>
                     <input type="file" name="photo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" onchange="previewImage(this)">
-                    <p class="text-xs text-gray-500 mt-2">{% if get_locale() == 'fr' %}Format recommandé : JPG/PNG, max 2MB{% else %}Recommended format: JPG/PNG, max 2MB{% endif %}</p>
+                    <p class="text-xs text-gray-500 mt-2">{{ t('report_form.photo_hint') }}</p>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{% if get_locale() == 'fr' %}Identité et Type{% else %}Identity and Type{% endif %}</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{{ t('admin.identity_type') }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Type d'entité{% else %}Entity Type{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('admin.entity_type') }}</label>
                     <select name="person_type" id="person_type" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-red-500 focus:border-red-500">
-                        <option value="child" {% if person.person_type == 'child' %}selected{% endif %}>{% if get_locale() == 'fr' %}Enfant{% else %}Child{% endif %}</option>
-                        <option value="adult" {% if person.person_type == 'adult' %}selected{% endif %}>{% if get_locale() == 'fr' %}Adulte{% else %}Adult{% endif %}</option>
-                        <option value="elderly" {% if person.person_type == 'elderly' %}selected{% endif %}>{% if get_locale() == 'fr' %}Senior{% else %}Elderly{% endif %}</option>
-                        <option value="animal" {% if person.person_type == 'animal' %}selected{% endif %}>{% if get_locale() == 'fr' %}Animal{% else %}Animal{% endif %}</option>
+                        <option value="child" {% if person.person_type == 'child' %}selected{% endif %}>{{ t('report_form.child') }}</option>
+                        <option value="adult" {% if person.person_type == 'adult' %}selected{% endif %}>{{ t('report_form.adult') }}</option>
+                        <option value="elderly" {% if person.person_type == 'elderly' %}selected{% endif %}>{{ t('report_form.elderly') }}</option>
+                        <option value="animal" {% if person.person_type == 'animal' %}selected{% endif %}>{{ t('common.animal') }}</option>
                     </select>
                 </div>
                 <div id="animal_fields" class="{% if person.person_type != 'animal' %}hidden{% endif %} space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Type d'animal{% else %}Animal Type{% endif %}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.animal_type') }}</label>
                         <select name="animal_type" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
-                            <option value="dog" {% if person.animal_type == 'dog' %}selected{% endif %}>{% if get_locale() == 'fr' %}Chien{% else %}Dog{% endif %}</option>
-                            <option value="cat" {% if person.animal_type == 'cat' %}selected{% endif %}>{% if get_locale() == 'fr' %}Chat{% else %}Cat{% endif %}</option>
-                            <option value="bird" {% if person.animal_type == 'bird' %}selected{% endif %}>{% if get_locale() == 'fr' %}Oiseau{% else %}Bird{% endif %}</option>
-                            <option value="other" {% if person.animal_type == 'other' %}selected{% endif %}>{% if get_locale() == 'fr' %}Autre{% else %}Other{% endif %}</option>
+                            <option value="dog" {% if person.animal_type == 'dog' %}selected{% endif %}>{{ t('common.dog') }}</option>
+                            <option value="cat" {% if person.animal_type == 'cat' %}selected{% endif %}>{{ t('common.cat') }}</option>
+                            <option value="bird" {% if person.animal_type == 'bird' %}selected{% endif %}>{{ t('common.bird') }}</option>
+                            <option value="other" {% if person.animal_type == 'other' %}selected{% endif %}>{{ t('common.other') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Race / Espèce{% else %}Breed / Species{% endif %}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.breed_species') }}</label>
                         <input type="text" name="breed" value="{{ person.breed or '' }}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Prénom{% else %}First Name{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.first_name') }}</label>
                     <input type="text" name="first_name" value="{{ person.first_name }}" required class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Nom{% else %}Last Name{% endif %}</label>
-                    <input type="text" name="last_name" value="{{ person.last_name }}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.last_name') }}</label>
+                    <input type="text" name="last_name" value="{{ person.last_name if person.last_name != '-' else '' }}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Âge{% else %}Age{% endif %}</label>
-                    <input type="number" name="age" value="{{ person.age }}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.age') }}</label>
+                    <input type="number" name="age" value="{% if person.age != -1 %}{{ person.age }}{% endif %}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Sexe{% else %}Sex{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.sex') }}</label>
                     <select name="sex" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
-                        <option value="male" {% if person.sex == 'male' %}selected{% endif %}>{% if get_locale() == 'fr' %}Homme / Mâle{% else %}Man / Male{% endif %}</option>
-                        <option value="female" {% if person.sex == 'female' %}selected{% endif %}>{% if get_locale() == 'fr' %}Femme / Femelle{% else %}Woman / Female{% endif %}</option>
-                        <option value="unknown" {% if person.sex == 'unknown' %}selected{% endif %}>{% if get_locale() == 'fr' %}Inconnu{% else %}Unknown{% endif %}</option>
+                        <option value="male" {% if person.sex == 'male' %}selected{% endif %}>{{ t('common.man_male') }}</option>
+                        <option value="female" {% if person.sex == 'female' %}selected{% endif %}>{{ t('common.woman_female') }}</option>
+                        <option value="unknown" {% if person.sex == 'unknown' %}selected{% endif %}>{{ t('report_form.unknown_sex') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Statut{% else %}Status{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('admin.status') }}</label>
                     <select name="status" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-red-500 focus:border-red-500 font-bold text-red-600">
-                        <option value="missing" {% if person.status == 'missing' %}selected{% endif %}>{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}</option>
-                        <option value="found_alive" {% if person.status == 'found_alive' or person.status == 'found' %}selected{% endif %}>{% if get_locale() == 'fr' %}Retrouvé Vivant{% else %}Found Alive{% endif %}</option>
-                        <option value="found_deceased" {% if person.status == 'found_deceased' or person.status == 'deceased' %}selected{% endif %}>{% if get_locale() == 'fr' %}Retrouvé Décédé{% else %}Found Deceased{% endif %}</option>
+                        <option value="missing" {% if person.status == 'missing' %}selected{% endif %}>{{ t('missing') }}</option>
+                        <option value="found_alive" {% if person.status == 'found_alive' or person.status == 'found' %}selected{% endif %}>{{ t('status_found_alive') }}</option>
+                        <option value="found_deceased" {% if person.status == 'found_deceased' or person.status == 'deceased' %}selected{% endif %}>{{ t('status_found_deceased') }}</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{% if get_locale() == 'fr' %}Localisation{% else %}Location{% endif %}</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{{ t('admin.location') }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.country') }}</label>
                     <select name="country" id="country-select" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                         {% for c in countries %}
                         <option value="{{ c }}" {% if person.country == c %}selected{% endif %}>{{ c }}</option>
@@ -101,7 +101,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Ville{% else %}City{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.city') }}</label>
                     <select name="city" id="city-select" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                         <option value="{{ person.city }}">{{ person.city }}</option>
                     </select>
@@ -119,47 +119,47 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{% if get_locale() == 'fr' %}Description et Détails{% else %}Description and Details{% endif %}</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{{ t('admin.description_details') }}</h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Description Physique{% else %}Physical Description{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.physical_desc') }}</label>
                     <textarea name="physical_description" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">{{ person.physical_description }}</textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Vêtements{% else %}Clothing{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.clothing') }}</label>
                     <input type="text" name="clothing" value="{{ person.clothing or '' }}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Objets{% else %}Objects{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.objects') }}</label>
                     <input type="text" name="objects" value="{{ person.objects or '' }}" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Circonstances{% else %}Circumstances{% endif %}</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('report_form.circumstances') }}</label>
                     <textarea name="circumstances" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">{{ person.circumstances }}</textarea>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{% if get_locale() == 'fr' %}Contacts{% else %}Contacts{% endif %}</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">{{ t('common.contacts') }}</h3>
             <div class="space-y-4">
                 {% for i in range(3) %}
                 {% set contact = person.contacts[i] if person.contacts and person.contacts|length > i else {} %}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg">
                     <div>
-                        <label class="block text-xs text-gray-500">Nom</label>
+                        <label class="block text-xs text-gray-500">{{ t('report_form.last_name') }}</label>
                         <input type="text" name="contact_name_{{ i }}" value="{{ contact.name or '' }}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500">Tél</label>
+                        <label class="block text-xs text-gray-500">{{ t('common.phone_short') }}</label>
                         <input type="tel" name="contact_phone_{{ i }}" value="{{ contact.phone or '' }}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500">Email</label>
+                        <label class="block text-xs text-gray-500">{{ t('report_form.contact_email') }}</label>
                         <input type="email" name="contact_email_{{ i }}" value="{{ contact.email or '' }}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500">Relation</label>
+                        <label class="block text-xs text-gray-500">{{ t('common.relation') }}</label>
                         <input type="text" name="contact_relation_{{ i }}" value="{{ contact.relation or '' }}" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
                     </div>
                 </div>
@@ -169,10 +169,10 @@
 
         <div class="flex gap-3">
             <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all">
-                {% if get_locale() == 'fr' %}Enregistrer les modifications{% else %}Save Changes{% endif %}
+                {{ t('common.save') }}
             </button>
             <a href="{{ url_for('admin.all_reports') }}" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all">
-                {% if get_locale() == 'fr' %}Annuler{% else %}Cancel{% endif %}
+                {{ t('common.cancel') }}
             </a>
         </div>
     </form>
@@ -197,7 +197,7 @@
 
     countrySelect.addEventListener('change', function() {
         const country = this.value;
-        citySelect.innerHTML = '<option value="">{% if get_locale() == "fr" %}Séléctionnez une ville{% else %}Select a city{% endif %}</option>';
+        citySelect.innerHTML = '<option value="">{{ t("admin.select_city") }}</option>';
         if (country && countriesCities[country]) {
             countriesCities[country].forEach(function(city) {
                 const option = document.createElement('option');
