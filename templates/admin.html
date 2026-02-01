@@ -20,7 +20,7 @@
     </div>
     <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
         <div class="text-2xl font-bold text-red-600">{{ stats.missing }}</div>
-        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Disparus{% else %}Missing{% endif %}</div>
+        <div class="text-xs text-gray-500 font-medium uppercase tracking-wide">{% if get_locale() == 'fr' %}Disparitions{% else %}Missing{% endif %}</div>
     </div>
     <div class="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
         <div class="text-2xl font-bold text-green-600">{{ stats.found }}</div>
@@ -47,7 +47,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Signalements recents{% else %}Recent reports{% endif %}</h2>
+            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Dernières disparitions{% else %}Latest reports{% endif %}</h2>
         </div>
         <div class="divide-y divide-gray-100">
             {% for person in disparus[:5] %}
@@ -87,7 +87,7 @@
         {% if disparus|length > 5 %}
         <div class="p-4 border-t border-gray-100 bg-gray-50">
             <a href="{{ url_for('admin.all_reports') }}" class="text-sm text-red-600 hover:text-red-700 font-medium">
-                {% if get_locale() == 'fr' %}Voir tous les signalements{% else %}View all reports{% endif %} ({{ disparus|length }})
+                {% if get_locale() == 'fr' %}Voir toutes les disparitions{% else %}View all reports{% endif %} ({{ disparus|length }})
             </a>
         </div>
         {% endif %}
