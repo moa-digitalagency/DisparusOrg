@@ -102,6 +102,13 @@
                         <svg class="w-16 h-16 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                     </div>
                     {% endif %}
+
+                    {% if person.status in ['found', 'found_alive'] %}
+                    <div class="absolute inset-0 bg-green-900/40 mix-blend-multiply pointer-events-none transition-colors duration-300"></div>
+                    {% elif person.status in ['deceased', 'found_deceased'] %}
+                    <div class="absolute inset-0 bg-gray-900/60 mix-blend-multiply pointer-events-none transition-colors duration-300"></div>
+                    {% endif %}
+
                     <span class="absolute top-3 left-3 text-[10px] px-2.5 py-1 rounded-xl font-semibold uppercase tracking-wide shadow-sm
                         {% if person.status == 'missing' %}bg-red-600 text-white
                         {% elif person.status in ['found', 'found_alive'] %}bg-green-600 text-white
