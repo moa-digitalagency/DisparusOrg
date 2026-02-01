@@ -9,10 +9,14 @@ import os
 import json
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response, current_app
 from werkzeug.utils import secure_filename
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting, ContentModerationLog
 from models.settings import invalidate_settings_cache, get_all_settings_dict, DEFAULT_SETTINGS
@@ -353,39 +357,124 @@ def contributions():
 @admin_required
 def statistics():
     log_activity('Consultation statistiques', action_type='view', target_type='statistics')
-    total_views = db.session.query(db.func.sum(Disparu.view_count)).scalar() or 0
-    total_downloads = Download.query.count()
+
+    # Date Filtering
+    period = request.args.get('period', 'all')
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    start_date = None
+    end_date = datetime.now()
+
+    if period == '1d':
+        start_date = end_date - timedelta(days=1)
+    elif period == '7d':
+        start_date = end_date - timedelta(days=7)
+    elif period == '1m':
+        start_date = end_date - timedelta(days=30)
+    elif period == 'custom' and start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            if end_date_str:
+                 end_date_parsed = datetime.strptime(end_date_str, '%Y-%m-%d')
+                 # Set end_date to end of that day
+                 end_date = end_date_parsed + timedelta(days=1) - timedelta(seconds=1)
+        except ValueError:
+            pass
+
+    # Base queries
+    q_disparu = Disparu.query
+
+    if start_date:
+        q_disparu = q_disparu.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+
+    # Stats Aggregation
+
+    # Total
+    total_persons = q_disparu.filter(Disparu.person_type != 'animal').count()
+    total_animals = q_disparu.filter(Disparu.person_type == 'animal').count()
+
+    # Found (including found_alive)
+    found_persons = q_disparu.filter(Disparu.person_type != 'animal', Disparu.status.in_(['found', 'found_alive'])).count()
+    found_animals = q_disparu.filter(Disparu.person_type == 'animal', Disparu.status.in_(['found', 'found_alive'])).count()
+
+    # Deceased (including found_deceased)
+    deceased_persons = q_disparu.filter(Disparu.person_type != 'animal', Disparu.status.in_(['deceased', 'found_deceased'])).count()
+    deceased_animals = q_disparu.filter(Disparu.person_type == 'animal', Disparu.status.in_(['deceased', 'found_deceased'])).count()
+
+    # Views (Sum of view_count for filtered profiles)
+    # Note: This is imperfect as it sums TOTAL views of profiles CREATED in the period
+    views_persons = db.session.query(db.func.sum(Disparu.view_count)).filter(
+        Disparu.person_type != 'animal'
+    )
+    if start_date:
+        views_persons = views_persons.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+    views_persons = views_persons.scalar() or 0
+
+    views_animals = db.session.query(db.func.sum(Disparu.view_count)).filter(
+        Disparu.person_type == 'animal'
+    )
+    if start_date:
+        views_animals = views_animals.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+    views_animals = views_animals.scalar() or 0
+
+    # Downloads (Count of Download records)
+    # We join Download with Disparu to check person_type
+    q_downloads = db.session.query(Download).join(Disparu)
+    if start_date:
+        q_downloads = q_downloads.filter(Download.created_at >= start_date, Download.created_at <= end_date)
+
+    downloads_persons = q_downloads.filter(Disparu.person_type != 'animal').count()
+    downloads_animals = q_downloads.filter(Disparu.person_type == 'animal').count()
     
     stats = {
-        'total': Disparu.query.count(),
-        'missing': Disparu.query.filter_by(status='missing').count(),
-        'found': Disparu.query.filter_by(status='found').count(),
-        'deceased': Disparu.query.filter_by(status='deceased').count(),
+        'total': total_persons + total_animals,
+        'total_persons': total_persons,
+        'total_animals': total_animals,
+
+        'found': found_persons + found_animals,
+        'found_persons': found_persons,
+        'found_animals': found_animals,
+
+        'deceased': deceased_persons + deceased_animals,
+        'deceased_persons': deceased_persons,
+        'deceased_animals': deceased_animals,
+
+        'total_views': int(views_persons + views_animals),
+        'views_persons': int(views_persons),
+        'views_animals': int(views_animals),
+
+        'total_downloads': downloads_persons + downloads_animals,
+        'downloads_persons': downloads_persons,
+        'downloads_animals': downloads_animals,
+
+        'contributions': Contribution.query.count(), # Global for now
         'flagged': Disparu.query.filter_by(is_flagged=True).count(),
-        'contributions': Contribution.query.count(),
-        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
-        'pending_reports': ModerationReport.query.filter_by(status='pending').count(),
-        'total_views': total_views,
-        'total_downloads': total_downloads,
+        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0
     }
     
+    # Charts Data
     by_country = db.session.query(
         Disparu.country, 
         db.func.count(Disparu.id)
-    ).group_by(Disparu.country).order_by(db.func.count(Disparu.id).desc()).limit(10).all()
+    )
+    if start_date:
+        by_country = by_country.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+    by_country = by_country.group_by(Disparu.country).order_by(db.func.count(Disparu.id).desc()).limit(10).all()
     
     by_status = db.session.query(
         Disparu.status, 
         db.func.count(Disparu.id)
-    ).group_by(Disparu.status).all()
+    )
+    if start_date:
+        by_status = by_status.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+    by_status = by_status.group_by(Disparu.status).all()
     
-    by_city = db.session.query(
-        Disparu.city,
-        Disparu.country,
-        db.func.count(Disparu.id)
-    ).group_by(Disparu.city, Disparu.country).order_by(db.func.count(Disparu.id).desc()).limit(10).all()
-    
-    most_viewed = Disparu.query.order_by(Disparu.view_count.desc()).limit(5).all()
+    # Most Viewed / List of files
+    q_most_viewed = Disparu.query
+    if start_date:
+        q_most_viewed = q_most_viewed.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+    all_files_stats = q_most_viewed.order_by(Disparu.view_count.desc()).limit(100).all()
     
     most_downloaded = db.session.query(
         Disparu.public_id,
@@ -394,29 +483,139 @@ def statistics():
         Disparu.city,
         Disparu.country,
         db.func.count(Download.id).label('download_count')
-    ).join(Download, Download.disparu_public_id == Disparu.public_id).group_by(
+    ).join(Download, Download.disparu_public_id == Disparu.public_id)
+
+    if start_date:
+        most_downloaded = most_downloaded.filter(Download.created_at >= start_date, Download.created_at <= end_date)
+
+    most_downloaded = most_downloaded.group_by(
         Disparu.public_id, Disparu.first_name, Disparu.last_name, Disparu.city, Disparu.country
     ).order_by(db.func.count(Download.id).desc()).limit(5).all()
     
     downloads_by_type = db.session.query(
         Download.file_type,
         db.func.count(Download.id)
-    ).group_by(Download.file_type).order_by(db.func.count(Download.id).desc()).all()
-    
-    downloads_by_country = db.session.query(
-        Download.country,
-        db.func.count(Download.id)
-    ).filter(Download.country.isnot(None)).group_by(Download.country).order_by(db.func.count(Download.id).desc()).limit(10).all()
+    )
+    if start_date:
+        downloads_by_type = downloads_by_type.filter(Download.created_at >= start_date, Download.created_at <= end_date)
+    downloads_by_type = downloads_by_type.group_by(Download.file_type).order_by(db.func.count(Download.id).desc()).all()
     
     return render_template('admin_statistics.html', 
                          stats=stats, 
                          by_country=by_country, 
                          by_status=by_status,
-                         by_city=by_city,
-                         most_viewed=most_viewed,
+                         most_viewed=all_files_stats[:5], # Keep top 5 for cards if needed, or just use all_files_stats
+                         all_files_stats=all_files_stats,
                          most_downloaded=most_downloaded,
                          downloads_by_type=downloads_by_type,
-                         downloads_by_country=downloads_by_country)
+                         filters={'period': period, 'start_date': start_date_str, 'end_date': end_date_str})
+
+@admin_bp.route('/statistics/export/csv')
+@admin_required
+def export_stats_csv():
+    # Helper to calculate stats (duplicated logic, should ideally be refactored into a service)
+    # For now, we reuse the logic briefly or just dump the 'all_files_stats' as requested
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    start_date = None
+    end_date = datetime.now()
+
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            if end_date_str:
+                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(days=1)
+        except ValueError:
+            pass
+
+    q = Disparu.query
+    if start_date:
+        q = q.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+
+    disparus = q.all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Nom', 'Type', 'Statut', 'Pays', 'Ville', 'Vues', 'Date Creation'])
+
+    for d in disparus:
+        writer.writerow([
+            d.public_id,
+            f"{d.first_name} {d.last_name}",
+            d.person_type,
+            d.status,
+            d.country,
+            d.city,
+            d.view_count,
+            d.created_at.strftime('%Y-%m-%d') if d.created_at else ''
+        ])
+
+    response = make_response(output.getvalue())
+    response.headers['Content-Type'] = 'text/csv'
+    response.headers['Content-Disposition'] = 'attachment; filename=statistiques.csv'
+    return response
+
+@admin_bp.route('/statistics/export/pdf')
+@admin_required
+def export_stats_pdf():
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    elements.append(Paragraph("Rapport Statistique DISPARUS.ORG", styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    # Fetch data (same filters)
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    start_date = None
+    end_date = datetime.now()
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            if end_date_str:
+                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(days=1)
+        except ValueError:
+            pass
+
+    q = Disparu.query
+    if start_date:
+        q = q.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
+
+    disparus = q.order_by(Disparu.view_count.desc()).limit(200).all()
+
+    data = [['ID', 'Nom', 'Type', 'Statut', 'Vues']]
+    for d in disparus:
+        data.append([
+            d.public_id,
+            f"{d.first_name} {d.last_name}",
+            d.person_type,
+            d.status,
+            str(d.view_count)
+        ])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    buffer.seek(0)
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=statistiques.pdf'
+    return response
 
 
 @admin_bp.route('/map')

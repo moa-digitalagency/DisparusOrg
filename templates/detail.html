@@ -448,9 +448,15 @@
 
 {% block scripts %}
 <script>
-    document.querySelector('select[name="contribution_type"]').addEventListener('change', function() {
-        document.getElementById('found-fields').classList.toggle('hidden', this.value !== 'found');
-    });
+    const contributionSelect = document.querySelector('select[name="contribution_type"]');
+    if (contributionSelect) {
+        contributionSelect.addEventListener('change', function() {
+            const foundFields = document.getElementById('found-fields');
+            if (foundFields) {
+                foundFields.classList.toggle('hidden', this.value !== 'found');
+            }
+        });
+    }
     
     const map = L.map('detail-map');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
