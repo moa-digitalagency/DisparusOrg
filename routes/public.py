@@ -342,6 +342,14 @@ def contribute(public_id):
         lng = request.form.get('longitude')
         obs_date = request.form.get('observation_date')
         
+        proposed_status = None
+        if request.form['contribution_type'] == 'found':
+            person_state = request.form.get('person_state')
+            if person_state == 'deceased':
+                proposed_status = 'found_deceased'
+            else:
+                proposed_status = 'found_alive'
+
         contribution = Contribution(
             disparu_id=disparu.id,
             contribution_type=request.form['contribution_type'],
@@ -351,15 +359,14 @@ def contribute(public_id):
             location_name=request.form.get('location_name', ''),
             observation_date=datetime.fromisoformat(obs_date) if obs_date else None,
             proof_url=proof_url,
+            proof_source=request.form.get('proof_source'),
             person_state=request.form.get('person_state'),
+            proposed_status=proposed_status,
             return_circumstances=request.form.get('return_circumstances'),
             contact_name=request.form.get('contact_name'),
             contact_phone=request.form.get('contact_phone'),
             contact_email=request.form.get('contact_email'),
         )
-        
-        if request.form['contribution_type'] == 'found':
-            disparu.status = 'found'
         
         db.session.add(contribution)
         db.session.commit()

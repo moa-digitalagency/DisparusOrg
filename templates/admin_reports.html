@@ -32,8 +32,10 @@
                 <select name="status" class="rounded-xl border-gray-200 text-sm px-3 py-2">
                     <option value="">{% if get_locale() == 'fr' %}Tous{% else %}All{% endif %}</option>
                     <option value="missing" {% if status_filter == 'missing' %}selected{% endif %}>{% if get_locale() == 'fr' %}Disparu{% else %}Missing{% endif %}</option>
-                    <option value="found" {% if status_filter == 'found' %}selected{% endif %}>{% if get_locale() == 'fr' %}Retrouve{% else %}Found{% endif %}</option>
-                    <option value="deceased" {% if status_filter == 'deceased' %}selected{% endif %}>{% if get_locale() == 'fr' %}Decede{% else %}Deceased{% endif %}</option>
+                    <option value="found_alive" {% if status_filter == 'found_alive' %}selected{% endif %}>{% if get_locale() == 'fr' %}Retrouvé Vivant{% else %}Found Alive{% endif %}</option>
+                    <option value="found_deceased" {% if status_filter == 'found_deceased' %}selected{% endif %}>{% if get_locale() == 'fr' %}Retrouvé Décédé{% else %}Found Deceased{% endif %}</option>
+                    <option value="found" {% if status_filter == 'found' %}selected{% endif %}>{% if get_locale() == 'fr' %}Retrouvé (Ancien){% else %}Found (Legacy){% endif %}</option>
+                    <option value="deceased" {% if status_filter == 'deceased' %}selected{% endif %}>{% if get_locale() == 'fr' %}Décédé (Ancien){% else %}Deceased (Legacy){% endif %}</option>
                 </select>
             </div>
             <div>
@@ -99,15 +101,24 @@
                     <td class="px-4 py-3">
                         <span class="text-xs px-2 py-1 rounded-lg font-medium
                             {% if person.status == 'missing' %}bg-red-100 text-red-700
-                            {% elif person.status == 'found' %}bg-green-100 text-green-700
-                            {% else %}bg-gray-100 text-gray-700{% endif %}">
-                            {{ person.status }}
+                            {% elif person.status == 'found' or person.status == 'found_alive' %}bg-green-100 text-green-700
+                            {% elif person.status == 'deceased' or person.status == 'found_deceased' %}bg-gray-100 text-gray-700
+                            {% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {% if person.status == 'missing' %}{{ t('missing') }}
+                            {% elif person.status == 'found_alive' %}{{ t('status_found_alive') }}
+                            {% elif person.status == 'found_deceased' %}{{ t('status_found_deceased') }}
+                            {% elif person.status == 'found' %}{{ t('found') }}
+                            {% elif person.status == 'deceased' %}{{ t('deceased') }}
+                            {% else %}{{ person.status }}{% endif %}
                         </span>
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-2">
                             <a href="/disparu/{{ person.public_id }}" class="text-red-600 hover:text-red-700 text-sm font-medium">
                                 {% if get_locale() == 'fr' %}Voir{% else %}View{% endif %}
+                            </a>
+                            <a href="{{ url_for('admin.edit_disparu', disparu_id=person.id) }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                {% if get_locale() == 'fr' %}Modifier{% else %}Edit{% endif %}
                             </a>
                             <form action="{{ url_for('admin.delete_disparu', disparu_id=person.id) }}" method="POST" class="inline" onsubmit="return confirm('{% if get_locale() == 'fr' %}Supprimer cette fiche ?{% else %}Delete this record?{% endif %}');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

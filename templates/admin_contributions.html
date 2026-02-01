@@ -49,6 +49,21 @@
                         <span class="text-xs text-gray-500">{{ contribution.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
                     </div>
                     <p class="text-sm text-gray-600 mb-2">{{ contribution.content or contribution.details }}</p>
+
+                    {% if contribution.proposed_status %}
+                    <div class="mb-2 p-2 bg-blue-50 border border-blue-100 rounded-lg">
+                        <p class="text-xs font-bold text-blue-800 uppercase">{% if get_locale() == 'fr' %}Changement de statut proposé{% else %}Proposed Status Change{% endif %}</p>
+                        <p class="text-sm text-blue-700">{{ contribution.proposed_status }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if contribution.proof_source %}
+                    <div class="mb-2">
+                        <span class="text-xs font-medium text-gray-500">{% if get_locale() == 'fr' %}Source / Preuve{% else %}Source / Proof{% endif %}:</span>
+                        <a href="{{ contribution.proof_source }}" target="_blank" class="text-xs text-blue-600 hover:underline break-all">{{ contribution.proof_source }}</a>
+                    </div>
+                    {% endif %}
+
                     {% if contribution.location or contribution.location_name %}
                     <div class="flex items-center gap-1 text-xs text-gray-500 mb-2">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
