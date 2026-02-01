@@ -45,7 +45,7 @@ def log_public_activity(action, action_type='view', target_type=None, target_id=
             target_type=target_type,
             target_id=str(target_id) if target_id else None,
             target_name=target_name,
-            ip_address=request.remote_addr,
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
             user_agent=request.headers.get('User-Agent', '')[:500],
             severity='info',
             is_security_event=False
@@ -412,15 +412,20 @@ def download_pdf(public_id):
     try:
         from models import Download
         download = Download(
+            disparu_id=disparu.id,
             disparu_public_id=public_id,
+            disparu_name=f"{disparu.first_name} {disparu.last_name}",
             file_type='pdf',
+            file_name=f"disparu_{public_id}.pdf",
             download_type='pdf_fiche',
-            ip_address=request.remote_addr,
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
             user_agent=request.headers.get('User-Agent', '')[:500]
         )
         db.session.add(download)
         db.session.commit()
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.error(f"Error logging download: {e}")
         db.session.rollback()
     
     base_url = request.url_root.rstrip('/')
@@ -449,15 +454,20 @@ def download_share_image(public_id):
     try:
         from models import Download
         download = Download(
+            disparu_id=disparu.id,
             disparu_public_id=public_id,
+            disparu_name=f"{disparu.first_name} {disparu.last_name}",
             file_type='png',
+            file_name=f"disparu_{public_id}_partage.png",
             download_type='image_social',
-            ip_address=request.remote_addr,
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
             user_agent=request.headers.get('User-Agent', '')[:500]
         )
         db.session.add(download)
         db.session.commit()
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.error(f"Error logging download: {e}")
         db.session.rollback()
     
     base_url = request.url_root.rstrip('/')
@@ -486,15 +496,20 @@ def download_qrcode(public_id):
     try:
         from models import Download
         download = Download(
+            disparu_id=disparu.id,
             disparu_public_id=public_id,
+            disparu_name=f"{disparu.first_name} {disparu.last_name}",
             file_type='png',
+            file_name=f"qrcode_{public_id}.png",
             download_type='pdf_qrcode',
-            ip_address=request.remote_addr,
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
             user_agent=request.headers.get('User-Agent', '')[:500]
         )
         db.session.add(download)
         db.session.commit()
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.error(f"Error logging download: {e}")
         db.session.rollback()
     
     base_url = request.url_root.rstrip('/')
