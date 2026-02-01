@@ -260,11 +260,16 @@
         }
     </script>
 
-    <!-- PWA Install Button (Android/Desktop) -->
-    <button id="pwa-install-btn" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-6 z-[100] bg-red-700 hover:bg-red-800 text-white px-5 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 transition-all hover:shadow-xl">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        <span>{% if get_locale() == 'fr' %}Installer l'application{% else %}Install App{% endif %}</span>
-    </button>
+    <!-- PWA Install Promotion (Android/Desktop) -->
+    <div id="pwa-install-promotion" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-6 z-[100] flex items-center gap-2">
+        <button id="pwa-install-btn" class="bg-red-700 hover:bg-red-800 text-white px-5 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 transition-all hover:shadow-xl">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>{% if get_locale() == 'fr' %}Installer l'application{% else %}Install App{% endif %}</span>
+        </button>
+        <button id="pwa-install-close" class="bg-white text-gray-400 hover:text-gray-600 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all border border-gray-200" aria-label="Close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
 
     <!-- PWA iOS Banner -->
     <div id="pwa-ios-banner" class="hidden fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 p-4 shadow-2xl pb-8 md:pb-4">
