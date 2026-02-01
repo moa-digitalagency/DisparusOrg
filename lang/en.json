@@ -34,6 +34,9 @@
   "sections": {
     "recent_reports": "Recent reports",
     "reports_near_you": "Reports near you",
+    "all": "All",
+    "person": "Person",
+    "animal": "Animal",
     "all_countries": "All countries",
     "view_all": "View all",
     "no_reports": "No reports yet",
