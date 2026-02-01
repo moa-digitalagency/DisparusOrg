@@ -82,12 +82,14 @@
                 <div class="flex items-center gap-3">
                     <span class="w-3 h-3 rounded-full
                         {% if status == 'missing' %}bg-red-500
-                        {% elif status == 'found' %}bg-green-500
-                        {% elif status == 'deceased' %}bg-gray-500
+                        {% elif status == 'found' or status == 'found_alive' %}bg-green-500
+                        {% elif status == 'deceased' or status == 'found_deceased' %}bg-gray-500
                         {% else %}bg-gray-400{% endif %}"></span>
                     <span class="font-medium text-gray-700 capitalize">
                         {% if status == 'missing' %}{% if get_locale() == 'fr' %}Porte(e)s Disparu(e)s{% else %}Missing{% endif %}
                         {% elif status == 'found' %}{% if get_locale() == 'fr' %}Retrouve(e)s{% else %}Found{% endif %}
+                        {% elif status == 'found_alive' %}{% if get_locale() == 'fr' %}Retrouvé(e) vivant(e){% else %}Found alive{% endif %}
+                        {% elif status == 'found_deceased' %}{% if get_locale() == 'fr' %}Retrouvé(e) décédé(e){% else %}Found deceased{% endif %}
                         {% elif status == 'deceased' %}{% if get_locale() == 'fr' %}Decede(e)s{% else %}Deceased{% endif %}
                         {% else %}{{ status }}{% endif %}
                     </span>
