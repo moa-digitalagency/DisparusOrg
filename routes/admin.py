@@ -277,6 +277,20 @@ def update_status(disparu_id):
     if new_status in ['missing', 'found', 'deceased', 'found_alive', 'found_deceased']:
         disparu.status = new_status
         log_activity(f'Changement statut: {old_status} -> {new_status}', action_type='update', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
+
+        # Create a contribution record for the status change
+        contribution = Contribution(
+            disparu_id=disparu.id,
+            contribution_type='status_change',
+            details=f"Statut modifié : {old_status} -> {new_status}",
+            is_approved=True,
+            approved_by=session.get('admin_username', 'Admin'),
+            approved_at=datetime.utcnow(),
+            contributor_name=session.get('admin_username', 'Admin'),
+            created_at=datetime.utcnow()
+        )
+        db.session.add(contribution)
+
         db.session.commit()
         flash(f'Statut mis à jour : {new_status}', 'success')
     return redirect(request.referrer or url_for('admin.dashboard'))
