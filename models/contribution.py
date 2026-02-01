@@ -27,6 +27,9 @@ class Contribution(db.Model):
     person_state = db.Column(db.String(50))
     return_circumstances = db.Column(db.Text)
     
+    proposed_status = db.Column(db.String(20))
+    proof_source = db.Column(db.Text)
+
     contact_name = db.Column(db.String(100))
     contact_phone = db.Column(db.String(50))
     contact_email = db.Column(db.String(100))
@@ -55,6 +58,11 @@ class Contribution(db.Model):
             'proof_url': self.proof_url,
             'person_state': self.person_state,
             'return_circumstances': self.return_circumstances,
+            'proposed_status': self.proposed_status,
+            'proof_source': self.proof_source,
             'is_verified': self.is_verified,
+            'is_approved': self.is_approved,
+            'approved_by': self.approved_by,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }

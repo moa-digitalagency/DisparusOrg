@@ -11,7 +11,8 @@ import csv
 import io
 from datetime import datetime
 from functools import wraps
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response, current_app
+from werkzeug.utils import secure_filename
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting, ContentModerationLog
 from models.settings import invalidate_settings_cache, get_all_settings_dict, DEFAULT_SETTINGS
@@ -168,6 +169,77 @@ def moderation():
     return render_template('moderation.html', reports=reports, flagged_disparus=flagged, stats=stats)
 
 
+@admin_bp.route('/disparu/<int:disparu_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_disparu(disparu_id):
+    disparu = Disparu.query.get_or_404(disparu_id)
+    if request.method == 'POST':
+        try:
+            disparu.person_type = request.form.get('person_type')
+            disparu.animal_type = request.form.get('animal_type')
+            disparu.breed = request.form.get('breed')
+            disparu.first_name = request.form.get('first_name')
+            disparu.last_name = request.form.get('last_name')
+            disparu.age = int(request.form.get('age')) if request.form.get('age') else -1
+            disparu.sex = request.form.get('sex')
+            disparu.country = request.form.get('country')
+            disparu.city = request.form.get('city')
+            disparu.physical_description = request.form.get('physical_description')
+            disparu.clothing = request.form.get('clothing')
+            disparu.objects = request.form.get('objects')
+            disparu.circumstances = request.form.get('circumstances')
+            disparu.status = request.form.get('status')
+
+            if 'photo' in request.files:
+                file = request.files['photo']
+                if file and file.filename != '':
+                    filename = secure_filename(f"{disparu.public_id}_{file.filename}")
+                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+                    disparu.photo_url = filename
+
+            if request.form.get('latitude') and request.form.get('latitude').strip():
+                try:
+                    disparu.latitude = float(request.form.get('latitude'))
+                except ValueError:
+                    disparu.latitude = None
+            else:
+                disparu.latitude = None
+
+            if request.form.get('longitude') and request.form.get('longitude').strip():
+                try:
+                    disparu.longitude = float(request.form.get('longitude'))
+                except ValueError:
+                    disparu.longitude = None
+            else:
+                disparu.longitude = None
+
+            # Contacts handling
+            contacts = []
+            for i in range(3):
+                name = request.form.get(f'contact_name_{i}')
+                phone = request.form.get(f'contact_phone_{i}')
+                if name and phone:
+                    contacts.append({
+                        'name': name,
+                        'phone': phone,
+                        'email': request.form.get(f'contact_email_{i}', ''),
+                        'relation': request.form.get(f'contact_relation_{i}', '')
+                    })
+            disparu.contacts = contacts
+
+            db.session.commit()
+            log_activity(f'Modification fiche disparu', action_type='update', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
+            flash('Fiche mise a jour avec succes', 'success')
+            return redirect(url_for('admin.all_reports'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erreur lors de la modification: {str(e)}', 'error')
+
+    from utils.geo import COUNTRIES_CITIES
+    return render_template('admin_disparu_form.html', person=disparu, countries=get_countries(), countries_cities=COUNTRIES_CITIES)
+
+
 @admin_bp.route('/moderation/<int:report_id>/resolve', methods=['POST'])
 @admin_required
 def resolve_report(report_id):
@@ -202,7 +274,7 @@ def update_status(disparu_id):
     disparu = Disparu.query.get_or_404(disparu_id)
     new_status = request.form.get('status')
     old_status = disparu.status
-    if new_status in ['missing', 'found', 'deceased']:
+    if new_status in ['missing', 'found', 'deceased', 'found_alive', 'found_deceased']:
         disparu.status = new_status
         log_activity(f'Changement statut: {old_status} -> {new_status}', action_type='update', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
         db.session.commit()
@@ -779,6 +851,16 @@ def approve_contribution(contrib_id):
     contribution.is_approved = True
     contribution.approved_by = session.get('admin_username')
     contribution.approved_at = datetime.utcnow()
+
+    # Apply proposed status if present
+    if contribution.proposed_status:
+        disparu = Disparu.query.get(contribution.disparu_id)
+        if disparu:
+            disparu.status = contribution.proposed_status
+            log_activity(f'Mise a jour statut via contribution: {contribution.proposed_status}',
+                        action_type='update', target_type='disparu', target_id=disparu.id,
+                        target_name=f'{disparu.first_name} {disparu.last_name}')
+
     log_activity(f'Approbation contribution', action_type='update', target_type='contribution', target_id=contrib_id, target_name=contribution.contributor_name)
     db.session.commit()
     flash('Contribution approuvee', 'success')
