@@ -104,18 +104,24 @@
                     {% endif %}
                     <span class="absolute top-3 left-3 text-[10px] px-2.5 py-1 rounded-xl font-semibold uppercase tracking-wide shadow-sm
                         {% if person.status == 'missing' %}bg-red-600 text-white
-                        {% elif person.status == 'found' %}bg-green-600 text-white
+                        {% elif person.status in ['found', 'found_alive'] %}bg-green-600 text-white
                         {% else %}bg-gray-600 text-white{% endif %}">
                         {% if person.person_type == 'animal' %}
                             {% if person.status == 'missing' %}{{ t('detail.animal_missing') }}
+                            {% elif person.status == 'found_alive' %}{{ t('detail.status_found_alive') }}
                             {% elif person.status == 'found' %}{{ t('detail.animal_found') }}
+                            {% elif person.status == 'found_deceased' %}{{ t('detail.status_found_deceased') }}
                             {% elif person.status == 'deceased' %}{{ t('detail.animal_deceased') }}
                             {% else %}{{ person.status }}{% endif %}
                         {% else %}
                             {% if person.status == 'missing' %}
                                 {{ t('detail.status_missing') }}
+                            {% elif person.status == 'found_alive' %}
+                                {{ t('detail.status_found_alive') }}
                             {% elif person.status == 'found' %}
                                 {{ t('detail.status_found') }}
+                            {% elif person.status == 'found_deceased' %}
+                                {{ t('detail.status_found_deceased') }}
                             {% elif person.status == 'deceased' %}
                                 {{ t('detail.status_deceased') }}
                             {% else %}
