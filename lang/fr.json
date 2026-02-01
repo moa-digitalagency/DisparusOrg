@@ -8,7 +8,8 @@
     "keywords_default": "disparus, personnes disparues, Afrique, recherche, signalement"
   },
   "accessibility": {
-    "skip_to_content": "Aller au contenu principal"
+    "skip_to_content": "Aller au contenu principal",
+    "back_to_top": "Retour en haut"
   },
   "nav": {
     "report": "SIGNALER",
