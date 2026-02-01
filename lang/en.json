@@ -8,7 +8,8 @@
     "keywords_default": "missing, missing persons, Africa, search, report, missing persons, Africa"
   },
   "accessibility": {
-    "skip_to_content": "Skip to main content"
+    "skip_to_content": "Skip to main content",
+    "back_to_top": "Back to top"
   },
   "nav": {
     "report": "REPORT",

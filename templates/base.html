@@ -251,6 +251,11 @@
         </div>
     </footer>
 
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="hidden fixed bottom-6 right-6 z-[90] bg-red-700 hover:bg-red-800 text-white w-12 h-12 rounded-full shadow-lg items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="{{ t('accessibility.back_to_top') }}">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+    </button>
+
     {% if site_settings.get('pwa_enabled') %}
     <script>
         if ('serviceWorker' in navigator) {
@@ -299,6 +304,8 @@
 
     <script src="/statics/js/pwa-install.js" defer></script>
     {% endif %}
+
+    <script src="/statics/js/back-to-top.js" defer></script>
 
     {% block scripts %}{% endblock %}
 
