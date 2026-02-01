@@ -1,7 +1,7 @@
 {
   "site": {
     "name": "DISPARUS.ORG",
-    "description": "Plateforme citoyenne de signalement de personnes disparues en Afrique"
+    "description": "Plateforme citoyenne de signalement de personnes et animaux disparus en Afrique"
   },
   "missing": "Porté(e) disparu(e)",
   "found": "Retrouvé(e)",
@@ -11,8 +11,8 @@
   "status_found_alive": "Retrouvé(e) vivant(e)",
   "status_found_deceased": "Retrouvé(e) décédé(e)",
   "seo": {
-    "description_default": "Plateforme humanitaire citoyenne pour signaler et rechercher les personnes disparues en Afrique",
-    "keywords_default": "disparus, personnes disparues, Afrique, recherche, signalement"
+    "description_default": "Plateforme humanitaire citoyenne pour signaler et rechercher les personnes et animaux disparus en Afrique",
+    "keywords_default": "disparus, personnes disparues, animaux disparus, Afrique, recherche, signalement"
   },
   "accessibility": {
     "skip_to_content": "Aller au contenu principal",
@@ -27,8 +27,8 @@
   "hero": {
     "badge_countries": "pays africains",
     "badge_cities": "villes",
-    "title": "Aidez-nous a retrouver les disparus en Afrique",
-    "subtitle": "Plus de 25 000 enfants et personnes signales disparus chaque annee",
+    "title": "Aidez-nous a retrouver les personnes et animaux disparus en Afrique",
+    "subtitle": "Plus de 25 000 enfants, personnes et animaux signalés disparus chaque année",
     "description": "Enlevements, rancons, crimes rituels : brisons le silence",
     "search_placeholder": "Nom, ID, ville ou pays...",
     "search_button": "Rechercher"
@@ -70,13 +70,13 @@
   "contribution": {
     "intro": "Chaque information compte. Un temoignage, une mise a jour, un simple partage sur les reseaux sociaux peut faire toute la difference.",
     "decisive_link": "Vous pourriez etre le maillon decisif",
-    "outro": "qui permet de retrouver une personne disparue.",
+    "outro": "qui permet de retrouver un disparu.",
     "share_info": "Meme si vous n'etes pas certain de l'information, partagez-la. Les enqueteurs et les familles peuvent recouper les temoignages pour avancer dans leurs recherches.",
     "testimony": "Temoignage",
     "update": "Mise a jour",
     "share": "Partage",
     "how_to_update": "Comment mettre a jour une fiche ?",
-    "step1_title": "Recherchez la personne",
+    "step1_title": "Recherchez le disparu",
     "step1_desc": "Utilisez la recherche par nom, ID ou localisation pour trouver la fiche.",
     "step2_title": "Consultez la fiche",
     "step2_desc": "Cliquez sur la fiche pour voir tous les details et les contributions existantes.",
@@ -96,7 +96,7 @@
     "title": "N'attendez jamais 24 heures !",
     "message": "Contrairement aux idees recues, vous n'avez pas besoin d'attendre 24h pour signaler une disparition.",
     "crucial": "Les premieres heures sont cruciales.",
-    "better": "Mieux vaut signaler et retrouver la personne rapidement que perdre un temps precieux.",
+    "better": "Mieux vaut signaler et retrouver le disparu rapidement que perdre un temps precieux.",
     "button": "Signaler maintenant"
   },
   "safety": {
@@ -125,7 +125,7 @@
     "section_location": "Localisation",
     "section_description": "Description",
     "section_contact": "Contact",
-    "person_type": "Type de personne",
+    "person_type": "Qui a disparu ?",
     "child": "Enfant (0-17 ans)",
     "adult": "Adulte (18-59 ans)",
     "elderly": "Personne agee (60+ ans)",
@@ -176,7 +176,7 @@
   },
   "search_page": {
     "advanced_search": "Recherche avancee",
-    "title": "Rechercher une personne disparue",
+    "title": "Rechercher une personne ou un animal disparu",
     "subtitle": "Utilisez les filtres ci-dessous pour affiner votre recherche",
     "label_search": "Recherche",
     "placeholder": "Nom, ID, ville...",
@@ -268,7 +268,7 @@
     "clothing": "Vetements",
     "objects": "Objets",
     "disappearance": "Disparition",
-    "title_help": "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!",
+    "title_help": "AIDEZ-NOUS A LE RETROUVER !",
     "police": "Police"
   },
   "moderation": {
