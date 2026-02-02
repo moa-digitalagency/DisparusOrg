@@ -391,24 +391,25 @@ def _get_statistics_data(period='all', start_date_str=None, end_date_str=None):
         q_disparu = q_disparu.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
 
     # Stats Aggregation
-    total_persons = q_disparu.filter(Disparu.person_type != 'animal').count()
-    total_animals = q_disparu.filter(Disparu.person_type == 'animal').count()
+    aggregated_stats = q_disparu.with_entities(
+        db.func.sum(db.case((Disparu.person_type != 'animal', 1), else_=0)).label('total_persons'),
+        db.func.sum(db.case((Disparu.person_type == 'animal', 1), else_=0)).label('total_animals'),
+        db.func.sum(db.case((db.and_(Disparu.person_type != 'animal', Disparu.status.in_(['found', 'found_alive'])), 1), else_=0)).label('found_persons'),
+        db.func.sum(db.case((db.and_(Disparu.person_type == 'animal', Disparu.status.in_(['found', 'found_alive'])), 1), else_=0)).label('found_animals'),
+        db.func.sum(db.case((db.and_(Disparu.person_type != 'animal', Disparu.status.in_(['deceased', 'found_deceased'])), 1), else_=0)).label('deceased_persons'),
+        db.func.sum(db.case((db.and_(Disparu.person_type == 'animal', Disparu.status.in_(['deceased', 'found_deceased'])), 1), else_=0)).label('deceased_animals'),
+        db.func.sum(db.case((Disparu.person_type != 'animal', Disparu.view_count), else_=0)).label('views_persons'),
+        db.func.sum(db.case((Disparu.person_type == 'animal', Disparu.view_count), else_=0)).label('views_animals')
+    ).one()
 
-    found_persons = q_disparu.filter(Disparu.person_type != 'animal', Disparu.status.in_(['found', 'found_alive'])).count()
-    found_animals = q_disparu.filter(Disparu.person_type == 'animal', Disparu.status.in_(['found', 'found_alive'])).count()
-
-    deceased_persons = q_disparu.filter(Disparu.person_type != 'animal', Disparu.status.in_(['deceased', 'found_deceased'])).count()
-    deceased_animals = q_disparu.filter(Disparu.person_type == 'animal', Disparu.status.in_(['deceased', 'found_deceased'])).count()
-
-    views_persons = db.session.query(db.func.sum(Disparu.view_count)).filter(Disparu.person_type != 'animal')
-    if start_date:
-        views_persons = views_persons.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-    views_persons = views_persons.scalar() or 0
-
-    views_animals = db.session.query(db.func.sum(Disparu.view_count)).filter(Disparu.person_type == 'animal')
-    if start_date:
-        views_animals = views_animals.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-    views_animals = views_animals.scalar() or 0
+    total_persons = aggregated_stats.total_persons or 0
+    total_animals = aggregated_stats.total_animals or 0
+    found_persons = aggregated_stats.found_persons or 0
+    found_animals = aggregated_stats.found_animals or 0
+    deceased_persons = aggregated_stats.deceased_persons or 0
+    deceased_animals = aggregated_stats.deceased_animals or 0
+    views_persons = aggregated_stats.views_persons or 0
+    views_animals = aggregated_stats.views_animals or 0
 
     q_downloads = db.session.query(Download).join(Disparu)
     if start_date:
