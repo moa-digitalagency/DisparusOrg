@@ -21,6 +21,10 @@ def find_potential_matches(disparu):
         Disparu.status == 'missing'
     ).all()
     
+    desc1_words = None
+    if disparu.physical_description:
+        desc1_words = set(disparu.physical_description.lower().split())
+
     for other in all_disparus:
         score = 0
         
@@ -39,8 +43,7 @@ def find_potential_matches(disparu):
             if disparu.city == other.city:
                 score += 15
         
-        if disparu.physical_description and other.physical_description:
-            desc1_words = set(disparu.physical_description.lower().split())
+        if desc1_words and other.physical_description:
             desc2_words = set(other.physical_description.lower().split())
             common_words = desc1_words & desc2_words
             if len(common_words) >= 5:
