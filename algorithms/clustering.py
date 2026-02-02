@@ -1,5 +1,6 @@
 from models import db, Disparu
 import math
+from collections import defaultdict
 from sqlalchemy import or_
 
 
@@ -27,6 +28,18 @@ def find_hotspots(min_cases=3, radius_km=50):
     if len(disparus) < min_cases:
         return []
     
+    # Spatial hashing / Grid-based clustering optimization
+    GRID_SIZE = 0.5  # degrees, approx 55km at equator
+    grid = defaultdict(list)
+    max_lon_idx = int(360 / GRID_SIZE)
+
+    for idx, d in enumerate(disparus):
+        lat_idx = int(d.latitude / GRID_SIZE)
+        # Normalize longitude to 0..360
+        norm_lon = d.longitude % 360
+        lon_idx = int(norm_lon / GRID_SIZE)
+        grid[(lat_idx, lon_idx)].append((idx, d))
+
     hotspots = []
     processed = set()
     
@@ -37,18 +50,48 @@ def find_hotspots(min_cases=3, radius_km=50):
         cluster = [d1]
         cluster_ids = {i}
         
-        for j, d2 in enumerate(disparus):
-            if j in processed or j == i:
-                continue
-            
-            distance = haversine_distance(
-                d1.latitude, d1.longitude,
-                d2.latitude, d2.longitude
-            )
-            
-            if distance <= radius_km:
-                cluster.append(d2)
-                cluster_ids.add(j)
+        lat_idx = int(d1.latitude / GRID_SIZE)
+        norm_lon = d1.longitude % 360
+        lon_idx = int(norm_lon / GRID_SIZE)
+
+        # Calculate search radius in grid units
+        lat_steps = math.ceil(radius_km / 111.0 / GRID_SIZE)
+
+        cos_lat = math.cos(math.radians(d1.latitude))
+        if abs(cos_lat) < 0.0001:
+            lon_steps = max_lon_idx // 2  # Search everything
+        else:
+            lon_steps = math.ceil(radius_km / (111.0 * abs(cos_lat)) / GRID_SIZE)
+            if lon_steps > max_lon_idx // 2:
+                lon_steps = max_lon_idx // 2
+
+        # Check neighbor cells
+        checked_cells = set()
+        for d_lat in range(-lat_steps, lat_steps + 1):
+            curr_lat = lat_idx + d_lat
+            for d_lon in range(-lon_steps, lon_steps + 1):
+                curr_lon = (lon_idx + d_lon) % max_lon_idx
+
+                if (curr_lat, curr_lon) in checked_cells:
+                    continue
+                checked_cells.add((curr_lat, curr_lon))
+
+                cell_points = grid.get((curr_lat, curr_lon))
+                if not cell_points:
+                    continue
+
+                for j, d2 in cell_points:
+                    if j in processed or j == i:
+                        continue
+
+                    distance = haversine_distance(
+                        d1.latitude, d1.longitude,
+                        d2.latitude, d2.longitude
+                    )
+
+                    if distance <= radius_km:
+                        cluster.append(d2)
+                        cluster_ids.add(j)
         
         if len(cluster) >= min_cases:
             center_lat = sum(d.latitude for d in cluster) / len(cluster)
