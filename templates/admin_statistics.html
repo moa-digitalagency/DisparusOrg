@@ -10,7 +10,7 @@
 {% block title %}{{ t('admin.statistics') }} - Admin DISPARUS.ORG{% endblock %}
 
 {% block page_title %}{{ t('admin.statistics') }}{% endblock %}
-{% block page_subtitle %}{% if get_locale() == 'fr' %}Analyses et métriques de la plateforme{% else %}Platform analytics and metrics{% endif %}{% endblock %}
+{% block page_subtitle %}{{ t('admin.platform_analytics') }}{% endblock %}
 
 {% block admin_content %}
 <!-- Filters & Export -->
@@ -18,13 +18,13 @@
     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <form method="GET" action="{{ url_for('admin.statistics') }}" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-700">Période:</span>
+                <span class="text-sm font-medium text-gray-700">{{ t('stats.period') }}:</span>
                 <select name="period" onchange="this.form.submit()" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2">
-                    <option value="all" {% if filters.period == 'all' %}selected{% endif %}>Tout</option>
-                    <option value="1d" {% if filters.period == '1d' %}selected{% endif %}>24h</option>
-                    <option value="7d" {% if filters.period == '7d' %}selected{% endif %}>7 jours</option>
-                    <option value="1m" {% if filters.period == '1m' %}selected{% endif %}>1 mois</option>
-                    <option value="custom" {% if filters.period == 'custom' %}selected{% endif %}>Personnalisé</option>
+                    <option value="all" {% if filters.period == 'all' %}selected{% endif %}>{{ t('stats.all_time') }}</option>
+                    <option value="1d" {% if filters.period == '1d' %}selected{% endif %}>{{ t('stats.last_24h') }}</option>
+                    <option value="7d" {% if filters.period == '7d' %}selected{% endif %}>{{ t('stats.last_7d') }}</option>
+                    <option value="1m" {% if filters.period == '1m' %}selected{% endif %}>{{ t('stats.last_30d') }}</option>
+                    <option value="custom" {% if filters.period == 'custom' %}selected{% endif %}>{{ t('stats.custom') }}</option>
                 </select>
             </div>
 
@@ -33,7 +33,7 @@
                 <input type="date" name="start_date" value="{{ filters.start_date }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2">
                 <span class="text-gray-500">-</span>
                 <input type="date" name="end_date" value="{{ filters.end_date }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2">
-                <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700">Filtrer</button>
+                <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700">{{ t('admin.filter') }}</button>
             </div>
             {% endif %}
         </form>
@@ -41,11 +41,11 @@
         <div class="flex items-center gap-2 w-full md:w-auto">
             <a href="{{ url_for('admin.export_stats_csv', start_date=filters.start_date, end_date=filters.end_date) }}" class="flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors w-full md:w-auto justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                Export CSV
+                {{ t('stats.export_csv') }}
             </a>
             <a href="{{ url_for('admin.export_stats_pdf', start_date=filters.start_date, end_date=filters.end_date) }}" class="flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors w-full md:w-auto justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Export PDF
+                {{ t('stats.export_pdf') }}
             </a>
         </div>
     </div>
@@ -56,75 +56,75 @@
     <!-- Total -->
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">{{ t('admin.total') }}</h3>
             <div class="p-2 bg-gray-100 rounded-lg text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
         </div>
         <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
         <div class="mt-2 text-xs flex justify-between text-gray-500">
-            <span>Humains: {{ stats.total_persons }}</span>
-            <span>Animaux: {{ stats.total_animals }}</span>
+            <span>{{ t('stats.humans') }}: {{ stats.total_persons }}</span>
+            <span>{{ t('stats.animals') }}: {{ stats.total_animals }}</span>
         </div>
     </div>
 
     <!-- Found (Alive) -->
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Retrouvés</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">{{ t('stats.found') }}</h3>
             <div class="p-2 bg-green-100 rounded-lg text-green-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
         <div class="text-2xl font-bold text-green-600">{{ stats.found }}</div>
         <div class="mt-2 text-xs flex justify-between text-gray-500">
-            <span>Humains: {{ stats.found_persons }}</span>
-            <span>Animaux: {{ stats.found_animals }}</span>
+            <span>{{ t('stats.humans') }}: {{ stats.found_persons }}</span>
+            <span>{{ t('stats.animals') }}: {{ stats.found_animals }}</span>
         </div>
     </div>
 
     <!-- Deceased -->
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Décédés</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">{{ t('deceased') }}</h3>
             <div class="p-2 bg-gray-100 rounded-lg text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
         </div>
         <div class="text-2xl font-bold text-gray-600">{{ stats.deceased }}</div>
         <div class="mt-2 text-xs flex justify-between text-gray-500">
-            <span>Humains: {{ stats.deceased_persons }}</span>
-            <span>Animaux: {{ stats.deceased_animals }}</span>
+            <span>{{ t('stats.humans') }}: {{ stats.deceased_persons }}</span>
+            <span>{{ t('stats.animals') }}: {{ stats.deceased_animals }}</span>
         </div>
     </div>
 
     <!-- Views -->
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Vues</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">{{ t('stats.views') }}</h3>
             <div class="p-2 bg-purple-100 rounded-lg text-purple-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             </div>
         </div>
         <div class="text-2xl font-bold text-purple-600">{{ stats.total_views }}</div>
         <div class="mt-2 text-xs flex justify-between text-gray-500">
-            <span>Humains: {{ stats.views_persons }}</span>
-            <span>Animaux: {{ stats.views_animals }}</span>
+            <span>{{ t('stats.humans') }}: {{ stats.views_persons }}</span>
+            <span>{{ t('stats.animals') }}: {{ stats.views_animals }}</span>
         </div>
     </div>
 
     <!-- Downloads -->
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Téléchargements</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">{{ t('admin.downloads') }}</h3>
             <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             </div>
         </div>
         <div class="text-2xl font-bold text-blue-600">{{ stats.total_downloads }}</div>
         <div class="mt-2 text-xs flex justify-between text-gray-500">
-            <span>Humains: {{ stats.downloads_persons }}</span>
-            <span>Animaux: {{ stats.downloads_animals }}</span>
+            <span>{{ t('stats.humans') }}: {{ stats.downloads_persons }}</span>
+            <span>{{ t('stats.animals') }}: {{ stats.downloads_animals }}</span>
         </div>
     </div>
 </div>
@@ -192,19 +192,19 @@
 <!-- Detailed Files Stats -->
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
     <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex justify-between items-center">
-        <h2 class="font-semibold text-gray-900">Détails des fiches (Top 100 par vues)</h2>
-        <span class="text-xs text-gray-500">Classé par vues</span>
+        <h2 class="font-semibold text-gray-900">{{ t('stats.top_100_views') }}</h2>
+        <span class="text-xs text-gray-500">{{ t('stats.ranked_by_views') }}</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead class="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                 <tr>
-                    <th class="px-4 py-3">ID</th>
-                    <th class="px-4 py-3">Nom</th>
-                    <th class="px-4 py-3">Type</th>
-                    <th class="px-4 py-3">Statut</th>
-                    <th class="px-4 py-3 text-right">Vues</th>
-                    <th class="px-4 py-3 text-right">Actions</th>
+                    <th class="px-4 py-3">{{ t('admin.id') }}</th>
+                    <th class="px-4 py-3">{{ t('admin.name') }}</th>
+                    <th class="px-4 py-3">{{ t('admin.type') }}</th>
+                    <th class="px-4 py-3">{{ t('admin.status') }}</th>
+                    <th class="px-4 py-3 text-right">{{ t('stats.views') }}</th>
+                    <th class="px-4 py-3 text-right">{{ t('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -215,7 +215,11 @@
                     <td class="px-4 py-3">
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
                             {% if person.person_type == 'animal' %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-                            {{ person.person_type }}
+                            {% if person.person_type == 'animal' %}
+                                {{ t('sections.animal') }}
+                            {% else %}
+                                {{ t('stats.' ~ person.person_type) if person.person_type in ['child', 'teenager', 'adult', 'elderly'] else person.person_type }}
+                            {% endif %}
                         </span>
                     </td>
                     <td class="px-4 py-3">
@@ -248,7 +252,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
-            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Fiches les plus telechargees{% else %}Most downloaded records{% endif %}</h2>
+            <h2 class="font-semibold text-gray-900">{{ t('stats.most_downloaded_records') }}</h2>
         </div>
         <div class="p-4">
             {% for record in most_downloaded %}
@@ -266,14 +270,14 @@
                 </div>
             </div>
             {% else %}
-            <div class="py-8 text-center text-gray-500 text-sm">{% if get_locale() == 'fr' %}Aucun telechargement{% else %}No downloads{% endif %}</div>
+            <div class="py-8 text-center text-gray-500 text-sm">{{ t('admin.no_downloads') }}</div>
             {% endfor %}
         </div>
     </div>
     
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white">
-            <h2 class="font-semibold text-gray-900">{% if get_locale() == 'fr' %}Formats telecharges{% else %}Downloaded formats{% endif %}</h2>
+            <h2 class="font-semibold text-gray-900">{{ t('stats.downloaded_formats') }}</h2>
         </div>
         <div class="p-4">
             {% for file_type, count in downloads_by_type %}
@@ -302,7 +306,7 @@
                 </div>
             </div>
             {% else %}
-            <div class="py-8 text-center text-gray-500 text-sm">{% if get_locale() == 'fr' %}Aucun telechargement{% else %}No downloads{% endif %}</div>
+            <div class="py-8 text-center text-gray-500 text-sm">{{ t('admin.no_downloads') }}</div>
             {% endfor %}
         </div>
     </div>
