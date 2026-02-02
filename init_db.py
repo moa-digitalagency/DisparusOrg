@@ -428,6 +428,15 @@ def init_database():
     logger.info("=== DISPARUS.ORG Database Initialization ===")
     
     with app.app_context():
+        # Ensure the instance folder exists if using SQLite (before connecting)
+        # This prevents "unable to open database file" errors on first run
+        if 'sqlite' in str(db.engine.url):
+            try:
+                os.makedirs('instance', exist_ok=True)
+                logger.info("   Checked/Created instance folder for SQLite.")
+            except OSError as e:
+                logger.warning(f"   Could not create instance folder: {e}")
+
         # 0. Pre-flight Connection Check
         try:
             with db.engine.connect() as conn:
@@ -444,14 +453,6 @@ def init_database():
         except:
             # Fallback for older SQLAlchemy versions or if something goes wrong
             logger.info(f"   Using Database: {db.engine.url}")
-
-        # Ensure the instance folder exists if using SQLite
-        if 'sqlite' in str(db.engine.url):
-            try:
-                # Naive check for instance folder in standard Flask setup
-                os.makedirs('instance', exist_ok=True)
-            except OSError:
-                pass
 
         logger.info("1. Checking and creating missing tables...")
         missing = create_missing_tables()
