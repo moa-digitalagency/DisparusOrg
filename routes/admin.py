@@ -516,9 +516,23 @@ def export_stats_csv():
 
     disparus = q.all()
 
+    from utils.i18n import get_translation
+    locale = request.cookies.get('locale', 'fr')
+
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['ID', 'Nom', 'Type', 'Statut', 'Pays', 'Ville', 'Vues', 'Date Creation'])
+
+    headers = [
+        get_translation('admin.export.header.id', locale),
+        get_translation('admin.export.header.name', locale),
+        get_translation('admin.export.header.type', locale),
+        get_translation('admin.export.header.status', locale),
+        get_translation('admin.export.header.country', locale),
+        get_translation('admin.export.header.city', locale),
+        get_translation('admin.export.header.views', locale),
+        get_translation('admin.export.header.created_at', locale)
+    ]
+    writer.writerow(headers)
 
     for d in disparus:
         writer.writerow([

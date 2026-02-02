@@ -382,7 +382,19 @@
     "downloads_will_appear": "Downloads will appear here",
     "platform_analytics": "Platform analytics and metrics",
     "id": "ID",
-    "total": "Total"
+    "total": "Total",
+    "export": {
+      "header": {
+        "id": "ID",
+        "name": "Name",
+        "type": "Type",
+        "status": "Status",
+        "country": "Country",
+        "city": "City",
+        "views": "Views",
+        "created_at": "Created At"
+      }
+    }
   },
   "footer": {
     "about": "About",
@@ -426,5 +438,40 @@
     "not_available": "Not available",
     "rank": "Rank",
     "format": "Format"
+  },
+  "pdf": {
+    "help_find": "HELP US FIND THIS PERSON!",
+    "missing_person": "MISSING PERSON",
+    "scan": "SCAN",
+    "photo_unavailable": "Photo not available",
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "male_animal": "Male",
+      "female_animal": "Female"
+    },
+    "label": {
+      "age": "Age",
+      "sex": "Gender",
+      "location": "Location",
+      "date": "Date",
+      "time": "Time",
+      "id": "ID Disparus.org",
+      "description": "PHYSICAL DESCRIPTION",
+      "clothing": "CLOTHING",
+      "clothing_animal": "COLLAR / ACCESSORIES",
+      "circumstances": "CIRCUMSTANCES",
+      "contacts": "CONTACTS"
+    },
+    "footer": {
+      "contact_us": "If you have information, contact us!",
+      "generated_on": "Document generated on"
+    },
+    "social": {
+      "missing_since": "Missing since {date} at {time}",
+      "contact_title": "CONTACT US IF YOU HAVE INFORMATION",
+      "footer_line1": "Any information can help find this person,",
+      "footer_line2": "sharing this image can also help the search"
+    }
   }
 }

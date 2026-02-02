@@ -77,12 +77,23 @@ def draw_rounded_rect(c, x, y, width, height, radius, fill_color=None, stroke_co
     c.restoreState()
 
 
-def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
+def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None, locale='fr'):
     """
     Génère un PDF A4 reproduisant le design original du site (horizontal).
     """
     if not HAS_REPORTLAB:
         return None
+
+    if t is None:
+        from utils.i18n import get_translation
+        def t(key, **kwargs):
+            text = get_translation(key, locale)
+            if kwargs:
+                try:
+                    return text.format(**kwargs)
+                except:
+                    return text
+            return text
 
     settings = get_site_settings()
     site_name = settings.get('site_name', 'DISPARUS.ORG')
@@ -136,8 +147,8 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # Slogan
     p.setFont("Helvetica", 10)
     p.setFillColor(GRAY_MEDIUM)
-    p.drawString(title_x, title_y - 0.6*cm, "Plateforme citoyenne pour personnes disparues")
-    p.drawString(title_x, title_y - 1.0*cm, "Citizen platform for missing persons")
+    p.drawString(title_x, title_y - 0.6*cm, t('site.description'))
+    # p.drawString(title_x, title_y - 1.0*cm, "Citizen platform for missing persons") # Multilingual removed in favor of localized string
 
     # ID à droite
     p.setFont("Helvetica-Bold", 14)
@@ -162,12 +173,12 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     p.setFillColor(RED_DARK) # Rouge sombre pour le titre principal
     p.setFont("Helvetica-Bold", 36)
-    p.drawCentredString(width/2, main_title_y, "PERSONNE DISPARUE")
+    p.drawCentredString(width/2, main_title_y, t('pdf.missing_person'))
 
     # Sous-titre
-    p.setFillColor(GRAY_MEDIUM)
-    p.setFont("Helvetica-Bold", 20)
-    p.drawCentredString(width/2, main_title_y - 1*cm, "MISSING PERSON")
+    # p.setFillColor(GRAY_MEDIUM)
+    # p.setFont("Helvetica-Bold", 20)
+    # p.drawCentredString(width/2, main_title_y - 1*cm, "MISSING PERSON")
 
     # Lignes décoratives
     p.setStrokeColor(RED_PRIMARY)
@@ -207,7 +218,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
          draw_rounded_rect(p, photo_x, content_y - photo_h, photo_w, photo_h, 3*mm, fill_color=GRAY_LIGHT)
          p.setFillColor(GRAY_MEDIUM)
          p.setFont("Helvetica", 10)
-         p.drawCentredString(photo_x + photo_w/2, content_y - photo_h/2, "Photo non disponible")
+         p.drawCentredString(photo_x + photo_w/2, content_y - photo_h/2, t('pdf.photo_unavailable'))
 
     # Infos à droite - TAILLE POLICE AUGMENTÉE
     # Infos décalées de 1cm vers la gauche par rapport à l'original (2+7+1 = 10cm).
@@ -225,7 +236,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     info_y_cursor -= 1.3*cm # Espacement réduit de 1.8 à 1.3 pour faire monter les détails de 0.5cm
 
     # Date et Heure formatée (Séparées)
-    date_val = "Non specifie"
+    date_val = t('common.not_available')
     heure_val = ""
     if disparu.disappearance_date:
         date_val = disparu.disappearance_date.strftime('%d/%m/%Y')
@@ -236,25 +247,25 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     # Logic for Animal vs Person details
     is_animal = (disparu.person_type == 'animal')
 
-    sex_label = "Femme"
+    sex_label = t('pdf.gender.female')
     if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme']:
-        sex_label = "Homme"
+        sex_label = t('pdf.gender.male')
 
     if is_animal:
-        if sex_label == "Homme":
-            sex_label = "Mâle"
+        if sex_label == t('pdf.gender.male'):
+            sex_label = t('pdf.gender.male_animal')
         else:
-            sex_label = "Femelle"
+            sex_label = t('pdf.gender.female_animal')
 
     details = []
 
     # Hide age if -1 (unknown/irrelevant)
     if disparu.age != -1:
-        details.append(("Age:", f"{disparu.age} ans / years old"))
+        details.append((t('pdf.label.age') + ":", f"{disparu.age} {t('detail.age_years')}"))
 
-    details.append(("Sexe / Gender:", sex_label))
-    details.append(("Lieu / Location:", f"{disparu.city}, {disparu.country}"))
-    details.append(("Date:", date_val))
+    details.append((t('pdf.label.sex') + ":", sex_label))
+    details.append((t('pdf.label.location') + ":", f"{disparu.city}, {disparu.country}"))
+    details.append((t('pdf.label.date') + ":", date_val))
 
     # Affichage des détails standard
     for label, value in details:
@@ -272,18 +283,18 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     if heure_val:
         p.setFillColor(RED_DARK)
         p.setFont("Helvetica-Bold", 14)
-        p.drawString(info_x, info_y_cursor, "Heure / Time:")
+        p.drawString(info_x, info_y_cursor, t('pdf.label.time') + ":")
 
         p.setFillColor(GRAY_DARK)
         p.setFont("Helvetica", 14)
-        label_w = p.stringWidth("Heure / Time:", "Helvetica-Bold", 14)
+        label_w = p.stringWidth(t('pdf.label.time') + ":", "Helvetica-Bold", 14)
         p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, heure_val)
         info_y_cursor -= 1.0*cm
 
     # Ajout ID sur la ligne suivante encore
     p.setFillColor(RED_DARK)
     p.setFont("Helvetica-Bold", 14)
-    label_id = "ID Disparus.org:"
+    label_id = t('pdf.label.id') + ":"
     p.drawString(info_x, info_y_cursor, label_id)
 
     p.setFillColor(GRAY_DARK)
@@ -332,16 +343,16 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
         return text_y - 0.5*cm
 
-    desc = disparu.physical_description or "Non disponible."
-    section_y = draw_section_block("DESCRIPTION PHYSIQUE / PHYSICAL DESCRIPTION", desc, section_y)
+    desc = disparu.physical_description or t('common.not_available')
+    section_y = draw_section_block(t('pdf.label.description'), desc, section_y)
 
-    clothing = disparu.clothing or "Non disponible."
-    clothing_label = "COLLIER / ACCESSOIRES" if is_animal else "VETEMENTS / CLOTHING"
+    clothing = disparu.clothing or t('common.not_available')
+    clothing_label = t('pdf.label.clothing_animal') if is_animal else t('pdf.label.clothing')
     section_y = draw_section_block(clothing_label, clothing, section_y)
 
     if not is_animal:
-        circ = disparu.circumstances or "Non disponible."
-        section_y = draw_section_block("CIRCONSTANCES / CIRCUMSTANCES", circ, section_y)
+        circ = disparu.circumstances or t('common.not_available')
+        section_y = draw_section_block(t('pdf.label.circumstances'), circ, section_y)
 
     # --- 5. Contacts (Bloc dédié) ---
     if section_y < 8*cm: # Si on est trop bas
@@ -352,7 +363,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p.rect(2*cm, section_y, 0.4*cm, 0.4*cm, fill=1, stroke=0)
     p.setFillColor(GRAY_DARK)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(2.6*cm, section_y, "CONTACTS")
+    p.drawString(2.6*cm, section_y, t('pdf.label.contacts'))
     p.setStrokeColor(GRAY_LIGHT)
     p.line(2*cm, section_y - 0.2*cm, width - 6*cm, section_y - 0.2*cm) # Ligne plus courte
 
@@ -395,7 +406,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
 
     p.setFillColor(RED_DARK)
     p.setFont("Helvetica-Bold", 8)
-    p.drawCentredString(qr_x + qr_size/2, qr_y, "SCANNEZ / SCAN")
+    p.drawCentredString(qr_x + qr_size/2, qr_y, t('pdf.scan'))
 
     # Bandes de bas de page
     # Bande Or fine
@@ -416,12 +427,12 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org'):
     p.drawCentredString(width/2, 1.2*cm, base_url)
 
     p.setFont("Helvetica", 10)
-    p.drawCentredString(width/2, 0.6*cm, "Si vous avez des informations, contactez-nous ! / If you have information, contact us!")
+    p.drawCentredString(width/2, 0.6*cm, t('pdf.footer.contact_us'))
 
     # Timestamp discret au dessus du footer
     p.setFillColor(GRAY_MEDIUM)
     p.setFont("Helvetica", 8)
-    p.drawString(2*cm, 2.5*cm, f"Document genere le {datetime.now().strftime('%d/%m/%Y a %H:%M')}")
+    p.drawString(2*cm, 2.5*cm, f"{t('pdf.footer.generated_on')} {datetime.now().strftime('%d/%m/%Y')} {t('pdf.label.time')} {datetime.now().strftime('%H:%M')}")
 
     p.showPage()
     p.save()
@@ -456,13 +467,24 @@ def generate_qr_code(url, size=10):
         return None
 
 
-def generate_social_media_image(disparu, base_url='https://disparus.org'):
+def generate_social_media_image(disparu, base_url='https://disparus.org', t=None, locale='fr'):
     """Generate a 1080x1350px portrait image for social media sharing matching the reference design."""
     try:
         from PIL import Image, ImageDraw, ImageFont
         from io import BytesIO
         import os
         import requests
+
+        if t is None:
+            from utils.i18n import get_translation
+            def t(key, **kwargs):
+                text = get_translation(key, locale)
+                if kwargs:
+                    try:
+                        return text.format(**kwargs)
+                    except:
+                        return text
+                return text
 
         # Dimensions et Couleurs
         width, height = 1080, 1350
@@ -506,13 +528,13 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         draw.rectangle([0, 0, width, header_height], fill=RED_HEADER)
 
         # Texte Header
-        header_text = "AIDEZ-NOUS A RETROUVER CETTE PERSONNE!"
+        header_text = t('pdf.help_find')
         bbox = draw.textbbox((0, 0), header_text, font=font_bold_large)
         draw.text(((width - (bbox[2]-bbox[0])) // 2, 40), header_text, fill=TEXT_WHITE, font=font_bold_large)
 
         # Sous-textes header (gauche/droite)
-        draw.text((30, 85), "DISPARUS.ORG", fill=TEXT_WHITE, font=font_small)
-        id_text = f"ID : {disparu.public_id}"
+        draw.text((30, 85), t('site.name'), fill=TEXT_WHITE, font=font_small)
+        id_text = f"{t('admin.id')} : {disparu.public_id}"
         bbox_id = draw.textbbox((0, 0), id_text, font=font_small)
         draw.text((width - (bbox_id[2]-bbox_id[0]) - 30, 85), id_text, fill=TEXT_WHITE, font=font_small)
 
@@ -521,13 +543,13 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         bar_height = 90 # Reduit de 110
         draw.rectangle([0, bar_y, width, bar_y + bar_height], fill=DARK_BAR)
 
-        main_title = "PERSONNE DISPARUE"
+        main_title = t('pdf.missing_person')
         bbox_mt = draw.textbbox((0, 0), main_title, font=font_bold_large)
         draw.text(((width - (bbox_mt[2]-bbox_mt[0])) // 2, bar_y + 15), main_title, fill=TEXT_WHITE, font=font_bold_large)
 
-        sub_title = "MISSING PERSON"
-        bbox_st = draw.textbbox((0, 0), sub_title, font=font_small)
-        draw.text(((width - (bbox_st[2]-bbox_st[0])) // 2, bar_y + 60), sub_title, fill=(200, 200, 200), font=font_small)
+        # sub_title = "MISSING PERSON"
+        # bbox_st = draw.textbbox((0, 0), sub_title, font=font_small)
+        # draw.text(((width - (bbox_st[2]-bbox_st[0])) // 2, bar_y + 60), sub_title, fill=(200, 200, 200), font=font_small)
 
         # --- 3. Photo Centrale (Arrondie) ---
         photo_area_y = bar_y + bar_height + 40 # Marge reduite
@@ -570,7 +592,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         else:
             # Placeholder gris
             draw.rounded_rectangle([photo_x, photo_area_y, photo_x+photo_size, photo_area_y+photo_size], radius=30, fill=(230, 230, 230))
-            draw.text((photo_x + 100, photo_area_y + 200), "Photo non disponible", fill=TEXT_GRAY, font=font_reg)
+            draw.text((photo_x + 100, photo_area_y + 200), t('pdf.photo_unavailable'), fill=TEXT_GRAY, font=font_reg)
 
         # --- 4. Informations Principales ---
         text_y_cursor = photo_area_y + photo_size + 30 # Marge reduite
@@ -585,12 +607,12 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         text_y_cursor += 70 # Espacement reduit
 
         # Age - Sexe
-        sex_str = "Homme" if disparu.sex == 'male' else "Femme"
+        sex_str = t('pdf.gender.female') if disparu.sex == 'male' else t('pdf.gender.male')
         if disparu.person_type == 'animal':
-             sex_str = "Mâle" if disparu.sex == 'male' else "Femelle"
+             sex_str = t('pdf.gender.male_animal') if disparu.sex == 'male' else t('pdf.gender.female_animal')
 
         if disparu.age != -1:
-            age_sex = f"{disparu.age} ans - {sex_str}"
+            age_sex = f"{disparu.age} {t('detail.age_years')} - {sex_str}"
         else:
             age_sex = sex_str
 
@@ -609,7 +631,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         if disparu.disappearance_date:
             d = disparu.disappearance_date.strftime("%d/%m/%Y")
             h = disparu.disappearance_date.strftime("%H:%M")
-            date_str = f"Disparu(e) le {d} a {h}"
+            date_str = t('pdf.social.missing_since', date=d, time=h)
 
         bbox_date = draw.textbbox((0, 0), date_str, font=font_bold_large)
         draw.text(((width - (bbox_date[2]-bbox_date[0])) // 2, text_y_cursor), date_str, fill=RED_ACCENT, font=font_bold_large)
@@ -657,7 +679,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         draw.rectangle([box_margin, box_y, width - box_margin, box_y + box_height], fill=CONTACT_BG)
 
         # Texte titre box
-        c_title = "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION"
+        c_title = t('pdf.social.contact_title')
         bbox_ct = draw.textbbox((0, 0), c_title, font=font_small) # Font plus petite pour etre sur que ca rentre
         draw.text(((width - (bbox_ct[2]-bbox_ct[0])) // 2, box_y + 20), c_title, fill=TEXT_WHITE, font=font_small)
 
@@ -683,8 +705,8 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         if remaining_space > 60:
             footer_warn_y = (box_y + box_height) + (remaining_space // 2) - 40
 
-            line1 = "Toute information peut permettre de retrouver cette personne,"
-            line2 = "un partage de cette image peut aider a la recherche aussi"
+            line1 = t('pdf.social.footer_line1')
+            line2 = t('pdf.social.footer_line2')
 
             bbox_f1 = draw.textbbox((0, 0), line1, font=font_reg)
             draw.text(((width - (bbox_f1[2]-bbox_f1[0])) // 2, footer_warn_y), line1, fill=RED_ACCENT, font=font_reg)

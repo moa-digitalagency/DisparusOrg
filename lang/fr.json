@@ -383,7 +383,19 @@
     "downloads_will_appear": "Les téléchargements apparaîtront ici",
     "platform_analytics": "Analyses et métriques de la plateforme",
     "id": "ID",
-    "total": "Total"
+    "total": "Total",
+    "export": {
+      "header": {
+        "id": "ID",
+        "name": "Nom",
+        "type": "Type",
+        "status": "Statut",
+        "country": "Pays",
+        "city": "Ville",
+        "views": "Vues",
+        "created_at": "Date Création"
+      }
+    }
   },
   "footer": {
     "about": "A propos",
@@ -427,5 +439,40 @@
     "not_available": "Non disponible",
     "rank": "Rang",
     "format": "Format"
+  },
+  "pdf": {
+    "help_find": "AIDEZ-NOUS A RETROUVER CETTE PERSONNE !",
+    "missing_person": "PERSONNE DISPARUE",
+    "scan": "SCANNEZ",
+    "photo_unavailable": "Photo non disponible",
+    "gender": {
+      "male": "Homme",
+      "female": "Femme",
+      "male_animal": "Mâle",
+      "female_animal": "Femelle"
+    },
+    "label": {
+      "age": "Age",
+      "sex": "Sexe",
+      "location": "Lieu",
+      "date": "Date",
+      "time": "Heure",
+      "id": "ID Disparus.org",
+      "description": "DESCRIPTION PHYSIQUE",
+      "clothing": "VETEMENTS",
+      "clothing_animal": "COLLIER / ACCESSOIRES",
+      "circumstances": "CIRCONSTANCES",
+      "contacts": "CONTACTS"
+    },
+    "footer": {
+      "contact_us": "Si vous avez des informations, contactez-nous !",
+      "generated_on": "Document généré le"
+    },
+    "social": {
+      "missing_since": "Disparu(e) le {date} à {time}",
+      "contact_title": "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION",
+      "footer_line1": "Toute information peut permettre de retrouver cette personne,",
+      "footer_line2": "un partage de cette image peut aider à la recherche aussi"
+    }
   }
 }

@@ -429,7 +429,19 @@ def download_pdf(public_id):
         db.session.rollback()
     
     base_url = request.url_root.rstrip('/')
-    pdf_buffer = generate_missing_person_pdf(disparu, base_url)
+
+    from utils.i18n import get_translation
+    locale = get_locale()
+    def t(key, **kwargs):
+        text = get_translation(key, locale)
+        if kwargs:
+            try:
+                return text.format(**kwargs)
+            except:
+                return text
+        return text
+
+    pdf_buffer = generate_missing_person_pdf(disparu, base_url, t=t, locale=locale)
     
     if pdf_buffer is None:
         flash('Erreur lors de la generation du PDF', 'error')
@@ -471,7 +483,19 @@ def download_share_image(public_id):
         db.session.rollback()
     
     base_url = request.url_root.rstrip('/')
-    image_buffer = generate_social_media_image(disparu, base_url)
+
+    from utils.i18n import get_translation
+    locale = get_locale()
+    def t(key, **kwargs):
+        text = get_translation(key, locale)
+        if kwargs:
+            try:
+                return text.format(**kwargs)
+            except:
+                return text
+        return text
+
+    image_buffer = generate_social_media_image(disparu, base_url, t=t, locale=locale)
     
     if image_buffer is None:
         flash('Erreur lors de la generation de l\'image', 'error')
