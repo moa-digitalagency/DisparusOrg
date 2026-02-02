@@ -9,14 +9,23 @@ from models import db, Disparu, Contribution
 
 
 def get_platform_stats():
+    disparu_stats = db.session.query(
+        db.func.count(Disparu.id).label('total'),
+        db.func.sum(db.case((Disparu.status == 'missing', 1), else_=0)).label('missing'),
+        db.func.sum(db.case((Disparu.status == 'found', 1), else_=0)).label('found'),
+        db.func.sum(db.case((Disparu.status == 'deceased', 1), else_=0)).label('deceased'),
+        db.func.sum(db.case((Disparu.is_flagged == True, 1), else_=0)).label('flagged'),
+        db.func.count(db.distinct(Disparu.country)).label('countries')
+    ).one()
+
     return {
-        'total': Disparu.query.count(),
-        'missing': Disparu.query.filter_by(status='missing').count(),
-        'found': Disparu.query.filter_by(status='found').count(),
-        'deceased': Disparu.query.filter_by(status='deceased').count(),
-        'flagged': Disparu.query.filter_by(is_flagged=True).count(),
+        'total': disparu_stats.total,
+        'missing': disparu_stats.missing or 0,
+        'found': disparu_stats.found or 0,
+        'deceased': disparu_stats.deceased or 0,
+        'flagged': disparu_stats.flagged or 0,
         'contributions': Contribution.query.count(),
-        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
+        'countries': disparu_stats.countries or 0,
     }
 
 
