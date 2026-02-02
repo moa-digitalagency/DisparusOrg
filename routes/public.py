@@ -103,10 +103,17 @@ def index():
             recent_query = recent_query.filter_by(person_type=default_filter)
     recent = recent_query.order_by(Disparu.created_at.desc()).limit(6).all()
 
+    # Optimized stats query: 3 queries -> 1 query
+    disparu_stats = db.session.query(
+        db.func.count(Disparu.id),
+        db.func.sum(db.case((Disparu.status == 'found', 1), else_=0)),
+        db.func.count(db.distinct(Disparu.country))
+    ).first()
+
     stats = {
-        'total': Disparu.query.count(),
-        'found': Disparu.query.filter_by(status='found').count(),
-        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
+        'total': disparu_stats[0] or 0,
+        'found': disparu_stats[1] or 0,
+        'countries': disparu_stats[2] or 0,
         'contributions': Contribution.query.count(),
     }
 
