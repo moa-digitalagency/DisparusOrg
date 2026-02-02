@@ -6,12 +6,25 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 from models import db
+import time
+
+# Global cache
+_settings_cache = None
+_settings_cache_time = 0
+_CACHE_TTL = 30  # seconds
 
 def get_all_settings_dict():
     """
     Get all settings as a dictionary with typed values.
-    No local caching to ensure consistency across multiple workers.
+    Uses a short-lived local cache to reduce DB load.
+    Returns a copy to prevent mutation of the cached object.
     """
+    global _settings_cache, _settings_cache_time
+
+    current_time = time.monotonic()
+    if _settings_cache is not None and (current_time - _settings_cache_time) < _CACHE_TTL:
+        return _settings_cache.copy()
+
     settings_list = SiteSetting.query.all()
     result = {}
     for s in settings_list:
@@ -27,11 +40,14 @@ def get_all_settings_dict():
                 result[s.key] = []
         else:
             result[s.key] = s.value
-    return result
+
+    _settings_cache = result
+    _settings_cache_time = current_time
+    return result.copy()
 
 def invalidate_settings_cache():
-    # Deprecated: No local cache used anymore
-    pass
+    global _settings_cache
+    _settings_cache = None
 
 
 class SiteSetting(db.Model):
