@@ -57,6 +57,73 @@ def get_disparus():
     return jsonify(result)
 
 
+@api_bp.route('/map-data')
+@rate_limit()
+def get_map_data():
+    min_lat = request.args.get('min_lat', type=float)
+    max_lat = request.args.get('max_lat', type=float)
+    min_lng = request.args.get('min_lng', type=float)
+    max_lng = request.args.get('max_lng', type=float)
+
+    person_type = request.args.get('type')
+    country = request.args.get('country')
+
+    # Select only necessary fields for map display
+    query = db.session.query(
+        Disparu.id,
+        Disparu.public_id,
+        Disparu.first_name,
+        Disparu.last_name,
+        Disparu.photo_url,
+        Disparu.latitude,
+        Disparu.longitude,
+        Disparu.city,
+        Disparu.country,
+        Disparu.status,
+        Disparu.person_type
+    ).filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))
+
+    if min_lat is not None and max_lat is not None and min_lng is not None and max_lng is not None:
+        # Handle date line crossing if needed (min_lng > max_lng)
+        if min_lng > max_lng:
+             query = query.filter(
+                Disparu.latitude.between(min_lat, max_lat),
+                db.or_(Disparu.longitude >= min_lng, Disparu.longitude <= max_lng)
+            )
+        else:
+            query = query.filter(
+                Disparu.latitude.between(min_lat, max_lat),
+                Disparu.longitude.between(min_lng, max_lng)
+            )
+
+    if country:
+        query = query.filter(Disparu.country == country)
+
+    if person_type and person_type != 'all':
+        if person_type == 'person':
+            query = query.filter(Disparu.person_type.in_(['child', 'adult', 'elderly']))
+        else:
+            query = query.filter(Disparu.person_type == person_type)
+
+    # Limit to prevent overload if bbox is too large
+    results = query.limit(500).all()
+
+    data = [{
+        'id': d.id,
+        'public_id': d.public_id,
+        'full_name': f"{d.first_name} {d.last_name}" if d.person_type != 'animal' else d.first_name,
+        'photo_url': d.photo_url,
+        'latitude': d.latitude,
+        'longitude': d.longitude,
+        'city': d.city,
+        'country': d.country,
+        'status': d.status,
+        'person_type': d.person_type
+    } for d in results]
+
+    return jsonify(data)
+
+
 @api_bp.route('/disparus/nearby')
 @rate_limit()
 def get_nearby_disparus():
