@@ -1193,85 +1193,117 @@ def export_data():
 def backup_data():
     country = request.form.get('country', '')
     
-    q = Disparu.query
-    if country:
-        q = q.filter_by(country=country)
-    
-    disparus = q.all()
-    disparu_ids = [d.id for d in disparus]
-    
-    contributions = Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).all() if disparu_ids else []
-    reports = ModerationReport.query.filter(ModerationReport.target_type == 'disparu', ModerationReport.target_id.in_(disparu_ids)).all() if disparu_ids else []
-    
-    backup = {
-        'version': '1.0',
-        'created_at': datetime.now().isoformat(),
-        'country': country or 'all',
-        'disparus': [],
-        'contributions': [],
-        'moderation_reports': []
-    }
-    
-    for d in disparus:
-        backup['disparus'].append({
-            'public_id': d.public_id,
-            'first_name': d.first_name,
-            'last_name': d.last_name,
-            'age': d.age,
-            'sex': d.sex,
-            'person_type': d.person_type,
-            'country': d.country,
-            'city': d.city,
-            'latitude': d.latitude,
-            'longitude': d.longitude,
-            'physical_description': d.physical_description,
-            'circumstances': d.circumstances,
-            'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None,
-            'clothing': d.clothing,
-            'objects': d.objects,
-            'contacts': d.contacts,
-            'photo_url': d.photo_url,
-            'status': d.status,
-            'is_flagged': d.is_flagged,
-            'view_count': d.view_count,
-            'created_at': d.created_at.isoformat() if d.created_at else None,
-            'updated_at': d.updated_at.isoformat() if d.updated_at else None
-        })
-    
-    for c in contributions:
-        disparu_contrib = Disparu.query.get(c.disparu_id) if c.disparu_id else None
-        backup['contributions'].append({
-            'disparu_public_id': disparu_contrib.public_id if disparu_contrib else None,
-            'contributor_name': c.contributor_name,
-            'contributor_phone': c.contributor_phone,
-            'contributor_email': c.contributor_email,
-            'content': c.content,
-            'location': c.location,
-            'latitude': c.latitude,
-            'longitude': c.longitude,
-            'sighting_date': c.sighting_date.isoformat() if c.sighting_date else None,
-            'is_approved': c.is_approved,
-            'created_at': c.created_at.isoformat() if c.created_at else None
-        })
-    
-    for r in reports:
-        disparu = Disparu.query.get(r.target_id) if r.target_id else None
-        backup['moderation_reports'].append({
-            'disparu_public_id': disparu.public_id if disparu else None,
-            'target_type': r.target_type,
-            'target_id': r.target_id,
-            'reason': r.reason,
-            'details': r.details,
-            'reporter_contact': r.reporter_contact,
-            'status': r.status,
-            'created_at': r.created_at.isoformat() if r.created_at else None
-        })
-    
     log_activity(f'Sauvegarde base - {country or "Tous"}', action_type='backup', target_type='data', severity='info')
     
     filename = f"backup_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    response = make_response(json.dumps(backup, ensure_ascii=False, indent=2))
-    response.headers['Content-Type'] = 'application/json; charset=utf-8'
+
+    def generate_backup():
+        # Header
+        yield '{'
+        yield f'"version": "1.0",'
+        yield f'"created_at": "{datetime.now().isoformat()}",'
+        yield f'"country": "{country or "all"}",'
+
+        # Disparus
+        yield '"disparus": ['
+
+        q_disparu = Disparu.query
+        if country:
+            q_disparu = q_disparu.filter_by(country=country)
+
+        first = True
+        for d in q_disparu.yield_per(100):
+            if not first:
+                yield ','
+            first = False
+
+            d_dict = {
+                'public_id': d.public_id,
+                'first_name': d.first_name,
+                'last_name': d.last_name,
+                'age': d.age,
+                'sex': d.sex,
+                'person_type': d.person_type,
+                'country': d.country,
+                'city': d.city,
+                'latitude': d.latitude,
+                'longitude': d.longitude,
+                'physical_description': d.physical_description,
+                'circumstances': d.circumstances,
+                'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None,
+                'clothing': d.clothing,
+                'objects': d.objects,
+                'contacts': d.contacts,
+                'photo_url': d.photo_url,
+                'status': d.status,
+                'is_flagged': d.is_flagged,
+                'view_count': d.view_count,
+                'created_at': d.created_at.isoformat() if d.created_at else None,
+                'updated_at': d.updated_at.isoformat() if d.updated_at else None
+            }
+            yield json.dumps(d_dict, ensure_ascii=False)
+
+        yield '],'
+
+        # Contributions
+        yield '"contributions": ['
+
+        q_contrib_joined = db.session.query(Contribution, Disparu).join(Disparu)
+        if country:
+            q_contrib_joined = q_contrib_joined.filter(Disparu.country == country)
+
+        first = True
+        for c, d in q_contrib_joined.yield_per(100):
+            if not first:
+                yield ','
+            first = False
+
+            c_dict = {
+                'disparu_public_id': d.public_id if d else None,
+                'contributor_name': c.contributor_name,
+                'contributor_phone': c.contact_phone,
+                'contributor_email': c.contact_email,
+                'content': c.content,
+                'location': c.location,
+                'latitude': c.latitude,
+                'longitude': c.longitude,
+                'sighting_date': c.observation_date.isoformat() if c.observation_date else None,
+                'is_approved': c.is_approved,
+                'created_at': c.created_at.isoformat() if c.created_at else None
+            }
+            yield json.dumps(c_dict, ensure_ascii=False)
+
+        yield '],'
+
+        # Reports
+        yield '"moderation_reports": ['
+
+        q_report = db.session.query(ModerationReport, Disparu).join(Disparu, ModerationReport.target_id == Disparu.id).filter(ModerationReport.target_type == 'disparu')
+        if country:
+            q_report = q_report.filter(Disparu.country == country)
+
+        first = True
+        for r, d in q_report.yield_per(100):
+            if not first:
+                yield ','
+            first = False
+
+            r_dict = {
+                'disparu_public_id': d.public_id if d else None,
+                'target_type': r.target_type,
+                'target_id': r.target_id,
+                'reason': r.reason,
+                'details': r.details,
+                'reporter_contact': r.reporter_contact,
+                'status': r.status,
+                'created_at': r.created_at.isoformat() if r.created_at else None
+            }
+            yield json.dumps(r_dict, ensure_ascii=False)
+
+        yield ']'
+        yield '}'
+
+    response = Response(stream_with_context(generate_backup()), mimetype='application/json; charset=utf-8')
     response.headers['Content-Disposition'] = f'attachment; filename={filename}'
     return response
 
