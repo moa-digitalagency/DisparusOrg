@@ -16,7 +16,7 @@ try:
     from reportlab.lib.colors import HexColor, white, black, Color
     from reportlab.lib.utils import ImageReader
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.platypus import Paragraph
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
     from reportlab.lib.enums import TA_CENTER, TA_LEFT
     import qrcode
     from PIL import Image, ImageDraw, ImageFont
@@ -708,3 +708,242 @@ def generate_social_media_image(disparu, base_url='https://disparus.org'):
         import logging
         logging.error(f"Error generating social media image: {e}")
         return None
+def generate_statistics_pdf(stats_data, t, locale='fr'):
+    """
+    Génère un rapport PDF complet des statistiques de la plateforme.
+    """
+    if not HAS_REPORTLAB:
+        return None
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=1.5*cm, leftMargin=1.5*cm, topMargin=1.5*cm, bottomMargin=1.5*cm)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Custom Styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=RED_PRIMARY,
+        spaceAfter=20,
+        alignment=TA_CENTER
+    )
+
+    section_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=16,
+        textColor=RED_DARK,
+        spaceBefore=15,
+        spaceAfter=10,
+        borderPadding=5,
+        backgroundColor=GRAY_LIGHT
+    )
+
+    label_style = ParagraphStyle(
+        'MetricLabel',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=GRAY_MEDIUM
+    )
+
+    value_style = ParagraphStyle(
+        'MetricValue',
+        parent=styles['Normal'],
+        fontSize=14,
+        fontName='Helvetica-Bold',
+        textColor=BLACK,
+        alignment=TA_CENTER
+    )
+
+    # --- Header ---
+    settings = get_site_settings()
+    logo_path = settings.get('favicon')
+    if logo_path:
+        if logo_path.startswith('/'): logo_path = logo_path[1:]
+        if not logo_path.startswith('statics/'): logo_path = f'statics/{logo_path}'
+        if os.path.exists(logo_path):
+            from reportlab.platypus import Image
+            try:
+                img = Image(logo_path, width=2*cm, height=2*cm)
+                img.hAlign = 'CENTER'
+                elements.append(img)
+            except Exception:
+                pass
+
+    elements.append(Paragraph(f"{t('admin.statistics')} - DISPARUS.ORG", title_style))
+
+    period_text = ""
+    if stats_data.get('filters', {}).get('period') != 'all':
+        p = stats_data['filters']['period']
+        start = stats_data['filters'].get('start_date', '')
+        end = stats_data['filters'].get('end_date', '')
+        label = t('stats.period')
+        if p == '1d': period_text = f"{label}: {t('stats.last_24h')}"
+        elif p == '7d': period_text = f"{label}: {t('stats.last_7d')}"
+        elif p == '1m': period_text = f"{label}: {t('stats.last_30d')}"
+        elif p == 'custom': period_text = f"{label}: {t('stats.custom_range', start=start, end=end)}"
+        elements.append(Paragraph(period_text, styles['Normal']))
+
+    elements.append(Paragraph(f"{t('stats.generated_on')}: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    # --- Section 1: Résumé Global ---
+    elements.append(Paragraph(t('admin.dashboard'), section_style))
+
+    stats = stats_data.get('stats', {})
+
+    summary_data = [
+        [
+            Paragraph(f"<font color='{RED_PRIMARY}'>Total</font><br/>{stats.get('total', 0)}", value_style),
+            Paragraph(f"<font color='#059669'>{t('stats.found')}</font><br/>{stats.get('found', 0)}", value_style),
+            Paragraph(f"<font color='#4B5563'>{t('deceased')}</font><br/>{stats.get('deceased', 0)}", value_style)
+        ],
+        [
+            Paragraph(f"<font color='#7C3AED'>{t('stats.views')}</font><br/>{stats.get('total_views', 0)}", value_style),
+            Paragraph(f"<font color='#2563EB'>{t('admin.downloads')}</font><br/>{stats.get('total_downloads', 0)}", value_style),
+            Paragraph(f"<font color='#D97706'>{t('stats.countries')}</font><br/>{stats.get('countries', 0)}", value_style)
+        ]
+    ]
+
+    summary_table = Table(summary_data, colWidths=[6*cm, 6*cm, 6*cm])
+    summary_table.setStyle(TableStyle([
+        ('BOX', (0,0), (-1,-1), 2, RED_PRIMARY),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, GRAY_LIGHT),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('LEFTPADDING', (0,0), (-1,-1), 15),
+        ('RIGHTPADDING', (0,0), (-1,-1), 15),
+        ('TOPPADDING', (0,0), (-1,-1), 15),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 15),
+        ('BACKGROUND', (0,0), (-1,-1), white),
+    ]))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 10))
+
+    # Human/Animal Split
+    split_data = [
+        [t('admin.type'), t('admin.total'), t('stats.found'), t('deceased'), t('stats.views'), t('admin.downloads')],
+        [
+            t('stats.humans'),
+            str(stats.get('total_persons', 0)),
+            str(stats.get('found_persons', 0)),
+            str(stats.get('deceased_persons', 0)),
+            str(stats.get('views_persons', 0)),
+            str(stats.get('downloads_persons', 0))
+        ],
+        [
+            t('stats.animals'),
+            str(stats.get('total_animals', 0)),
+            str(stats.get('found_animals', 0)),
+            str(stats.get('deceased_animals', 0)),
+            str(stats.get('views_animals', 0)),
+            str(stats.get('downloads_animals', 0))
+        ]
+    ]
+    split_table = Table(split_data, colWidths=[4*cm, 2.8*cm, 2.8*cm, 2.8*cm, 2.8*cm, 2.8*cm])
+    split_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), RED_PRIMARY),
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 1, GRAY_MEDIUM),
+        ('ALIGN', (1,0), (-1,-1), 'CENTER'),
+    ]))
+    elements.append(split_table)
+
+    # --- Section 2: Répartition par Statut ---
+    elements.append(Paragraph(t('admin.status'), section_style))
+    status_data = [[t('admin.status'), t('stats.reports')]]
+    for status, count in stats_data.get('by_status', []):
+        status_label = t(f'detail.status_{status}')
+        status_data.append([status_label, str(count)])
+
+    status_table = Table(status_data, colWidths=[10*cm, 8*cm])
+    status_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), GRAY_DARK),
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('GRID', (0,0), (-1,-1), 0.5, GRAY_MEDIUM),
+    ]))
+    elements.append(status_table)
+
+    # --- Section 3: Top 10 Pays ---
+    elements.append(Paragraph(f"Top 10 {t('stats.countries')}", section_style))
+    country_data = [[t('report_form.country'), t('stats.reports')]]
+    for country, count in stats_data.get('by_country', []):
+        country_data.append([country, str(count)])
+
+    country_table = Table(country_data, colWidths=[10*cm, 8*cm])
+    country_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), RED_DARK),
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('GRID', (0,0), (-1,-1), 0.5, GRAY_MEDIUM),
+    ]))
+    elements.append(country_table)
+
+    # --- Section 4: Détails des fiches (Top Views) ---
+    elements.append(Paragraph(t('stats.top_100_views'), section_style))
+    files_data = [[t('admin.id'), t('admin.name'), t('admin.type'), t('admin.status'), t('stats.views')]]
+    for p in stats_data.get('all_files_stats', [])[:100]:
+        p_type = t('sections.animal') if p.person_type == 'animal' else (t(f'stats.{p.person_type}') if p.person_type in ['child', 'teenager', 'adult', 'elderly'] else p.person_type)
+        files_data.append([
+            p.public_id,
+            f"{p.first_name} {p.last_name}",
+            p_type,
+            t(f'detail.status_{p.status}'),
+            str(p.view_count)
+        ])
+
+    files_table = Table(files_data, colWidths=[3*cm, 6*cm, 3*cm, 3.5*cm, 2.5*cm])
+    files_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), GRAY_DARK),
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('FONTSIZE', (0,0), (-1,-1), 8),
+        ('GRID', (0,0), (-1,-1), 0.5, GRAY_LIGHT),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [white, GRAY_LIGHT])
+    ]))
+    elements.append(files_table)
+
+    # --- Section 5: Fiches les plus téléchargées ---
+    elements.append(Paragraph(t('stats.most_downloaded_records'), section_style))
+    dl_data = [[t('common.rank'), t('admin.name'), t('admin.location'), t('admin.downloads')]]
+    for i, record in enumerate(stats_data.get('most_downloaded', []), 1):
+        dl_data.append([
+            str(i),
+            f"{record.first_name} {record.last_name}",
+            f"{record.city}, {record.country}",
+            str(record.download_count)
+        ])
+
+    dl_table = Table(dl_data, colWidths=[2*cm, 7*cm, 6*cm, 3*cm])
+    dl_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), HexColor('#1D4ED8')), # Blue
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('GRID', (0,0), (-1,-1), 0.5, GRAY_MEDIUM),
+    ]))
+    elements.append(dl_table)
+
+    # --- Section 6: Formats téléchargés ---
+    elements.append(Paragraph(t('stats.downloaded_formats'), section_style))
+    format_data = [[t('common.format'), t('admin.downloads')]]
+    for f_type, count in stats_data.get('downloads_by_type', []):
+        format_data.append([f_type.upper(), str(count)])
+
+    format_table = Table(format_data, colWidths=[10*cm, 8*cm])
+    format_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), HexColor('#059669')), # Green
+        ('TEXTCOLOR', (0,0), (-1,0), white),
+        ('GRID', (0,0), (-1,-1), 0.5, GRAY_MEDIUM),
+    ]))
+    elements.append(format_table)
+
+    # --- Footer ---
+    def add_footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica', 9)
+        canvas.setFillColor(GRAY_MEDIUM)
+        canvas.drawCentredString(A4[0]/2, 1*cm, f"DISPARUS.ORG - {t('site.description')} - Page {doc.page}")
+        canvas.restoreState()
+
+    doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
+    buffer.seek(0)
+    return buffer
