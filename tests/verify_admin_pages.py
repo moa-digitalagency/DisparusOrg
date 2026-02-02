@@ -9,7 +9,8 @@ class TestAdminPages(unittest.TestCase):
     def setUp(self):
         # Configure app for testing
         basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-        os.environ['DATABASE_URL'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'disparus.db')
+        if not os.environ.get('DATABASE_URL'):
+            os.environ['DATABASE_URL'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'disparus.db')
         os.environ['ADMIN_PASSWORD'] = 'admin_password'
         self.app = create_app('testing')
         self.app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF for easier testing

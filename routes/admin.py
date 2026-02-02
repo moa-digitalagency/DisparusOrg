@@ -124,14 +124,24 @@ def dashboard():
     except Exception as e:
         import logging
         logging.warning(f"Could not log activity: {e}")
+    # Optimization: Fetch all Disparu stats in a single query
+    disparu_stats = db.session.query(
+        db.func.count(Disparu.id).label('total'),
+        db.func.count(db.case((Disparu.status == 'missing', 1))).label('missing'),
+        db.func.count(db.case((Disparu.status == 'found', 1))).label('found'),
+        db.func.count(db.case((Disparu.status == 'deceased', 1))).label('deceased'),
+        db.func.count(db.case((Disparu.is_flagged == True, 1))).label('flagged'),
+        db.func.count(db.distinct(Disparu.country)).label('countries')
+    ).one()
+
     stats = {
-        'total': Disparu.query.count(),
-        'missing': Disparu.query.filter_by(status='missing').count(),
-        'found': Disparu.query.filter_by(status='found').count(),
-        'deceased': Disparu.query.filter_by(status='deceased').count(),
-        'flagged': Disparu.query.filter_by(is_flagged=True).count(),
+        'total': disparu_stats.total,
+        'missing': disparu_stats.missing,
+        'found': disparu_stats.found,
+        'deceased': disparu_stats.deceased,
+        'flagged': disparu_stats.flagged,
         'contributions': Contribution.query.count(),
-        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
+        'countries': disparu_stats.countries or 0,
     }
     # Optimization: Only fetch 5 recent for the list
     recent_disparus = Disparu.query.order_by(Disparu.created_at.desc()).limit(5).all()
