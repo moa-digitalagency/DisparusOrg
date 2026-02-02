@@ -22,6 +22,29 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_MIMETYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
 
 
+# Cache for SQLite FTS availability
+_sqlite_fts_status = {}
+
+def is_sqlite_fts_available(session):
+    """Check if SQLite FTS table exists, with caching"""
+    try:
+        bind = session.get_bind()
+        if bind.dialect.name != 'sqlite':
+            return False
+
+        # Use database URL as cache key
+        db_key = str(bind.url)
+        if db_key in _sqlite_fts_status:
+            return _sqlite_fts_status[db_key]
+
+        result = session.execute(db.text("SELECT name FROM sqlite_master WHERE type='table' AND name='disparus_fts'")).scalar()
+        available = (result is not None)
+        _sqlite_fts_status[db_key] = available
+        return available
+    except Exception:
+        return False
+
+
 def allowed_file(filename, file_obj=None):
     """Validate file extension and optionally MIME type"""
     if '.' not in filename:
@@ -126,8 +149,43 @@ def search():
                 ) @@ plainto_tsquery('french', :query)
             """)
             q = q.filter(sql_search).params(query=query)
+        elif db.session.get_bind().dialect.name == 'sqlite':
+            # Optimized Search for SQLite using FTS5 if available
+            if is_sqlite_fts_available(db.session):
+                # Sanitize and prepare query for FTS5 (Prefix search)
+                # We remove special characters that could break FTS syntax
+                safe_query = "".join([c for c in query if c.isalnum() or c.isspace() or c == '-'])
+
+                if safe_query.strip():
+                    # Append * to each term for prefix matching
+                    fts_query = " ".join([f'"{term}"*' for term in safe_query.split()])
+
+                    # Search in FTS table and filter main query by ID
+                    q = q.filter(db.text("id IN (SELECT rowid FROM disparus_fts WHERE disparus_fts MATCH :fts_q)").params(fts_q=fts_query))
+                else:
+                     # Fallback if query becomes empty after sanitization
+                     search_term = f"%{query}%"
+                     q = q.filter(
+                        db.or_(
+                            Disparu.first_name.ilike(search_term),
+                            Disparu.last_name.ilike(search_term),
+                            Disparu.public_id.ilike(search_term),
+                            Disparu.city.ilike(search_term),
+                        )
+                    )
+            else:
+                # Fallback if FTS table not present
+                search_term = f"%{query}%"
+                q = q.filter(
+                    db.or_(
+                        Disparu.first_name.ilike(search_term),
+                        Disparu.last_name.ilike(search_term),
+                        Disparu.public_id.ilike(search_term),
+                        Disparu.city.ilike(search_term),
+                    )
+                )
         else:
-            # Fallback for SQLite/Other (Leading wildcard scan)
+            # Fallback for Other (Leading wildcard scan)
             search_term = f"%{query}%"
             q = q.filter(
                 db.or_(

@@ -329,6 +329,72 @@ def run_migrations():
             db.session.rollback()
             logger.warning(f"  - Postgres optimization skipped/failed: {e}")
 
+    elif dialect_name == 'sqlite':
+        try:
+            # Check if FTS table exists
+            # We use inspect to check regular tables, but virtual tables show up there too usually.
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
+
+            if 'disparus_fts' not in tables:
+                logger.info("  Setting up SQLite FTS...")
+
+                # 1. Create Virtual Table (External Content)
+                # This indexes content from disparus_flask without duplicating storage
+                db.session.execute(text("""
+                    CREATE VIRTUAL TABLE IF NOT EXISTS disparus_fts USING fts5(
+                        first_name,
+                        last_name,
+                        public_id,
+                        city,
+                        content='disparus_flask',
+                        content_rowid='id'
+                    );
+                """))
+
+                # 2. Create Triggers to keep index in sync
+                # Insert Trigger
+                db.session.execute(text("""
+                    CREATE TRIGGER IF NOT EXISTS disparus_ai AFTER INSERT ON disparus_flask BEGIN
+                        INSERT INTO disparus_fts(rowid, first_name, last_name, public_id, city)
+                        VALUES (new.id, new.first_name, new.last_name, new.public_id, new.city);
+                    END;
+                """))
+
+                # Delete Trigger
+                db.session.execute(text("""
+                    CREATE TRIGGER IF NOT EXISTS disparus_ad AFTER DELETE ON disparus_flask BEGIN
+                        INSERT INTO disparus_fts(disparus_fts, rowid, first_name, last_name, public_id, city)
+                        VALUES('delete', old.id, old.first_name, old.last_name, old.public_id, old.city);
+                    END;
+                """))
+
+                # Update Trigger
+                db.session.execute(text("""
+                    CREATE TRIGGER IF NOT EXISTS disparus_au AFTER UPDATE ON disparus_flask BEGIN
+                        INSERT INTO disparus_fts(disparus_fts, rowid, first_name, last_name, public_id, city)
+                        VALUES('delete', old.id, old.first_name, old.last_name, old.public_id, old.city);
+                        INSERT INTO disparus_fts(rowid, first_name, last_name, public_id, city)
+                        VALUES (new.id, new.first_name, new.last_name, new.public_id, new.city);
+                    END;
+                """))
+
+                # 3. Populate initially from existing data
+                db.session.execute(text("""
+                    INSERT INTO disparus_fts(rowid, first_name, last_name, public_id, city)
+                    SELECT id, first_name, last_name, public_id, city FROM disparus_flask;
+                """))
+
+                db.session.commit()
+                logger.info("  + SQLite FTS setup complete.")
+            else:
+                 logger.info("  SQLite FTS already setup.")
+
+        except Exception as e:
+            db.session.rollback()
+            # If fts5 is not available, this will fail. We should log it but not crash.
+            logger.warning(f"  - SQLite optimization skipped/failed: {e}")
+
 
 def generate_demo_images():
     """Generate demo profile images if they don't exist"""
