@@ -68,11 +68,30 @@ def get_nearby_disparus():
     if not user_lat or not user_lng:
         return jsonify({'error': 'lat and lng required'}), 400
     
-    q = Disparu.query.filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))
-    if status:
-        q = q.filter_by(status=status)
+    # Helper to construct the query with optional bounding box
+    def get_query(bbox=None):
+        if bbox:
+            min_lat, max_lat, min_lng, max_lng = bbox
+            q = Disparu.query.filter(
+                Disparu.latitude.between(min_lat, max_lat),
+                Disparu.longitude.between(min_lng, max_lng)
+            )
+        else:
+            q = Disparu.query.filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))
+
+        if status:
+            q = q.filter_by(status=status)
+        return q
+
+    # Optimization: Use bounding box to limit search space (approx 550km box)
+    BOX_SIZE = 5.0
+    bbox = (user_lat - BOX_SIZE, user_lat + BOX_SIZE, user_lng - BOX_SIZE, user_lng + BOX_SIZE)
     
-    disparus = q.all()
+    disparus = get_query(bbox).all()
+
+    # Fallback: if not enough results, search everything (preserves behavior for distant matches)
+    if len(disparus) < limit:
+        disparus = get_query(None).all()
     
     results = []
     for d in disparus:
