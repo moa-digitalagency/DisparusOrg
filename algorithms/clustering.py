@@ -1,5 +1,6 @@
 from models import db, Disparu
 import math
+from sqlalchemy import or_
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -67,10 +68,51 @@ def find_hotspots(min_cases=3, radius_km=50):
 
 
 def get_nearby_cases(latitude, longitude, radius_km=100):
-    disparus = Disparu.query.filter(
+    # Calculate bounding box
+    # 1 degree of latitude ~= 111 km
+    lat_delta = radius_km / 111.0
+
+    # 1 degree of longitude ~= 111 km * cos(latitude)
+    # Handle pole case to avoid division by zero
+    if abs(latitude) >= 90:
+        lon_delta = 180
+    else:
+        lon_delta = radius_km / (111.0 * math.cos(math.radians(latitude)))
+        if lon_delta > 180:
+            lon_delta = 180
+
+    min_lat = latitude - lat_delta
+    max_lat = latitude + lat_delta
+    min_lon = longitude - lon_delta
+    max_lon = longitude + lon_delta
+
+    query = Disparu.query.filter(
         Disparu.latitude.isnot(None),
-        Disparu.longitude.isnot(None)
-    ).all()
+        Disparu.longitude.isnot(None),
+        Disparu.latitude >= min_lat,
+        Disparu.latitude <= max_lat
+    )
+
+    if lon_delta >= 180:
+        # Cover all longitudes
+        pass
+    elif min_lon < -180:
+        query = query.filter(or_(
+            Disparu.longitude >= min_lon + 360,
+            Disparu.longitude <= max_lon
+        ))
+    elif max_lon > 180:
+        query = query.filter(or_(
+            Disparu.longitude >= min_lon,
+            Disparu.longitude <= max_lon - 360
+        ))
+    else:
+        query = query.filter(
+            Disparu.longitude >= min_lon,
+            Disparu.longitude <= max_lon
+        )
+
+    disparus = query.all()
     
     nearby = []
     for d in disparus:
