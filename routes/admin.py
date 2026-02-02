@@ -11,7 +11,7 @@ import csv
 import io
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response, current_app, stream_with_context
 from werkzeug.utils import secure_filename
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -1116,11 +1116,12 @@ def export_data():
     if country:
         q = q.filter_by(country=country)
     
-    disparus = q.all()
+    log_activity(f'Export donnees {export_format.upper()} - {country or "Tous"}', action_type='export', target_type='data', severity='info')
     
-    data = []
-    for d in disparus:
-        item = {
+    filename = f"disparus_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    def get_disparu_dict(d):
+        return {
             'public_id': d.public_id,
             'first_name': d.first_name,
             'last_name': d.last_name,
@@ -1138,36 +1139,51 @@ def export_data():
             'created_at': d.created_at.isoformat() if d.created_at else None,
             'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None
         }
-        data.append(item)
-    
-    log_activity(f'Export donnees {export_format.upper()} - {country or "Tous"}', action_type='export', target_type='data', severity='info')
-    
-    filename = f"disparus_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    
+
     if export_format == 'csv':
-        output = io.StringIO()
-        if data:
-            # Sanitize data for CSV injection
-            sanitized_data = []
-            for row in data:
+        def generate_csv():
+            output = io.StringIO()
+            fieldnames = [
+                'public_id', 'first_name', 'last_name', 'age', 'sex', 'person_type',
+                'country', 'city', 'latitude', 'longitude', 'physical_description',
+                'circumstances', 'contacts', 'status', 'created_at', 'disappearance_date'
+            ]
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            writer.writeheader()
+            yield output.getvalue()
+            output.seek(0)
+            output.truncate(0)
+
+            for d in q.yield_per(100):
+                item = get_disparu_dict(d)
+
                 sanitized_row = {}
-                for k, v in row.items():
+                for k, v in item.items():
                     if isinstance(v, str) and v.startswith(('=', '+', '-', '@')):
                         sanitized_row[k] = "'" + v
                     else:
                         sanitized_row[k] = v
-                sanitized_data.append(sanitized_row)
 
-            writer = csv.DictWriter(output, fieldnames=data[0].keys())
-            writer.writeheader()
-            writer.writerows(sanitized_data)
-        response = make_response(output.getvalue())
-        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+                writer.writerow(sanitized_row)
+                yield output.getvalue()
+                output.seek(0)
+                output.truncate(0)
+
+        response = Response(stream_with_context(generate_csv()), mimetype='text/csv; charset=utf-8')
         response.headers['Content-Disposition'] = f'attachment; filename={filename}.csv'
         return response
     else:
-        response = make_response(json.dumps(data, ensure_ascii=False, indent=2))
-        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        def generate_json():
+            yield '['
+            first = True
+            for d in q.yield_per(100):
+                if not first:
+                    yield ','
+                first = False
+                yield json.dumps(get_disparu_dict(d), ensure_ascii=False)
+            yield ']'
+
+        response = Response(stream_with_context(generate_json()), mimetype='application/json; charset=utf-8')
         response.headers['Content-Disposition'] = f'attachment; filename={filename}.json'
         return response
 
