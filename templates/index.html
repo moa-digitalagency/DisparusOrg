@@ -446,9 +446,8 @@
         attribution: 'OpenStreetMap'
     }).addTo(map);
     
-    let allDisparus = {{ all_disparus|tojson|safe if all_disparus else '[]' }};
     let userLocation = null;
-    let markers = [];
+    let markersLayer = L.layerGroup().addTo(map);
     const countryFilter = document.getElementById('country-filter');
     const typeFilter = document.getElementById('type-filter');
     const locationBadge = document.getElementById('user-location-badge');
@@ -462,22 +461,57 @@
         countryFilter.value = savedCountry;
     }
     
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
+    function fetchMapData() {
+        const bounds = map.getBounds();
+        const params = new URLSearchParams({
+            min_lat: bounds.getSouth(),
+            max_lat: bounds.getNorth(),
+            min_lng: bounds.getWest(),
+            max_lng: bounds.getEast(),
+            type: typeFilter.value,
+            country: countryFilter.value
+        });
+
+        fetch(`/api/map-data?${params.toString()}`)
+            .then(r => r.json())
+            .then(data => {
+                markersLayer.clearLayers();
+                data.forEach(d => {
+                    const color = d.status === 'found' ? '#22c55e' : '#ef4444';
+                    const marker = L.circleMarker([d.latitude, d.longitude], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        fillOpacity: 0.9
+                    });
+
+                    // Tooltip on hover (Photo + Name)
+                    const tooltipContent = '<div class="text-center p-1">' +
+                        (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-1">' : '') +
+                        '<div class="font-bold text-sm text-gray-900">' + escapeHtml(d.full_name) + '</div>' +
+                        '<div class="text-xs text-gray-500">' + escapeHtml(d.city) + '</div>' +
+                        '</div>';
+
+                    marker.bindTooltip(tooltipContent, {
+                        direction: 'top',
+                        offset: [0, -5],
+                        opacity: 1,
+                        className: 'leaflet-tooltip-custom'
+                    });
+
+                    // Redirect on click
+                    marker.on('click', function() {
+                        window.location.href = '/disparu/' + d.public_id;
+                    });
+
+                    markersLayer.addLayer(marker);
+                });
+            })
+            .catch(console.error);
     }
     
-    function updateMarkers() {
-        markers.forEach(m => map.removeLayer(m));
-        markers = [];
-        
+    function filterCards() {
         const selectedCountry = countryFilter.value;
         const selectedType = typeFilter.value;
 
@@ -496,78 +530,24 @@
 
             card.style.display = visible ? 'block' : 'none';
         });
+    }
 
-        // Filter Map
-        let filtered = allDisparus;
-        
-        if (selectedCountry) {
-            filtered = filtered.filter(d => d.country === selectedCountry);
-        }
-
-        if (selectedType && selectedType !== 'all') {
-            filtered = filtered.filter(d => d.person_type === selectedType || (selectedType === 'person' && d.person_type !== 'animal'));
-        }
-        
-        if (userLocation) {
-            filtered = filtered.map(d => ({
-                ...d,
-                distance: calculateDistance(userLocation.lat, userLocation.lng, d.latitude, d.longitude)
-            })).sort((a, b) => a.distance - b.distance);
-        }
-        
-        filtered.forEach(function(d) {
-            if (d.latitude && d.longitude) {
-                const color = d.status === 'found' ? '#22c55e' : '#ef4444';
-                const marker = L.circleMarker([d.latitude, d.longitude], {
-                    radius: 8,
-                    fillColor: color,
-                    color: '#fff',
-                    weight: 2,
-                    fillOpacity: 0.9
-                }).addTo(map);
-
-                // Tooltip on hover (Photo + Name)
-                const tooltipContent = '<div class="text-center p-1">' +
-                    (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-1">' : '') +
-                    '<div class="font-bold text-sm text-gray-900">' + escapeHtml(d.first_name) + ' ' + escapeHtml(d.last_name) + '</div>' +
-                    '<div class="text-xs text-gray-500">' + escapeHtml(d.city) + '</div>' +
-                    '</div>';
-
-                marker.bindTooltip(tooltipContent, {
-                    direction: 'top',
-                    offset: [0, -5],
-                    opacity: 1,
-                    className: 'leaflet-tooltip-custom'
-                });
-
-                // Redirect on click
-                marker.on('click', function() {
-                    window.location.href = '/disparu/' + d.public_id;
-                });
-
-                markers.push(marker);
-            }
-        });
-        
-        if (markers.length > 0) {
-            const bounds = markers.map(m => m.getLatLng());
-            if (userLocation && !selectedCountry) {
-                map.setView([userLocation.lat, userLocation.lng], 8);
-            } else if (bounds.length > 0) {
-                map.fitBounds(bounds.map(b => [b.lat, b.lng]), {padding: [30, 30], maxZoom: 10});
-            }
-        }
+    function updateAll() {
+        filterCards();
+        fetchMapData();
     }
     
     countryFilter.addEventListener('change', function() {
         localStorage.setItem('disparus_country_filter', this.value);
-        updateMarkers();
+        updateAll();
     });
 
     typeFilter.addEventListener('change', function() {
-        updateMarkers();
+        updateAll();
     });
     
+    map.on('moveend', fetchMapData);
+
     function openModeratorWhatsapp(e) {
         e.preventDefault();
         const number = "{{ site_settings.get('moderator_whatsapp_number', '') }}";
@@ -613,7 +593,7 @@
                 if (!countryFilter.value) {
                     map.setView([userLocation.lat, userLocation.lng], 8);
                 }
-                updateMarkers();
+                updateAll();
             },
             function(error) {
                 const savedLat = localStorage.getItem('disparus_user_lat');
@@ -621,14 +601,14 @@
                 if (savedLat && savedLng) {
                     userLocation = { lat: parseFloat(savedLat), lng: parseFloat(savedLng) };
                 }
-                updateMarkers();
+                updateAll();
             },
             { enableHighAccuracy: false, timeout: 5000 }
         );
     } else {
-        updateMarkers();
+        updateAll();
     }
     
-    updateMarkers();
+    updateAll();
 </script>
 {% endblock %}

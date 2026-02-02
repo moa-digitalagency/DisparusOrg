@@ -87,39 +87,11 @@ def index():
         'contributions': Contribution.query.count(),
     }
 
-    map_query = db.session.query(
-        Disparu.id,
-        Disparu.first_name,
-        Disparu.last_name,
-        Disparu.photo_url,
-        Disparu.latitude,
-        Disparu.longitude,
-        Disparu.city,
-        Disparu.country,
-        Disparu.status,
-        Disparu.person_type
-    ).filter(Disparu.latitude.isnot(None))
-
-    # We do not filter map data here to allow frontend toggling
-    # if default_filter != 'all':
-    #    map_query = map_query.filter(Disparu.person_type == default_filter)
-
-    all_disparus_raw = map_query.all()
-
-    all_disparus = [{
-        'id': d.id,
-        'full_name': f"{d.first_name} {d.last_name}" if d.person_type != 'animal' else d.first_name,
-        'photo_url': d.photo_url,
-        'latitude': d.latitude,
-        'longitude': d.longitude,
-        'city': d.city,
-        'country': d.country,
-        'status': d.status,
-        'person_type': d.person_type
-    } for d in all_disparus_raw]
+    # Map data is now loaded asynchronously via API to improve performance
+    # This prevents loading all data (which can be huge) into the initial HTML response
 
     total_cities = get_total_cities()
-    return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=all_disparus, total_cities=total_cities, default_filter=default_filter)
+    return render_template('index.html', recent=recent, stats=stats, countries=get_countries(), all_disparus=[], total_cities=total_cities, default_filter=default_filter)
 
 
 @public_bp.route('/recherche')
