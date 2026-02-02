@@ -120,12 +120,26 @@ def get_disparu(public_id):
 @api_bp.route('/stats')
 @rate_limit()
 def get_stats():
+    # Subquery for contributions count
+    contributions_subq = db.select(db.func.count(Contribution.id)).scalar_subquery()
+
+    # Main query on Disparu
+    stats = db.session.execute(
+        db.select(
+            db.func.count(Disparu.id),
+            db.func.sum(db.case((Disparu.status == 'missing', 1), else_=0)),
+            db.func.sum(db.case((Disparu.status == 'found', 1), else_=0)),
+            db.func.count(db.distinct(Disparu.country)),
+            contributions_subq
+        )
+    ).first()
+
     return jsonify({
-        'total': Disparu.query.count(),
-        'missing': Disparu.query.filter_by(status='missing').count(),
-        'found': Disparu.query.filter_by(status='found').count(),
-        'contributions': Contribution.query.count(),
-        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0,
+        'total': stats[0] or 0,
+        'missing': stats[1] or 0,
+        'found': stats[2] or 0,
+        'countries': stats[3] or 0,
+        'contributions': stats[4] or 0,
     })
 
 
