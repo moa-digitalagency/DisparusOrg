@@ -283,6 +283,10 @@
                 <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}IPs bloquees{% else %}Blocked IPs{% endif %}</label>
                 <textarea name="setting_blocked_ips" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-sm font-mono transition-colors" placeholder="{% if get_locale() == 'fr' %}Une IP par ligne{% else %}One IP per line{% endif %}">{{ settings.get('blocked_ips', '') }}</textarea>
             </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{% if get_locale() == 'fr' %}IPs autorisees (Whitelist){% else %}Whitelisted IPs{% endif %}</label>
+                <textarea name="setting_whitelisted_ips" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 text-sm font-mono transition-colors" placeholder="{% if get_locale() == 'fr' %}Une IP par ligne (Ignore les limites de debit){% else %}One IP per line (Bypasses rate limits){% endif %}">{{ settings.get('whitelisted_ips', '') }}</textarea>
+            </div>
         </div>
     </div>
     

@@ -750,7 +750,7 @@ def settings():
                     existing.updated_by = session.get('admin_username')
                     db.session.add(existing)
                 else:
-                    category = 'pwa' if setting_key.startswith('pwa_') else 'footer' if setting_key.startswith('footer_') else 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
+                    category = 'pwa' if setting_key.startswith('pwa_') else 'footer' if setting_key.startswith('footer_') else 'seo' if setting_key.startswith('seo_') else 'security' if setting_key in ['enable_rate_limiting', 'rate_limit_per_minute', 'blocked_ips', 'whitelisted_ips', 'enable_ip_logging', 'max_upload_size_mb'] else 'general'
                     value_type = 'boolean' if value in ['true', 'false'] else 'text' if setting_key.endswith('_scripts') or setting_key.endswith('_description') else 'string'
                     new_setting = SiteSetting(
                         key=setting_key,

@@ -146,6 +146,7 @@ DEFAULT_SETTINGS = {
     'enable_rate_limiting': {'value': 'true', 'type': 'boolean', 'category': 'security'},
     'rate_limit_per_minute': {'value': '60', 'type': 'integer', 'category': 'security'},
     'blocked_ips': {'value': '[]', 'type': 'json', 'category': 'security'},
+    'whitelisted_ips': {'value': '', 'type': 'string', 'category': 'security'},
     'enable_ip_logging': {'value': 'true', 'type': 'boolean', 'category': 'security'},
 
     'default_search_filter': {'value': 'all', 'type': 'string', 'category': 'appearance'},

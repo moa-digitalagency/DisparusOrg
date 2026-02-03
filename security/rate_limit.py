@@ -6,8 +6,9 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 from functools import wraps
-from flask import request, jsonify, current_app, abort
+from flask import request, jsonify, current_app, abort, session
 import time
+import re
 
 request_counts = {}
 RATE_LIMIT_WINDOW = 60
@@ -35,7 +36,21 @@ def get_blocked_ips():
         from models.settings import SiteSetting
         setting = SiteSetting.query.filter_by(key='blocked_ips').first()
         if setting and setting.value:
-            return [ip.strip() for ip in setting.value.split(',') if ip.strip()]
+            ips = re.split(r'[,\n\r]+', setting.value)
+            return [ip.strip() for ip in ips if ip.strip()]
+        return []
+    except Exception:
+        return []
+
+
+def get_whitelisted_ips():
+    """Get list of whitelisted IPs from database"""
+    try:
+        from models.settings import SiteSetting
+        setting = SiteSetting.query.filter_by(key='whitelisted_ips').first()
+        if setting and setting.value:
+            ips = re.split(r'[,\n\r]+', setting.value)
+            return [ip.strip() for ip in ips if ip.strip()]
         return []
     except Exception:
         return []
@@ -46,10 +61,20 @@ def rate_limit(max_requests=None, window=60):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            # Bypass rate limit for logged in admins
+            if session.get('admin_logged_in'):
+                return f(*args, **kwargs)
+
             client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-            if ',' in client_ip:
+            if client_ip and ',' in client_ip:
                 client_ip = client_ip.split(',')[0].strip()
             
+            # Check whitelist
+            whitelisted_ips = get_whitelisted_ips()
+            if client_ip in whitelisted_ips:
+                return f(*args, **kwargs)
+
+            # Check blacklist
             blocked_ips = get_blocked_ips()
             if client_ip in blocked_ips:
                 return jsonify({
