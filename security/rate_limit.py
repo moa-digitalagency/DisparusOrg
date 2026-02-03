@@ -6,7 +6,7 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 from functools import wraps
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, abort
 import time
 
 request_counts = {}
@@ -74,11 +74,14 @@ def rate_limit(max_requests=None, window=60):
             ]
             
             if len(request_counts[client_ip]) >= effective_max:
-                return jsonify({
-                    'error': 'Too many requests',
-                    'message': f'Rate limit exceeded. Maximum {effective_max} requests per minute.',
-                    'retry_after': window
-                }), 429
+                if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+                    return jsonify({
+                        'error': 'Too many requests',
+                        'message': f'Rate limit exceeded. Maximum {effective_max} requests per minute.',
+                        'retry_after': window
+                    }), 429
+
+                abort(429, description=f'Rate limit exceeded. Maximum {effective_max} requests per minute.')
             
             request_counts[client_ip].append(current_time)
             

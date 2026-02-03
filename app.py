@@ -98,6 +98,24 @@ def create_app(config_name='default'):
     def page_not_found(e):
         return render_template('404.html'), 404
 
+    @app.errorhandler(429)
+    def ratelimit_handler(e):
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+             return jsonify({
+                'error': 'Too many requests',
+                'message': str(e.description) if hasattr(e, 'description') else 'Rate limit exceeded'
+            }), 429
+        return render_template('429.html', error=e), 429
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+             return jsonify({
+                'error': 'Internal Server Error',
+                'message': 'An unexpected error occurred.'
+            }), 500
+        return render_template('500.html'), 500
+
     @app.after_request
     def add_security_headers(response):
         # Security Headers
