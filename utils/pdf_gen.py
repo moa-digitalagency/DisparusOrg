@@ -36,6 +36,14 @@ ACCENT_GOLD = HexColor('#D97706') # Couleur Or pour les soulignements secondaire
 WHITE = HexColor('#FFFFFF')
 BLACK = HexColor('#000000')
 
+# Stats backgrounds
+BG_TOTAL_LIGHT = HexColor('#F8FAFC')     # Slate-50
+BG_FOUND_LIGHT = HexColor('#F0FDF4')     # Green-50
+BG_DECEASED_LIGHT = HexColor('#F3F4F6')  # Gray-100
+BG_VIEWS_LIGHT = HexColor('#F5F3FF')     # Violet-50
+BG_DOWNLOADS_LIGHT = HexColor('#EFF6FF') # Blue-50
+BG_COUNTRIES_LIGHT = HexColor('#FAF5FF') # Purple-50
+
 
 def get_site_settings():
     try:
@@ -839,7 +847,14 @@ def generate_statistics_pdf(stats_data, t, locale='fr'):
         ('RIGHTPADDING', (0,0), (-1,-1), 15),
         ('TOPPADDING', (0,0), (-1,-1), 15),
         ('BOTTOMPADDING', (0,0), (-1,-1), 15),
-        ('BACKGROUND', (0,0), (-1,-1), white),
+        # ('BACKGROUND', (0,0), (-1,-1), white), # Removed global background
+        # Specific backgrounds
+        ('BACKGROUND', (0,0), (0,0), BG_TOTAL_LIGHT),
+        ('BACKGROUND', (1,0), (1,0), BG_FOUND_LIGHT),
+        ('BACKGROUND', (2,0), (2,0), BG_DECEASED_LIGHT),
+        ('BACKGROUND', (0,1), (0,1), BG_VIEWS_LIGHT),
+        ('BACKGROUND', (1,1), (1,1), BG_DOWNLOADS_LIGHT),
+        ('BACKGROUND', (2,1), (2,1), BG_COUNTRIES_LIGHT),
     ]))
     elements.append(summary_table)
     elements.append(Spacer(1, 10))
