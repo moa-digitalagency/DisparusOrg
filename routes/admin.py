@@ -189,6 +189,7 @@ def edit_disparu(disparu_id):
     disparu = Disparu.query.get_or_404(disparu_id)
     if request.method == 'POST':
         try:
+            old_status = disparu.status
             disparu.person_type = request.form.get('person_type')
             disparu.animal_type = request.form.get('animal_type')
             disparu.breed = request.form.get('breed')
@@ -241,6 +242,19 @@ def edit_disparu(disparu_id):
                         'relation': request.form.get(f'contact_relation_{i}', '')
                     })
             disparu.contacts = contacts
+
+            if disparu.status != old_status:
+                contribution = Contribution(
+                    disparu_id=disparu.id,
+                    contribution_type='status_change',
+                    details=f"Statut modifié par l'administrateur : {old_status} -> {disparu.status}",
+                    is_approved=True,
+                    approved_by=session.get('admin_username', 'Admin'),
+                    approved_at=datetime.utcnow(),
+                    contributor_name=session.get('admin_username', 'Admin'),
+                    created_at=datetime.utcnow()
+                )
+                db.session.add(contribution)
 
             db.session.commit()
             log_activity(f'Modification fiche disparu', action_type='update', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
@@ -296,7 +310,7 @@ def update_status(disparu_id):
         contribution = Contribution(
             disparu_id=disparu.id,
             contribution_type='status_change',
-            details=f"Statut modifié : {old_status} -> {new_status}",
+            details=f"Statut modifié par l'administrateur : {old_status} -> {new_status}",
             is_approved=True,
             approved_by=session.get('admin_username', 'Admin'),
             approved_at=datetime.utcnow(),
@@ -1260,11 +1274,11 @@ def backup_data():
 
             c_dict = {
                 'disparu_public_id': d.public_id if d else None,
-                'contributor_name': c.contributor_name,
+                'contributor_name': c.contact_name or c.contributor_name,
                 'contributor_phone': c.contact_phone,
                 'contributor_email': c.contact_email,
-                'content': c.content,
-                'location': c.location,
+                'content': c.details or c.content,
+                'location': c.location_name or c.location,
                 'latitude': c.latitude,
                 'longitude': c.longitude,
                 'sighting_date': c.observation_date.isoformat() if c.observation_date else None,
