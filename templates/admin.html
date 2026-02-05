@@ -70,9 +70,30 @@
                 </div>
                 <span class="text-xs px-2 py-1 rounded-lg font-medium
                     {% if person.status == 'missing' %}bg-red-100 text-red-700
-                    {% elif person.status == 'found' %}bg-green-100 text-green-700
+                    {% elif person.status in ['found', 'found_alive'] %}bg-green-100 text-green-700
                     {% else %}bg-gray-100 text-gray-700{% endif %}">
-                    {{ person.status }}
+                    {% if person.person_type == 'animal' %}
+                        {% if person.status == 'missing' %}{{ t('detail.animal_missing') }}
+                        {% elif person.status == 'found_alive' %}{{ t('detail.status_found_alive') }}
+                        {% elif person.status == 'found' %}{{ t('detail.animal_found') }}
+                        {% elif person.status == 'found_deceased' %}{{ t('detail.status_found_deceased') }}
+                        {% elif person.status == 'deceased' %}{{ t('detail.animal_deceased') }}
+                        {% else %}{{ person.status }}{% endif %}
+                    {% else %}
+                        {% if person.status == 'missing' %}
+                            {{ t('detail.status_missing') }}
+                        {% elif person.status == 'found_alive' %}
+                            {{ t('detail.status_found_alive') }}
+                        {% elif person.status == 'found' %}
+                            {{ t('detail.status_found') }}
+                        {% elif person.status == 'found_deceased' %}
+                            {{ t('detail.status_found_deceased') }}
+                        {% elif person.status == 'deceased' %}
+                            {{ t('detail.status_deceased') }}
+                        {% else %}
+                            {{ person.status }}
+                        {% endif %}
+                    {% endif %}
                 </span>
                 <a href="/disparu/{{ person.public_id }}" class="text-red-600 hover:text-red-700">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -152,11 +173,27 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'OpenStreetMap'
     }).addTo(map);
-    
+
+    const statusLabels = {
+        'missing': {{ t('detail.status_missing')|tojson }},
+        'found': {{ t('detail.status_found')|tojson }},
+        'found_alive': {{ t('detail.status_found_alive')|tojson }},
+        'found_deceased': {{ t('detail.status_found_deceased')|tojson }},
+        'deceased': {{ t('detail.status_deceased')|tojson }}
+    };
+
     const disparus = {{ disparus_list|tojson|safe if disparus_list else '[]' }};
     disparus.forEach(function(d) {
         if (d.latitude && d.longitude) {
-            const color = d.status === 'found' ? 'green' : (d.is_flagged ? 'orange' : 'red');
+            let color = '#ef4444';
+            if (['found', 'found_alive'].includes(d.status)) {
+                color = '#22c55e';
+            } else if (['deceased', 'found_deceased'].includes(d.status)) {
+                color = '#4b5563';
+            } else if (d.is_flagged) {
+                color = '#f97316';
+            }
+
             const marker = L.circleMarker([d.latitude, d.longitude], {
                 radius: 6,
                 fillColor: color,
@@ -165,7 +202,9 @@
                 opacity: 1,
                 fillOpacity: 0.8
             }).addTo(map);
-            marker.bindPopup('<strong>' + d.first_name + ' ' + d.last_name + '</strong><br>ID: ' + d.public_id + '<br>Status: ' + d.status + '<br><a href="/disparu/' + d.public_id + '">Voir</a>');
+
+            const statusLabel = statusLabels[d.status] || d.status;
+            marker.bindPopup('<strong>' + d.first_name + ' ' + d.last_name + '</strong><br>ID: ' + d.public_id + '<br>Status: ' + statusLabel + '<br><a href="/disparu/' + d.public_id + '">Voir</a>');
         }
     });
 </script>
