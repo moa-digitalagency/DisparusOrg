@@ -128,8 +128,8 @@ def dashboard():
     disparu_stats = db.session.query(
         db.func.count(Disparu.id).label('total'),
         db.func.count(db.case((Disparu.status == 'missing', 1))).label('missing'),
-        db.func.count(db.case((Disparu.status == 'found', 1))).label('found'),
-        db.func.count(db.case((Disparu.status == 'deceased', 1))).label('deceased'),
+        db.func.count(db.case((Disparu.status.in_(['found', 'found_alive']), 1))).label('found'),
+        db.func.count(db.case((Disparu.status.in_(['deceased', 'found_deceased']), 1))).label('deceased'),
         db.func.count(db.case((Disparu.is_flagged == True, 1))).label('flagged'),
         db.func.count(db.distinct(Disparu.country)).label('countries')
     ).one()

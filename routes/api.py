@@ -80,7 +80,8 @@ def get_map_data():
         Disparu.city,
         Disparu.country,
         Disparu.status,
-        Disparu.person_type
+        Disparu.person_type,
+        Disparu.is_flagged
     ).filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))
 
     if min_lat is not None and max_lat is not None and min_lng is not None and max_lng is not None:
@@ -118,7 +119,8 @@ def get_map_data():
         'city': d.city,
         'country': d.country,
         'status': d.status,
-        'person_type': d.person_type
+        'person_type': d.person_type,
+        'is_flagged': d.is_flagged
     } for d in results]
 
     return jsonify(data)
@@ -195,7 +197,7 @@ def get_stats():
         db.select(
             db.func.count(Disparu.id),
             db.func.sum(db.case((Disparu.status == 'missing', 1), else_=0)),
-            db.func.sum(db.case((Disparu.status == 'found', 1), else_=0)),
+            db.func.sum(db.case((Disparu.status.in_(['found', 'found_alive']), 1), else_=0)),
             db.func.count(db.distinct(Disparu.country)),
             contributions_subq
         )

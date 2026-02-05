@@ -106,7 +106,7 @@ def index():
     # Optimized stats query: 3 queries -> 1 query
     disparu_stats = db.session.query(
         db.func.count(Disparu.id),
-        db.func.sum(db.case((Disparu.status == 'found', 1), else_=0)),
+        db.func.sum(db.case((Disparu.status.in_(['found', 'found_alive']), 1), else_=0)),
         db.func.count(db.distinct(Disparu.country))
     ).first()
 

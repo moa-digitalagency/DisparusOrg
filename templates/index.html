@@ -477,7 +477,12 @@
             .then(data => {
                 markersLayer.clearLayers();
                 data.forEach(d => {
-                    const color = d.status === 'found' ? '#22c55e' : '#ef4444';
+                    let color = '#ef4444';
+                    if (['found', 'found_alive'].includes(d.status)) {
+                        color = '#22c55e';
+                    } else if (['deceased', 'found_deceased'].includes(d.status)) {
+                        color = '#4b5563';
+                    }
                     const marker = L.circleMarker([d.latitude, d.longitude], {
                         radius: 8,
                         fillColor: color,
