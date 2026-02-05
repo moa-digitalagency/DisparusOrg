@@ -34,7 +34,7 @@
                                 {% if contribution.contribution_type == 'sighting' %}bg-green-100 text-green-700
                                 {% elif contribution.contribution_type == 'information' %}bg-blue-100 text-blue-700
                                 {% else %}bg-gray-100 text-gray-700{% endif %}">
-                                {{ contribution.contribution_type }}
+                                {{ t('detail.' + contribution.contribution_type, default=contribution.contribution_type) }}
                             </span>
                             {% if contribution.is_approved %}
                             <span class="text-xs px-2 py-0.5 rounded-lg font-medium bg-green-100 text-green-700">
@@ -53,7 +53,7 @@
                     {% if contribution.proposed_status %}
                     <div class="mb-2 p-2 bg-blue-50 border border-blue-100 rounded-lg">
                         <p class="text-xs font-bold text-blue-800 uppercase">{{ t('admin.proposed_status_change') }}</p>
-                        <p class="text-sm text-blue-700">{{ contribution.proposed_status }}</p>
+                        <p class="text-sm text-blue-700">{{ t('detail.status_' + contribution.proposed_status, default=contribution.proposed_status) }}</p>
                     </div>
                     {% endif %}
 
@@ -70,20 +70,20 @@
                         {{ contribution.location or contribution.location_name }}
                     </div>
                     {% endif %}
-                    <div class="flex items-center gap-4">
-                        <a href="/disparu/{{ contribution.disparu.public_id if contribution.disparu else '' }}" class="text-xs text-red-600 hover:text-red-700 font-medium">
+                    <div class="flex items-center gap-2 mt-2">
+                        <a href="/disparu/{{ contribution.disparu.public_id if contribution.disparu else '' }}" class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
                             {{ t('admin.view_record') }}
                         </a>
                         {% if not contribution.is_approved %}
                         <form action="{{ url_for('admin.approve_contribution', contrib_id=contribution.id) }}" method="POST" class="inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="text-xs text-green-600 hover:text-green-700 font-medium">
+                            <button type="submit" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors shadow-sm">
                                 {{ t('admin.approve') }}
                             </button>
                         </form>
                         <form action="{{ url_for('admin.reject_contribution', contrib_id=contribution.id) }}" method="POST" class="inline" onsubmit="return confirm('{{ t('admin.reject_confirm') }}');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="text-xs text-red-600 hover:text-red-700 font-medium">
+                            <button type="submit" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-700 transition-colors shadow-sm">
                                 {{ t('admin.reject') }}
                             </button>
                         </form>
