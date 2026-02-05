@@ -105,82 +105,83 @@
     }).addTo(map);
     
     const hoverCard = document.getElementById('hover-card');
-    const allDisparus = {{ disparus_list|tojson|safe if disparus_list else '[]' }};
     const adminCountryFilter = document.getElementById('admin-country-filter');
     const adminTypeFilter = document.getElementById('admin-type-filter');
     const adminCount = document.getElementById('admin-count');
-    let mapMarkers = [];
+    let markersLayer = L.layerGroup().addTo(map);
     
     const savedAdminCountry = localStorage.getItem('disparus_admin_country_filter');
     if (savedAdminCountry) {
         adminCountryFilter.value = savedAdminCountry;
     }
     
-    function updateAdminMap() {
-        mapMarkers.forEach(m => map.removeLayer(m));
-        mapMarkers = [];
-        
-        const selectedCountry = adminCountryFilter.value;
-        const selectedType = adminTypeFilter.value;
-        let filtered = allDisparus;
-        
-        if (selectedCountry) {
-            filtered = filtered.filter(d => d.country === selectedCountry);
-        }
-
-        if (selectedType === 'person') {
-            filtered = filtered.filter(d => d.person_type !== 'animal');
-        } else if (selectedType === 'animal') {
-            filtered = filtered.filter(d => d.person_type === 'animal');
-        }
-        
-        adminCount.textContent = filtered.length + ' {% if get_locale() == "fr" %}signalements{% else %}reports{% endif %}';
-        
-        filtered.forEach(function(d) {
-            if (d.latitude && d.longitude) {
-                const color = d.status === 'found' ? '#22c55e' : (d.is_flagged ? '#f97316' : '#ef4444');
-                const marker = L.circleMarker([d.latitude, d.longitude], {
-                    radius: 10,
-                    fillColor: color,
-                    color: '#fff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.9
-                }).addTo(map);
-            
-            // Tooltip on hover (Photo + Name)
-            const tooltipContent = '<div class="text-center p-1">' +
-                (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-1">' : '') +
-                '<div class="font-bold text-sm text-gray-900">' + escapeHtml(d.first_name) + ' ' + escapeHtml(d.last_name) + '</div>' +
-                '<div class="text-xs text-gray-500">' + escapeHtml(d.city) + '</div>' +
-                '</div>';
-            
-            marker.bindTooltip(tooltipContent, {
-                direction: 'top',
-                offset: [0, -5],
-                opacity: 1,
-                className: 'leaflet-tooltip-custom'
-            });
-
-            marker.on('click', function() {
-                window.location.href = '/disparu/' + d.public_id;
-            });
-            mapMarkers.push(marker);
-        }
+    function fetchAdminMapData() {
+        const bounds = map.getBounds();
+        const params = new URLSearchParams({
+            min_lat: bounds.getSouth(),
+            max_lat: bounds.getNorth(),
+            min_lng: bounds.getWest(),
+            max_lng: bounds.getEast(),
+            type: adminTypeFilter.value,
+            country: adminCountryFilter.value
         });
-        
-        if (mapMarkers.length > 0) {
-            const bounds = mapMarkers.map(m => m.getLatLng());
-            map.fitBounds(bounds.map(b => [b.lat, b.lng]), {padding: [30, 30], maxZoom: 10});
-        }
+
+        fetch(`/api/map-data?${params.toString()}`)
+            .then(r => r.json())
+            .then(data => {
+                markersLayer.clearLayers();
+
+                adminCount.textContent = data.length + ' {% if get_locale() == "fr" %}signalements{% else %}reports{% endif %}';
+
+                data.forEach(d => {
+                    let color = '#ef4444'; // missing (red)
+                    if (['found', 'found_alive'].includes(d.status)) {
+                        color = '#22c55e'; // green
+                    } else if (['deceased', 'found_deceased'].includes(d.status)) {
+                        color = '#4b5563'; // gray
+                    } else if (d.is_flagged) {
+                        color = '#f97316'; // orange
+                    }
+
+                    const marker = L.circleMarker([d.latitude, d.longitude], {
+                        radius: 10,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    });
+            
+                    // Tooltip on hover (Photo + Name)
+                    const tooltipContent = '<div class="text-center p-1">' +
+                        (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-1">' : '') +
+                        '<div class="font-bold text-sm text-gray-900">' + escapeHtml(d.full_name) + '</div>' +
+                        '<div class="text-xs text-gray-500">' + escapeHtml(d.city) + '</div>' +
+                        '</div>';
+
+                    marker.bindTooltip(tooltipContent, {
+                        direction: 'top',
+                        offset: [0, -5],
+                        opacity: 1,
+                        className: 'leaflet-tooltip-custom'
+                    });
+
+                    marker.on('click', function() {
+                        window.location.href = '/disparu/' + d.public_id;
+                    });
+                    markersLayer.addLayer(marker);
+                });
+            })
+            .catch(console.error);
     }
     
     adminCountryFilter.addEventListener('change', function() {
         localStorage.setItem('disparus_admin_country_filter', this.value);
-        updateAdminMap();
+        fetchAdminMapData();
     });
 
-    adminTypeFilter.addEventListener('change', updateAdminMap);
+    adminTypeFilter.addEventListener('change', fetchAdminMapData);
+    map.on('moveend', fetchAdminMapData);
     
     hoverCard.addEventListener('mouseleave', function() {
         hoverCard.classList.add('hidden');
@@ -198,6 +199,6 @@
         );
     }
     
-    updateAdminMap();
+    fetchAdminMapData();
 </script>
 {% endblock %}
