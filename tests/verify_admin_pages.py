@@ -18,11 +18,13 @@ class TestAdminPages(unittest.TestCase):
         self.ctx = self.app.app_context()
         self.ctx.push()
 
+        db.create_all()
+
         # Ensure admin user exists (it should be there from init_db, but let's be safe)
         admin_role = Role.query.filter_by(name='admin').first()
         if not admin_role:
              # If role doesn't exist (e.g. fresh in-memory db), create it
-             admin_role = Role(name='admin', permissions={'all': True})
+             admin_role = Role(name='admin', display_name='Administrator', permissions={'all': True})
              db.session.add(admin_role)
              db.session.commit()
 

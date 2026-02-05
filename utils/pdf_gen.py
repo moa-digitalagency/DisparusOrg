@@ -776,7 +776,8 @@ def generate_statistics_pdf(stats_data, t, locale='fr'):
         fontSize=14,
         fontName='Helvetica-Bold',
         textColor=BLACK,
-        alignment=TA_CENTER
+        alignment=TA_CENTER,
+        leading=20
     )
 
     # --- Header ---
@@ -818,14 +819,14 @@ def generate_statistics_pdf(stats_data, t, locale='fr'):
 
     summary_data = [
         [
-            Paragraph(f"<font color='{RED_PRIMARY}'>Total</font><br/>{stats.get('total', 0)}", value_style),
-            Paragraph(f"<font color='#059669'>{t('stats.found')}</font><br/>{stats.get('found', 0)}", value_style),
-            Paragraph(f"<font color='#4B5563'>{t('deceased')}</font><br/>{stats.get('deceased', 0)}", value_style)
+            Paragraph(f"<font size=12 color='{RED_PRIMARY}'><b>Total</b></font><br/><br/><font size=22 color='#111827'>{stats.get('total', 0)}</font>", value_style),
+            Paragraph(f"<font size=12 color='#059669'><b>{t('stats.found')}</b></font><br/><br/><font size=22 color='#111827'>{stats.get('found', 0)}</font>", value_style),
+            Paragraph(f"<font size=12 color='#4B5563'><b>{t('deceased')}</b></font><br/><br/><font size=22 color='#111827'>{stats.get('deceased', 0)}</font>", value_style)
         ],
         [
-            Paragraph(f"<font color='#7C3AED'>{t('stats.views')}</font><br/>{stats.get('total_views', 0)}", value_style),
-            Paragraph(f"<font color='#2563EB'>{t('admin.downloads')}</font><br/>{stats.get('total_downloads', 0)}", value_style),
-            Paragraph(f"<font color='#D97706'>{t('stats.countries')}</font><br/>{stats.get('countries', 0)}", value_style)
+            Paragraph(f"<font size=12 color='#7C3AED'><b>{t('stats.views')}</b></font><br/><br/><font size=22 color='#111827'>{stats.get('total_views', 0)}</font>", value_style),
+            Paragraph(f"<font size=12 color='#2563EB'><b>{t('admin.downloads')}</b></font><br/><br/><font size=22 color='#111827'>{stats.get('total_downloads', 0)}</font>", value_style),
+            Paragraph(f"<font size=12 color='#D97706'><b>{t('stats.countries')}</b></font><br/><br/><font size=22 color='#111827'>{stats.get('countries', 0)}</font>", value_style)
         ]
     ]
 
