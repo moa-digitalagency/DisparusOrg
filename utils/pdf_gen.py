@@ -607,7 +607,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org', t=None
         text_y_cursor += 70 # Espacement reduit
 
         # Age - Sexe
-        sex_str = t('pdf.gender.female') if disparu.sex == 'male' else t('pdf.gender.male')
+        sex_str = t('pdf.gender.male') if disparu.sex == 'male' else t('pdf.gender.female')
         if disparu.person_type == 'animal':
              sex_str = t('pdf.gender.male_animal') if disparu.sex == 'male' else t('pdf.gender.female_animal')
 

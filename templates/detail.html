@@ -108,7 +108,19 @@
                     </div>
                     
                     <div class="p-5">
-                        <div class="grid grid-cols-2 gap-4 mb-5 text-sm">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5 text-sm">
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <span class="text-xs text-gray-500 font-medium">{{ t('report_form.sex') }}</span>
+                                <p class="font-semibold text-gray-900 mt-1">
+                                    {% if person.sex == 'male' %}
+                                        {{ t('pdf.gender.male_animal') if person.person_type == 'animal' else t('pdf.gender.male') }}
+                                    {% elif person.sex == 'female' %}
+                                        {{ t('pdf.gender.female_animal') if person.person_type == 'animal' else t('pdf.gender.female') }}
+                                    {% else %}
+                                        {{ t('report_form.unknown_sex') }}
+                                    {% endif %}
+                                </p>
+                            </div>
                             <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                 <span class="text-xs text-gray-500 font-medium">{{ t('detail.location_short') }}</span>
                                 <p class="font-semibold text-gray-900 mt-1">{{ person.city }}, {{ person.country }}</p>
