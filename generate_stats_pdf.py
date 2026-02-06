@@ -28,7 +28,8 @@ def generate_pdf():
 
         # Generate PDF
         print("Generating PDF...")
-        pdf_buffer = generate_statistics_pdf(data, t, locale='fr')
+        # Simulating a user for the test
+        pdf_buffer = generate_statistics_pdf(data, t, locale='fr', generated_by='TestAdmin')
 
         if pdf_buffer:
             output_path = 'statics/stats_test.pdf'
