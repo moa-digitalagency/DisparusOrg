@@ -24,6 +24,8 @@ try:
 except ImportError:
     HAS_REPORTLAB = False
 
+from utils.i18n import get_translation
+
 
 # Couleurs
 RED_PRIMARY = HexColor('#B91C1C') # Rouge vif du PDF exemple
@@ -103,6 +105,13 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
                     return text
             return text
 
+    def bl(key):
+        """Bilingual label helper"""
+        fr = get_translation(key, 'fr')
+        en = get_translation(key, 'en')
+        if fr == en: return fr
+        return f"{fr} / {en}"
+
     settings = get_site_settings()
     site_name = settings.get('site_name', 'DISPARUS.ORG')
 
@@ -156,7 +165,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     p.setFont("Helvetica", 10)
     p.setFillColor(GRAY_MEDIUM)
     p.drawString(title_x, title_y - 0.6*cm, t('site.description'))
-    # p.drawString(title_x, title_y - 1.0*cm, "Citizen platform for missing persons") # Multilingual removed in favor of localized string
+    p.drawString(title_x, title_y - 1.0*cm, get_translation('site.description', 'en'))
 
     # ID à droite
     p.setFont("Helvetica-Bold", 14)
@@ -183,10 +192,10 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     p.setFont("Helvetica-Bold", 36)
     p.drawCentredString(width/2, main_title_y, t('pdf.missing_person'))
 
-    # Sous-titre
-    # p.setFillColor(GRAY_MEDIUM)
-    # p.setFont("Helvetica-Bold", 20)
-    # p.drawCentredString(width/2, main_title_y - 1*cm, "MISSING PERSON")
+    # Sous-titre EN
+    p.setFillColor(GRAY_DARK)
+    p.setFont("Helvetica-Bold", 20)
+    p.drawCentredString(width/2, main_title_y - 1*cm, get_translation('pdf.missing_person', 'en').upper())
 
     # Lignes décoratives
     p.setStrokeColor(RED_PRIMARY)
@@ -255,25 +264,32 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     # Logic for Animal vs Person details
     is_animal = (disparu.person_type == 'animal')
 
-    sex_label = t('pdf.gender.female')
+    # Bilingual sex value
+    sex_fr = t('pdf.gender.female')
+    sex_en = get_translation('pdf.gender.female', 'en')
     if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme']:
-        sex_label = t('pdf.gender.male')
+        sex_fr = t('pdf.gender.male')
+        sex_en = get_translation('pdf.gender.male', 'en')
 
     if is_animal:
-        if sex_label == t('pdf.gender.male'):
-            sex_label = t('pdf.gender.male_animal')
+        if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme']:
+            sex_fr = t('pdf.gender.male_animal')
+            sex_en = get_translation('pdf.gender.male_animal', 'en')
         else:
-            sex_label = t('pdf.gender.female_animal')
+            sex_fr = t('pdf.gender.female_animal')
+            sex_en = get_translation('pdf.gender.female_animal', 'en')
+
+    sex_label = f"{sex_fr} / {sex_en}"
 
     details = []
 
     # Hide age if -1 (unknown/irrelevant)
     if disparu.age != -1:
-        details.append((t('pdf.label.age') + ":", f"{disparu.age} {t('detail.age_years')}"))
+        details.append((bl('pdf.label.age') + ":", f"{disparu.age} {t('detail.age_years')}"))
 
-    details.append((t('pdf.label.sex') + ":", sex_label))
-    details.append((t('pdf.label.location') + ":", f"{disparu.city}, {disparu.country}"))
-    details.append((t('pdf.label.date') + ":", date_val))
+    details.append((bl('pdf.label.sex') + ":", sex_label))
+    details.append((bl('pdf.label.location') + ":", f"{disparu.city}, {disparu.country}"))
+    details.append((bl('pdf.label.date') + ":", date_val))
 
     # Affichage des détails standard
     for label, value in details:
@@ -289,20 +305,21 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
     # Ajout Heure sur la ligne suivante si elle existe
     if heure_val:
+        time_label = bl('pdf.label.time') + ":"
         p.setFillColor(RED_DARK)
         p.setFont("Helvetica-Bold", 14)
-        p.drawString(info_x, info_y_cursor, t('pdf.label.time') + ":")
+        p.drawString(info_x, info_y_cursor, time_label)
 
         p.setFillColor(GRAY_DARK)
         p.setFont("Helvetica", 14)
-        label_w = p.stringWidth(t('pdf.label.time') + ":", "Helvetica-Bold", 14)
+        label_w = p.stringWidth(time_label, "Helvetica-Bold", 14)
         p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, heure_val)
         info_y_cursor -= 1.0*cm
 
     # Ajout ID sur la ligne suivante encore
     p.setFillColor(RED_DARK)
     p.setFont("Helvetica-Bold", 14)
-    label_id = t('pdf.label.id') + ":"
+    label_id = bl('pdf.label.id') + ":"
     p.drawString(info_x, info_y_cursor, label_id)
 
     p.setFillColor(GRAY_DARK)
@@ -352,15 +369,15 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         return text_y - 0.5*cm
 
     desc = disparu.physical_description or t('common.not_available')
-    section_y = draw_section_block(t('pdf.label.description'), desc, section_y)
+    section_y = draw_section_block(bl('pdf.label.description'), desc, section_y)
 
     clothing = disparu.clothing or t('common.not_available')
-    clothing_label = t('pdf.label.clothing_animal') if is_animal else t('pdf.label.clothing')
+    clothing_label = bl('pdf.label.clothing_animal') if is_animal else bl('pdf.label.clothing')
     section_y = draw_section_block(clothing_label, clothing, section_y)
 
     if not is_animal:
         circ = disparu.circumstances or t('common.not_available')
-        section_y = draw_section_block(t('pdf.label.circumstances'), circ, section_y)
+        section_y = draw_section_block(bl('pdf.label.circumstances'), circ, section_y)
 
     # --- 5. Contacts (Bloc dédié) ---
     if section_y < 8*cm: # Si on est trop bas
@@ -371,12 +388,12 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     p.rect(2*cm, section_y, 0.4*cm, 0.4*cm, fill=1, stroke=0)
     p.setFillColor(GRAY_DARK)
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(2.6*cm, section_y, t('pdf.label.contacts'))
+    p.drawString(2.6*cm, section_y, bl('pdf.label.contacts'))
     p.setStrokeColor(GRAY_LIGHT)
     p.line(2*cm, section_y - 0.2*cm, width - 6*cm, section_y - 0.2*cm) # Ligne plus courte
 
     contact_y = section_y - 1.2*cm # Espacement un peu plus grand avant le premier contact
-    contacts = getattr(disparu, 'contacts', [])
+    contacts = getattr(disparu, 'contacts', []) or []
 
     for contact in contacts[:3]:
         name = contact.get('name', '') if isinstance(contact, dict) else getattr(contact, 'name', '')
@@ -413,8 +430,10 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         pass
 
     p.setFillColor(RED_DARK)
-    p.setFont("Helvetica-Bold", 8)
-    p.drawCentredString(qr_x + qr_size/2, qr_y, t('pdf.scan'))
+    p.setFont("Helvetica-Bold", 6)
+    # Bilingual QR text (2 lines)
+    p.drawCentredString(qr_x + qr_size/2, qr_y, "Scannez pour voir & contribuer")
+    p.drawCentredString(qr_x + qr_size/2, qr_y - 0.25*cm, "Scan to view & contribute")
 
     # Bandes de bas de page
     # Bande Or fine
@@ -435,7 +454,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     p.drawCentredString(width/2, 1.2*cm, base_url)
 
     p.setFont("Helvetica", 10)
-    p.drawCentredString(width/2, 0.6*cm, t('pdf.footer.contact_us'))
+    p.drawCentredString(width/2, 0.6*cm, "Toute information peut être utile / Any information can be useful")
 
     # Timestamp discret au dessus du footer
     p.setFillColor(GRAY_MEDIUM)
