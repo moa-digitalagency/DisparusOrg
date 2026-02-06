@@ -36,6 +36,14 @@ ACCENT_GOLD = HexColor('#D97706') # Couleur Or pour les soulignements secondaire
 WHITE = HexColor('#FFFFFF')
 BLACK = HexColor('#000000')
 
+# Stats backgrounds
+BG_TOTAL_LIGHT = HexColor('#F8FAFC')     # Slate-50
+BG_FOUND_LIGHT = HexColor('#F0FDF4')     # Green-50
+BG_DECEASED_LIGHT = HexColor('#F3F4F6')  # Gray-100
+BG_VIEWS_LIGHT = HexColor('#F5F3FF')     # Violet-50
+BG_DOWNLOADS_LIGHT = HexColor('#EFF6FF') # Blue-50
+BG_COUNTRIES_LIGHT = HexColor('#FAF5FF') # Purple-50
+
 
 def get_site_settings():
     try:
@@ -730,7 +738,7 @@ def generate_social_media_image(disparu, base_url='https://disparus.org', t=None
         import logging
         logging.error(f"Error generating social media image: {e}")
         return None
-def generate_statistics_pdf(stats_data, t, locale='fr'):
+def generate_statistics_pdf(stats_data, t, locale='fr', generated_by='System'):
     """
     Génère un rapport PDF complet des statistiques de la plateforme.
     """
@@ -780,6 +788,13 @@ def generate_statistics_pdf(stats_data, t, locale='fr'):
         leading=20
     )
 
+    # Centered style for metadata
+    centered_style = ParagraphStyle(
+        'Centered',
+        parent=styles['Normal'],
+        alignment=TA_CENTER
+    )
+
     # --- Header ---
     settings = get_site_settings()
     logo_path = settings.get('favicon')
@@ -807,9 +822,14 @@ def generate_statistics_pdf(stats_data, t, locale='fr'):
         elif p == '7d': period_text = f"{label}: {t('stats.last_7d')}"
         elif p == '1m': period_text = f"{label}: {t('stats.last_30d')}"
         elif p == 'custom': period_text = f"{label}: {t('stats.custom_range', start=start, end=end)}"
-        elements.append(Paragraph(period_text, styles['Normal']))
+        elements.append(Paragraph(period_text, centered_style))
 
-    elements.append(Paragraph(f"{t('stats.generated_on')}: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    # Centered generation info with user name
+    gen_text = f"{t('stats.generated_on')}: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+    if generated_by:
+        gen_text = f"{t('stats.generated_by')} {generated_by} - {gen_text}"
+
+    elements.append(Paragraph(gen_text, centered_style))
     elements.append(Spacer(1, 20))
 
     # --- Section 1: Résumé Global ---
@@ -839,7 +859,14 @@ def generate_statistics_pdf(stats_data, t, locale='fr'):
         ('RIGHTPADDING', (0,0), (-1,-1), 15),
         ('TOPPADDING', (0,0), (-1,-1), 15),
         ('BOTTOMPADDING', (0,0), (-1,-1), 15),
-        ('BACKGROUND', (0,0), (-1,-1), white),
+        # ('BACKGROUND', (0,0), (-1,-1), white), # Removed global background
+        # Specific backgrounds
+        ('BACKGROUND', (0,0), (0,0), BG_TOTAL_LIGHT),
+        ('BACKGROUND', (1,0), (1,0), BG_FOUND_LIGHT),
+        ('BACKGROUND', (2,0), (2,0), BG_DECEASED_LIGHT),
+        ('BACKGROUND', (0,1), (0,1), BG_VIEWS_LIGHT),
+        ('BACKGROUND', (1,1), (1,1), BG_DOWNLOADS_LIGHT),
+        ('BACKGROUND', (2,1), (2,1), BG_COUNTRIES_LIGHT),
     ]))
     elements.append(summary_table)
     elements.append(Spacer(1, 10))

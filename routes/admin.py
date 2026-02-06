@@ -599,7 +599,8 @@ def export_stats_pdf():
                 return text
         return text
 
-    pdf_buffer = generate_statistics_pdf(data, t, locale=locale)
+    generated_by = session.get('admin_username', 'Admin')
+    pdf_buffer = generate_statistics_pdf(data, t, locale=locale, generated_by=generated_by)
 
     if not pdf_buffer:
         flash("Erreur lors de la génération du PDF", "error")
