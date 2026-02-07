@@ -256,10 +256,21 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     date_val = t('common.not_available')
     heure_val = ""
     if disparu.disappearance_date:
-        date_val = disparu.disappearance_date.strftime('%d/%m/%Y')
-        t_str = disparu.disappearance_date.strftime('%H:%M')
-        if t_str and t_str != "00:00":
-             heure_val = t_str
+        if isinstance(disparu.disappearance_date, datetime):
+            date_val = disparu.disappearance_date.strftime('%d/%m/%Y')
+            t_str = disparu.disappearance_date.strftime('%H:%M')
+            if t_str and t_str != "00:00":
+                 heure_val = t_str
+        elif isinstance(disparu.disappearance_date, str):
+            try:
+                # Try parsing ISO format if string
+                dt = datetime.fromisoformat(disparu.disappearance_date.replace('Z', '+00:00'))
+                date_val = dt.strftime('%d/%m/%Y')
+                t_str = dt.strftime('%H:%M')
+                if t_str and t_str != "00:00":
+                     heure_val = t_str
+            except ValueError:
+                date_val = str(disparu.disappearance_date)
 
     # Logic for Animal vs Person details
     is_animal = (disparu.person_type == 'animal')
@@ -267,12 +278,19 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     # Bilingual sex value
     sex_fr = t('pdf.gender.female')
     sex_en = get_translation('pdf.gender.female', 'en')
-    if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme']:
+
+    is_male = False
+    if disparu.sex:
+        s = str(disparu.sex).lower()
+        if s in ['m', 'male', 'homme', '1', 'true']:
+            is_male = True
+
+    if is_male:
         sex_fr = t('pdf.gender.male')
         sex_en = get_translation('pdf.gender.male', 'en')
 
     if is_animal:
-        if disparu.sex and disparu.sex.lower() in ['m', 'male', 'homme']:
+        if is_male:
             sex_fr = t('pdf.gender.male_animal')
             sex_en = get_translation('pdf.gender.male_animal', 'en')
         else:
@@ -368,15 +386,15 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
         return text_y - 0.5*cm
 
-    desc = disparu.physical_description or t('common.not_available')
+    desc = str(disparu.physical_description) if disparu.physical_description else t('common.not_available')
     section_y = draw_section_block(bl('pdf.label.description'), desc, section_y)
 
-    clothing = disparu.clothing or t('common.not_available')
+    clothing = str(disparu.clothing) if disparu.clothing else t('common.not_available')
     clothing_label = bl('pdf.label.clothing_animal') if is_animal else bl('pdf.label.clothing')
     section_y = draw_section_block(clothing_label, clothing, section_y)
 
     if not is_animal:
-        circ = disparu.circumstances or t('common.not_available')
+        circ = str(disparu.circumstances) if disparu.circumstances else t('common.not_available')
         section_y = draw_section_block(bl('pdf.label.circumstances'), circ, section_y)
 
     # --- 5. Contacts (Bloc dédié) ---
