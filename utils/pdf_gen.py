@@ -850,16 +850,26 @@ def generate_statistics_pdf(stats_data, t, locale='fr', generated_by='System'):
     elements.append(Paragraph(f"{t('admin.statistics')} - DISPARUS.ORG", title_style))
 
     period_text = ""
-    if stats_data.get('filters', {}).get('period') != 'all':
-        p = stats_data['filters']['period']
-        start = stats_data['filters'].get('start_date', '')
-        end = stats_data['filters'].get('end_date', '')
-        label = t('stats.period')
-        if p == '1d': period_text = f"{label}: {t('stats.last_24h')}"
-        elif p == '7d': period_text = f"{label}: {t('stats.last_7d')}"
-        elif p == '1m': period_text = f"{label}: {t('stats.last_30d')}"
-        elif p == 'custom': period_text = f"{label}: {t('stats.custom_range', start=start, end=end)}"
-        elements.append(Paragraph(period_text, centered_style))
+    filters = stats_data.get('filters', {})
+    p = filters.get('period', 'all')
+    start = filters.get('start_date', '')
+    end = filters.get('end_date', '')
+    label = t('stats.period')
+
+    if p == '1d': period_text = f"{label}: {t('stats.last_24h')}"
+    elif p == '7d': period_text = f"{label}: {t('stats.last_7d')}"
+    elif p == '1m': period_text = f"{label}: {t('stats.last_30d')}"
+    elif p == 'custom':
+        # Format dates for display
+        start_fmt, end_fmt = start, end
+        try:
+            if start: start_fmt = datetime.strptime(start, '%Y-%m-%d').strftime('%d/%m/%Y')
+            if end: end_fmt = datetime.strptime(end, '%Y-%m-%d').strftime('%d/%m/%Y')
+        except: pass
+        period_text = f"{label}: {t('stats.custom_range', start=start_fmt, end=end_fmt)}"
+    else: period_text = f"{label}: {t('stats.all_time')}"
+
+    elements.append(Paragraph(period_text, centered_style))
 
     # Centered generation info with user name
     gen_text = f"{t('stats.generated_on')}: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
