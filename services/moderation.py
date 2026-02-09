@@ -1,6 +1,7 @@
 import os
-import requests
+import aiohttp
 import json
+import asyncio
 from flask import current_app, request
 from models import db, ContentModerationLog
 
@@ -14,7 +15,7 @@ class ContentModerator:
         self.violence_api_url = "https://api.apilayer.com/violence_detection/upload"
         self.geo_api_url = "https://api.apilayer.com/geo/ip"
 
-    def _call_api(self, url, api_key, file_content):
+    async def _call_api(self, url, api_key, file_content):
         if not api_key:
             current_app.logger.warning(f"API key not found for {url}. Content moderation skipped.")
             return None
@@ -24,23 +25,28 @@ class ContentModerator:
         }
 
         try:
-            files = {'image': file_content}
-            # Timeout increased slightly for larger images
-            response = requests.post(url, headers=headers, files=files, timeout=15)
+            data = aiohttp.FormData()
+            data.add_field('image', file_content)
 
-            if response.status_code == 200:
-                return response.json()
-            elif response.status_code == 429:
-                current_app.logger.warning(f"Moderation API Limit Exceeded: {response.status_code}. Allowing upload.")
-                return None
-            else:
-                current_app.logger.error(f"Moderation API error: {response.status_code} - {response.text}")
-                return None
+            # Timeout increased slightly for larger images
+            timeout = aiohttp.ClientTimeout(total=15)
+
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, headers=headers, data=data) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    elif response.status == 429:
+                        current_app.logger.warning(f"Moderation API Limit Exceeded: {response.status}. Allowing upload.")
+                        return None
+                    else:
+                        text = await response.text()
+                        current_app.logger.error(f"Moderation API error: {response.status} - {text}")
+                        return None
         except Exception as e:
             current_app.logger.error(f"Moderation API exception: {str(e)}")
             return None
 
-    def get_location_info(self, ip_address):
+    async def get_location_info(self, ip_address):
         """
         Get location info from IP address using APILayer Geo API.
         Returns (country, city)
@@ -59,26 +65,29 @@ class ContentModerator:
             # Geo API expects 'ip' query parameter
             url = f"{self.geo_api_url}?ip={ip_address}"
 
-            response = requests.get(url, headers=headers, timeout=5)
+            timeout = aiohttp.ClientTimeout(total=5)
 
-            if response.status_code == 200:
-                data = response.json()
-                # APILayer Geo API response structure:
-                # { "city": "...", "country_name": "...", ... }
-                country = data.get('country_name', 'Unknown')
-                city = data.get('city', 'Unknown')
-                return country, city
-            elif response.status_code == 429:
-                 current_app.logger.warning("Geo API Limit Exceeded. Using default/manual location selection.")
-            else:
-                 current_app.logger.warning(f"Geo API error: {response.status_code} - {response.text}")
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url, headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        # APILayer Geo API response structure:
+                        # { "city": "...", "country_name": "...", ... }
+                        country = data.get('country_name', 'Unknown')
+                        city = data.get('city', 'Unknown')
+                        return country, city
+                    elif response.status == 429:
+                        current_app.logger.warning("Geo API Limit Exceeded. Using default/manual location selection.")
+                    else:
+                        text = await response.text()
+                        current_app.logger.warning(f"Geo API error: {response.status} - {text}")
 
         except Exception as e:
             current_app.logger.warning(f"GeoIP lookup failed: {e}")
 
         return "Unknown", "Unknown"
 
-    def check_image(self, file_storage):
+    async def check_image(self, file_storage):
         """
         Checks an image for nudity and violence.
         Returns (is_safe, reason, log_entry)
@@ -102,7 +111,7 @@ class ContentModerator:
 
         # Check Nudity
         if self.nudity_api_key:
-            nudity_result = self._call_api(self.nudity_api_url, self.nudity_api_key, file_content)
+            nudity_result = await self._call_api(self.nudity_api_url, self.nudity_api_key, file_content)
             # Rewind
             file_storage.seek(0)
 
@@ -117,23 +126,23 @@ class ContentModerator:
 
                 # If confidence > 60% it is likely nudity
                 if confidence > 0.6:
-                    return self._handle_unsafe(ip_address, user_agent, 'nudity', confidence, nudity_result)
+                    return await self._handle_unsafe(ip_address, user_agent, 'nudity', confidence, nudity_result)
 
         # Check Violence
         if self.violence_api_key:
-            violence_result = self._call_api(self.violence_api_url, self.violence_api_key, file_content)
+            violence_result = await self._call_api(self.violence_api_url, self.violence_api_key, file_content)
 
             if violence_result:
                 # Violence API usually returns similar structure
                 confidence = violence_result.get('confidence', 0)
 
                 if confidence > 0.6:
-                     return self._handle_unsafe(ip_address, user_agent, 'violence', confidence, violence_result)
+                     return await self._handle_unsafe(ip_address, user_agent, 'violence', confidence, violence_result)
 
         return True, None, None
 
-    def _handle_unsafe(self, ip, user_agent, detection_type, score, details):
-        country, city = self.get_location_info(ip)
+    async def _handle_unsafe(self, ip, user_agent, detection_type, score, details):
+        country, city = await self.get_location_info(ip)
 
         log = ContentModerationLog(
             ip_address=ip,
@@ -147,6 +156,9 @@ class ContentModerator:
         )
 
         try:
+            # Note: Using sync DB session here. In a real async setup, we'd use async session or run_in_executor.
+            # But Flask async routes handle this by running in a thread if needed, or we just block briefly.
+            # Since DB operations are fast compared to API, this is acceptable.
             db.session.add(log)
             db.session.commit()
         except Exception as e:
@@ -156,17 +168,17 @@ class ContentModerator:
         reason = "Contenu pornographique détecté." if detection_type == 'nudity' else "Contenu violent détecté."
         return False, reason, log
 
-def check_image_content(file_storage):
+async def check_image_content(file_storage):
     """
     Wrapper function to check image content.
     Returns (is_safe, reason, log_entry)
     """
     moderator = ContentModerator()
-    return moderator.check_image(file_storage)
+    return await moderator.check_image(file_storage)
 
-def get_geo_info(ip_address):
+async def get_geo_info(ip_address):
     """
     Wrapper to get location info
     """
     moderator = ContentModerator()
-    return moderator.get_location_info(ip_address)
+    return await moderator.get_location_info(ip_address)

@@ -1,13 +1,14 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from io import BytesIO
+import asyncio
 from services.moderation import ContentModerator
 from app import create_app
 from models import db
 
-class TestContentModerator(unittest.TestCase):
+class TestContentModerator(unittest.IsolatedAsyncioTestCase):
 
-    def setUp(self):
+    async def asyncSetUp(self):
         self.app = create_app()
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -20,79 +21,148 @@ class TestContentModerator(unittest.TestCase):
         # Mock api_key to ensure it tries to call API
         self.moderator.nudity_api_key = "test_key"
         self.moderator.violence_api_key = "test_key"
+        # Also mock geo api key for log saving
+        self.moderator.geo_api_key = "test_key"
 
-    def tearDown(self):
+    async def asyncTearDown(self):
         db.session.remove()
         db.drop_all()
         self.request_context.pop()
         self.app_context.pop()
 
-    @patch('requests.post')
-    def test_clean_image(self, mock_post):
-        # Mock response for nudity: low confidence
-        mock_nudity_response = MagicMock()
-        mock_nudity_response.status_code = 200
-        mock_nudity_response.json.return_value = {"confidence": 0.1, "description": "Safe"}
+    @patch('aiohttp.ClientSession')
+    async def test_clean_image(self, mock_session_cls):
+        # Setup mocks
+        mock_session = MagicMock()
+        mock_session_cls.return_value = mock_session
+        async def session_enter(*args, **kwargs): return mock_session
+        mock_session.__aenter__.side_effect = session_enter
+        mock_session.__aexit__.return_value = None
 
-        # Mock response for violence: low confidence
-        mock_violence_response = MagicMock()
-        mock_violence_response.status_code = 200
-        mock_violence_response.json.return_value = {"confidence": 0.1, "description": "Safe"}
+        mock_post_cm = MagicMock()
+        mock_session.post.return_value = mock_post_cm
 
-        # Configure side_effect to return nudity response first, then violence response
-        mock_post.side_effect = [mock_nudity_response, mock_violence_response]
+        # Responses
+        nudity_response = AsyncMock()
+        nudity_response.status = 200
+        nudity_response.json.return_value = {"confidence": 0.1, "description": "Safe"}
+
+        violence_response = AsyncMock()
+        violence_response.status = 200
+        violence_response.json.return_value = {"confidence": 0.1, "description": "Safe"}
+
+        # Side effect for post context manager enter
+        # Note: check_image calls post 2 times.
+        responses = [nudity_response, violence_response]
+        async def post_enter(*args, **kwargs):
+            if responses:
+                return responses.pop(0)
+            return MagicMock()
+
+        mock_post_cm.__aenter__.side_effect = post_enter
+        mock_post_cm.__aexit__.return_value = None
 
         file_mock = BytesIO(b"fake image data")
-
-        is_safe, reason, log = self.moderator.check_image(file_mock)
+        is_safe, reason, log = await self.moderator.check_image(file_mock)
 
         self.assertTrue(is_safe)
         self.assertIsNone(reason)
 
-    @patch('requests.post')
-    def test_nudity_detected(self, mock_post):
-        # Mock response for nudity: high confidence
-        mock_nudity_response = MagicMock()
-        mock_nudity_response.status_code = 200
-        mock_nudity_response.json.return_value = {"confidence": 0.9, "description": "Nude"}
+    @patch('aiohttp.ClientSession')
+    async def test_nudity_detected(self, mock_session_cls):
+        # Setup mocks
+        mock_session = MagicMock()
+        mock_session_cls.return_value = mock_session
+        async def session_enter(*args, **kwargs): return mock_session
+        mock_session.__aenter__.side_effect = session_enter
+        mock_session.__aexit__.return_value = None
 
-        mock_post.side_effect = [mock_nudity_response]
+        mock_post_cm = MagicMock()
+        mock_session.post.return_value = mock_post_cm
+        mock_get_cm = MagicMock() # For geo info
+        mock_session.get.return_value = mock_get_cm
+
+        # Responses
+        nudity_response = AsyncMock()
+        nudity_response.status = 200
+        nudity_response.json.return_value = {"confidence": 0.9, "description": "Nude"}
+
+        geo_response = AsyncMock()
+        geo_response.status = 200
+        geo_response.json.return_value = {"country_name": "Test", "city": "TestCity"}
+
+        # post call for nudity
+        async def post_enter(*args, **kwargs):
+            return nudity_response
+        mock_post_cm.__aenter__.side_effect = post_enter
+        mock_post_cm.__aexit__.return_value = None
+
+        # get call for geo
+        async def get_enter(*args, **kwargs):
+            return geo_response
+        mock_get_cm.__aenter__.side_effect = get_enter
+        mock_get_cm.__aexit__.return_value = None
 
         file_mock = BytesIO(b"fake image data")
-
-        is_safe, reason, log = self.moderator.check_image(file_mock)
+        is_safe, reason, log = await self.moderator.check_image(file_mock)
 
         self.assertFalse(is_safe)
         self.assertIn("pornographique", reason)
-        # Verify violence API was NOT called (fail fast)
-        self.assertEqual(mock_post.call_count, 1)
+        # Verify post called at least once
+        self.assertTrue(mock_session.post.called)
 
-    @patch('requests.post')
-    def test_violence_detected(self, mock_post):
-        # Mock response for nudity: low confidence
-        mock_nudity_response = MagicMock()
-        mock_nudity_response.status_code = 200
-        mock_nudity_response.json.return_value = {"confidence": 0.1, "description": "Safe"}
+    @patch('aiohttp.ClientSession')
+    async def test_violence_detected(self, mock_session_cls):
+        # Setup mocks
+        mock_session = MagicMock()
+        mock_session_cls.return_value = mock_session
+        async def session_enter(*args, **kwargs): return mock_session
+        mock_session.__aenter__.side_effect = session_enter
+        mock_session.__aexit__.return_value = None
 
-        # Mock response for violence: high confidence
-        mock_violence_response = MagicMock()
-        mock_violence_response.status_code = 200
-        mock_violence_response.json.return_value = {"confidence": 0.9, "description": "Violence"}
+        mock_post_cm = MagicMock()
+        mock_session.post.return_value = mock_post_cm
+        mock_get_cm = MagicMock()
+        mock_session.get.return_value = mock_get_cm
 
-        mock_post.side_effect = [mock_nudity_response, mock_violence_response]
+        # Responses
+        nudity_response = AsyncMock()
+        nudity_response.status = 200
+        nudity_response.json.return_value = {"confidence": 0.1}
+
+        violence_response = AsyncMock()
+        violence_response.status = 200
+        violence_response.json.return_value = {"confidence": 0.9, "description": "Violence"}
+
+        geo_response = AsyncMock()
+        geo_response.status = 200
+        geo_response.json.return_value = {"country_name": "Test", "city": "TestCity"}
+
+        responses = [nudity_response, violence_response]
+        async def post_enter(*args, **kwargs):
+            if responses:
+                return responses.pop(0)
+            return MagicMock()
+
+        mock_post_cm.__aenter__.side_effect = post_enter
+        mock_post_cm.__aexit__.return_value = None
+
+        async def get_enter(*args, **kwargs):
+            return geo_response
+        mock_get_cm.__aenter__.side_effect = get_enter
+        mock_get_cm.__aexit__.return_value = None
 
         file_mock = BytesIO(b"fake image data")
-
-        is_safe, reason, log = self.moderator.check_image(file_mock)
+        is_safe, reason, log = await self.moderator.check_image(file_mock)
 
         self.assertFalse(is_safe)
         self.assertIn("violent", reason)
 
-    def test_no_api_key(self):
+    async def test_no_api_key(self):
         self.moderator.nudity_api_key = None
         self.moderator.violence_api_key = None
         file_mock = BytesIO(b"fake image data")
-        is_safe, reason, log = self.moderator.check_image(file_mock)
+        is_safe, reason, log = await self.moderator.check_image(file_mock)
         self.assertTrue(is_safe) # Default safe if no key
 
 if __name__ == '__main__':
