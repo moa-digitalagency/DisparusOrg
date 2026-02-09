@@ -663,6 +663,9 @@ def settings():
     if request.method == 'POST':
         import os
         from werkzeug.utils import secure_filename
+
+        # Optimization: Fetch all settings at once to avoid N+1 queries during update
+        all_settings = {s.key: s for s in SiteSetting.query.all()}
         
         ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico'}
         ALLOWED_MIMETYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/x-icon', 'image/vnd.microsoft.icon'}
@@ -695,7 +698,7 @@ def settings():
                     file.save(file_path)
                     
                     setting_key = f'seo_{field}' if field == 'og_image' else field
-                    existing = SiteSetting.query.filter_by(key=setting_key).first()
+                    existing = all_settings.get(setting_key)
                     value = f'/statics/uploads/settings/{new_filename}'
                     if existing:
                         existing.value = value
@@ -710,6 +713,7 @@ def settings():
                             updated_by=session.get('admin_username')
                         )
                         db.session.add(new_setting)
+                        all_settings[setting_key] = new_setting
         
         # Handle unchecked checkboxes (missing from request.form)
         # We need to check both existing settings and default boolean settings
@@ -721,16 +725,16 @@ def settings():
              if v.get('type') == 'boolean':
                  boolean_keys.add(k)
 
-        # 2. From DB (existing)
-        existing_bools = SiteSetting.query.filter_by(value_type='boolean').all()
-        for s in existing_bools:
-            boolean_keys.add(s.key)
+        # 2. From fetched settings
+        for s in all_settings.values():
+            if s.value_type == 'boolean':
+                boolean_keys.add(s.key)
 
         for key in boolean_keys:
             form_key = f'setting_{key}'
             if form_key not in request.form:
                 # Unchecked: ensure it exists and is false
-                existing = SiteSetting.query.filter_by(key=key).first()
+                existing = all_settings.get(key)
                 if existing:
                     existing.value = 'false'
                     existing.value_type = 'boolean'  # Ensure correct type
@@ -746,6 +750,7 @@ def settings():
                         updated_by=session.get('admin_username')
                     )
                     db.session.add(new_setting)
+                    all_settings[key] = new_setting
 
         for key in request.form:
             if key.startswith('setting_'):
@@ -759,7 +764,7 @@ def settings():
                 if value == 'on':
                     value = 'true'
 
-                existing = SiteSetting.query.filter_by(key=setting_key).first()
+                existing = all_settings.get(setting_key)
                 if existing:
                     existing.value = value
                     existing.updated_by = session.get('admin_username')
@@ -775,6 +780,7 @@ def settings():
                         updated_by=session.get('admin_username')
                     )
                     db.session.add(new_setting)
+                    all_settings[setting_key] = new_setting
         log_activity(f'Modification parametres', action_type='update', target_type='settings', severity='info')
         db.session.commit()
         invalidate_settings_cache()
