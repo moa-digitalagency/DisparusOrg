@@ -512,13 +512,14 @@ def generate_qr_code(url, size=10):
         return None
 
 
-def generate_social_media_image(disparu, base_url='https://disparus.org', t=None, locale='fr'):
+async def generate_social_media_image(disparu, base_url='https://disparus.org', t=None, locale='fr'):
     """Generate a 1080x1350px portrait image for social media sharing matching the reference design."""
     try:
         from PIL import Image, ImageDraw, ImageFont
         from io import BytesIO
         import os
-        import requests
+        import aiohttp
+        from urllib.parse import urlparse
 
         if t is None:
             from utils.i18n import get_translation
@@ -606,14 +607,35 @@ def generate_social_media_image(disparu, base_url='https://disparus.org', t=None
         if disparu.photo_url:
             try:
                 photo_path = disparu.photo_url
-                if photo_path.startswith('/'):
-                    photo_path = photo_path[1:]
+                local_path = None
 
-                if os.path.exists(photo_path):
-                    person_photo = Image.open(photo_path)
+                # Check if it's a URL or path
+                parsed = urlparse(photo_path)
+                if parsed.scheme in ('http', 'https'):
+                    # Check if it's our own domain or local dev
+                    # We can try to extract path if it looks like a static file
+                    path = parsed.path
+                    if path.startswith('/'):
+                        path = path[1:]
+
+                    if os.path.exists(path):
+                        local_path = path
                 else:
-                    response = requests.get(disparu.photo_url, timeout=5)
-                    person_photo = Image.open(BytesIO(response.content))
+                    # It's a relative path
+                    if photo_path.startswith('/'):
+                        photo_path = photo_path[1:]
+                    if os.path.exists(photo_path):
+                        local_path = photo_path
+
+                if local_path:
+                    person_photo = Image.open(local_path)
+                else:
+                    timeout = aiohttp.ClientTimeout(total=5)
+                    async with aiohttp.ClientSession(timeout=timeout) as session:
+                        async with session.get(disparu.photo_url) as response:
+                            if response.status == 200:
+                                content = await response.read()
+                                person_photo = Image.open(BytesIO(content))
             except:
                 pass
 

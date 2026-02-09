@@ -493,7 +493,7 @@ def download_pdf(public_id):
 
 
 @public_bp.route('/disparu/<public_id>/share-image')
-def download_share_image(public_id):
+async def download_share_image(public_id):
     from flask import Response
     from utils.pdf_gen import generate_social_media_image
     
@@ -532,7 +532,7 @@ def download_share_image(public_id):
                 return text
         return text
 
-    image_buffer = generate_social_media_image(disparu, base_url, t=t, locale=locale)
+    image_buffer = await generate_social_media_image(disparu, base_url, t=t, locale=locale)
     
     if image_buffer is None:
         flash('Erreur lors de la generation de l\'image', 'error')
