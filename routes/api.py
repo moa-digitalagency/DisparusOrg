@@ -247,14 +247,14 @@ def search_api():
 
 @api_bp.route('/geo/ip')
 @rate_limit()
-def get_ip_location():
+async def get_ip_location():
     # Detect IP
     if request.headers.getlist("X-Forwarded-For"):
         ip_address = request.headers.getlist("X-Forwarded-For")[0]
     else:
         ip_address = request.remote_addr
 
-    country, city = get_geo_info(ip_address)
+    country, city = await get_geo_info(ip_address)
 
     return jsonify({
         'country': country,

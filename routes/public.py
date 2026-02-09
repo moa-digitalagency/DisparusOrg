@@ -231,7 +231,7 @@ def search():
 
 @public_bp.route('/signaler', methods=['GET', 'POST'])
 @rate_limit(max_requests=10, window=3600)
-def report():
+async def report():
     if request.method == 'GET':
         log_public_activity('Page signaler', target_type='report')
     if request.method == 'POST':
@@ -249,7 +249,7 @@ def report():
                         return redirect(url_for('public.report'))
 
                     # Content Moderation
-                    is_safe, reason, log_entry = check_image_content(file)
+                    is_safe, reason, log_entry = await check_image_content(file)
                     if not is_safe:
                         flash(f'Contenu non autorisé : {reason}', 'error')
                         return render_template('report.html',
@@ -353,7 +353,7 @@ def detail(public_id):
 
 @public_bp.route('/disparu/<public_id>/contribute', methods=['POST'])
 @rate_limit(max_requests=20, window=3600)
-def contribute(public_id):
+async def contribute(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
     log_public_activity('Contribution ajoutee', action_type='create', target_type='contribution', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
     
@@ -363,7 +363,7 @@ def contribute(public_id):
             file = request.files['proof']
             if file and file.filename:
                 # Content Moderation
-                is_safe, reason, log_entry = check_image_content(file)
+                is_safe, reason, log_entry = await check_image_content(file)
                 if not is_safe:
                     flash(f'Contenu non autorisé : {reason}', 'error')
                     contributions = Contribution.query.filter_by(disparu_id=disparu.id).order_by(Contribution.created_at.desc()).all()

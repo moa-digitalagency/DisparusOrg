@@ -13,3 +13,5 @@ reportlab
 qrcode
 sqlalchemy
 requests
+aiohttp
+asgiref
