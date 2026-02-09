@@ -47,16 +47,20 @@ def get_translation(key, locale='fr'):
                 return None
         return value
 
+    # Try requested locale
     value = lookup(locale, key)
 
     if value is not None and isinstance(value, str):
         return value
 
-    # Fallback to English if not found in current locale
-    if locale != 'en':
-        value_en = lookup('en', key)
-        if value_en is not None and isinstance(value_en, str):
-            return value_en
+    # Robust Fallback Strategy
+    # If current locale is not 'fr', try falling back to 'fr' (primary language)
+    # If current locale is 'fr', try falling back to 'en' (secondary language)
+    fallback_locale = 'fr' if locale != 'fr' else 'en'
+
+    value_fallback = lookup(fallback_locale, key)
+    if value_fallback is not None and isinstance(value_fallback, str):
+        return value_fallback
 
     # Return key if not found
     return key

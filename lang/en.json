@@ -231,6 +231,7 @@
     "status_deceased": "Deceased",
     "status_found_alive": "Found alive",
     "status_found_deceased": "Found deceased",
+    "found": "Found",
     "animal_missing": "Missing Animal",
     "animal_found": "Found Animal",
     "animal_deceased": "Deceased Animal",
