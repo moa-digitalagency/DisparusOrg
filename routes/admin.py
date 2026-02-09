@@ -1348,9 +1348,21 @@ def restore_data():
         restored_count = 0
         skipped_count = 0
         
-        for d_data in backup.get('disparus', []):
-            existing = Disparu.query.filter_by(public_id=d_data.get('public_id')).first()
-            if existing:
+        # Optimization: Fetch all existing public_ids in a single query
+        backup_disparus = backup.get('disparus', [])
+        backup_public_ids = [d.get('public_id') for d in backup_disparus if d.get('public_id')]
+
+        existing_public_ids = set()
+        if backup_public_ids:
+             # Process in chunks to avoid hitting SQL parameter limits
+             chunk_size = 1000
+             for i in range(0, len(backup_public_ids), chunk_size):
+                 chunk = backup_public_ids[i:i + chunk_size]
+                 existing_query = Disparu.query.filter(Disparu.public_id.in_(chunk)).with_entities(Disparu.public_id).all()
+                 existing_public_ids.update(r[0] for r in existing_query)
+
+        for d_data in backup_disparus:
+            if d_data.get('public_id') in existing_public_ids:
                 skipped_count += 1
                 continue
             
