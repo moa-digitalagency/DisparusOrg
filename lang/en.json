@@ -440,7 +440,9 @@
     "other": "Other",
     "not_available": "Not available",
     "rank": "Rank",
-    "format": "Format"
+    "format": "Format",
+    "date_unknown": "Date unknown",
+    "invalid_date": "Invalid date"
   },
   "pdf": {
     "help_find": "HELP US FIND THIS PERSON!",
