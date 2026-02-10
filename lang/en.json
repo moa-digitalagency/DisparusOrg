@@ -476,7 +476,23 @@
       "missing_since": "Missing since {date} at {time}",
       "contact_title": "CONTACT US IF YOU HAVE INFORMATION",
       "footer_line1": "Any information can help find this person,",
-      "footer_line2": "sharing this image can also help the search"
+      "footer_line2": "sharing this image can also help the search",
+      "header_found": "THANK YOU WITH ALL OUR HEART!",
+      "header_deceased": "THANK YOU FOR YOUR SUPPORT, UNFORTUNATELY...",
+      "header_injured": "THANK YOU FOR YOUR SUPPORT",
+      "safe_male": "SAFE AND SOUND",
+      "safe_female": "SAFE AND SOUND",
+      "deceased_male": "DECEASED",
+      "deceased_female": "DECEASED",
+      "injured_male": "INJURED",
+      "injured_female": "INJURED",
+      "person_found": "PERSON FOUND",
+      "animal_found": "ANIMAL FOUND",
+      "footer_found_line1": "All your information and support helped",
+      "footer_found_line2_person": "find this person, we thank you",
+      "footer_found_line2_animal": "find this animal, we thank you",
+      "declared_found": "REPORTED FOUND",
+      "on_platform": "on the platform disparus.org"
     }
   }
 }
