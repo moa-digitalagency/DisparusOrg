@@ -95,6 +95,10 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
     if not HAS_REPORTLAB:
         return None
 
+    # Ensure locale is valid
+    if not locale or locale not in ['fr', 'en']:
+        locale = 'fr'
+
     # Use global get_translation if available
     if t is None:
         def t(key, **kwargs):
@@ -246,7 +250,11 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         date_val = t('common.not_available')
         heure_val = ""
         d_date = getattr(disparu, 'disappearance_date', None)
-        if d_date:
+
+        # Check if date string is literally "invalid-date" or "invalid"
+        if isinstance(d_date, str) and "invalid" in d_date.lower():
+             date_val = t('common.invalid_date')
+        elif d_date:
             if isinstance(d_date, datetime):
                 date_val = d_date.strftime('%d/%m/%Y')
                 t_str = d_date.strftime('%H:%M')
