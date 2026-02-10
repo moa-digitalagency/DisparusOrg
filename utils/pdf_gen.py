@@ -566,25 +566,22 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['accent_color'] = (4, 120, 87)
             theme['footer_bar'] = (6, 78, 59)
 
-            theme['header_text'] = "MERCI DE TOUT COEUR !"
+            theme['header_text'] = t('pdf.social.header_found')
             theme['header_font_size'] = 36
 
-            noun = "ANIMAL" if is_animal else "PERSONNE"
-            # Personne is always feminine in French grammar for agreement here?
-            # actually "Personne retrouvée saine et sauve"
-            # "Animal retrouvé sain et sauf"
-
             if is_animal:
-                theme['main_title'] = f"{noun} RETROUVÉ"
-                theme['sub_title'] = "SAIN ET SAUF"
+                theme['main_title'] = t('pdf.social.animal_found')
+                theme['sub_title'] = t('pdf.social.safe_male')
+                footer_line2 = t('pdf.social.footer_found_line2_animal')
             else:
-                theme['main_title'] = f"{noun} RETROUVÉE"
-                theme['sub_title'] = "SAINE ET SAUVE"
+                theme['main_title'] = t('pdf.social.person_found')
+                theme['sub_title'] = t('pdf.social.safe_female')
+                footer_line2 = t('pdf.social.footer_found_line2_person')
 
             theme['block_type'] = 'date'
             theme['footer_lines'] = [
-                "Toutes vos informations et mobilisations ont permis",
-                "de retrouver cette personne, nous vous remercions"
+                t('pdf.social.footer_found_line1'),
+                footer_line2
             ]
 
         # Override for Deceased / Found Deceased (Gray)
@@ -595,21 +592,22 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['accent_color'] = (31, 41, 55)
             theme['footer_bar'] = (17, 24, 39)
 
-            theme['header_text'] = "MERCI POUR VOTRE MOBILISATION, MALHEURESEMENT..."
+            theme['header_text'] = t('pdf.social.header_deceased')
             theme['header_font_size'] = 28
 
-            noun = "ANIMAL" if is_animal else "PERSONNE"
             if is_animal:
-                theme['main_title'] = f"{noun} RETROUVÉ"
-                theme['sub_title'] = "DÉCÉDÉ"
+                theme['main_title'] = t('pdf.social.animal_found')
+                theme['sub_title'] = t('pdf.social.deceased_male')
+                footer_line2 = t('pdf.social.footer_found_line2_animal')
             else:
-                theme['main_title'] = f"{noun} RETROUVÉE"
-                theme['sub_title'] = "DÉCÉDÉE"
+                theme['main_title'] = t('pdf.social.person_found')
+                theme['sub_title'] = t('pdf.social.deceased_female')
+                footer_line2 = t('pdf.social.footer_found_line2_person')
 
             theme['block_type'] = 'date'
             theme['footer_lines'] = [
-                "Toutes vos informations et mobilisations ont permis",
-                "de retrouver cette personne, nous vous remercions"
+                t('pdf.social.footer_found_line1'),
+                footer_line2
             ]
 
         # Override for Injured (Orange - if supported or manually set)
@@ -620,21 +618,22 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['accent_color'] = (194, 65, 12)
             theme['footer_bar'] = (124, 45, 18)
 
-            theme['header_text'] = "MERCI POUR VOTRE MOBILISATION"
+            theme['header_text'] = t('pdf.social.header_injured')
             theme['header_font_size'] = 36
 
-            noun = "ANIMAL" if is_animal else "PERSONNE"
             if is_animal:
-                theme['main_title'] = f"{noun} RETROUVÉ"
-                theme['sub_title'] = "BLESSÉ"
+                theme['main_title'] = t('pdf.social.animal_found')
+                theme['sub_title'] = t('pdf.social.injured_male')
+                footer_line2 = t('pdf.social.footer_found_line2_animal')
             else:
-                theme['main_title'] = f"{noun} RETROUVÉE"
-                theme['sub_title'] = "BLESSÉE"
+                theme['main_title'] = t('pdf.social.person_found')
+                theme['sub_title'] = t('pdf.social.injured_female')
+                footer_line2 = t('pdf.social.footer_found_line2_person')
 
             theme['block_type'] = 'date'
             theme['footer_lines'] = [
-                "Toutes vos informations et mobilisations ont permis",
-                "de retrouver cette personne, nous vous remercions"
+                t('pdf.social.footer_found_line1'),
+                footer_line2
             ]
 
         # Common Colors
@@ -869,9 +868,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
                 draw.text(((width - (bbox_cp[2]-bbox_cp[0])) // 2, box_y + 100), c_phone, fill=TEXT_WHITE, font=font_heavy)
 
         else: # 'date'
-            line1 = "DÉCLARÉ RETROUVÉ LE" # Hardcoded as per request (or approximate)
-            # Actually user asked for "Declarer retouver" (sic)
-            line1 = "DÉCLARÉ(E) RETROUVÉ(E)"
+            line1 = t('pdf.social.declared_found')
 
             # Date (Big)
             # Use updated_at or today
@@ -879,7 +876,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             if not found_date: found_date = datetime.now()
             line2 = found_date.strftime("%d/%m/%Y")
 
-            line3 = "sur la plateforme disparus.org"
+            line3 = t('pdf.social.on_platform')
 
             bbox_l1 = draw.textbbox((0, 0), line1, font=font_bold_med)
             draw.text(((width - (bbox_l1[2]-bbox_l1[0])) // 2, box_y + 20), line1, fill=TEXT_WHITE, font=font_bold_med)

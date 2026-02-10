@@ -476,7 +476,23 @@
       "missing_since": "Disparu(e) le {date} à {time}",
       "contact_title": "CONTACTEZ NOUS SI VOUS AVEZ UNE INFORMATION",
       "footer_line1": "Toute information peut permettre de retrouver cette personne,",
-      "footer_line2": "un partage de cette image peut aider à la recherche aussi"
+      "footer_line2": "un partage de cette image peut aider à la recherche aussi",
+      "header_found": "MERCI DE TOUT COEUR !",
+      "header_deceased": "MERCI POUR VOTRE MOBILISATION, MALHEUREUSEMENT...",
+      "header_injured": "MERCI POUR VOTRE MOBILISATION",
+      "safe_male": "SAIN ET SAUF",
+      "safe_female": "SAINE ET SAUVE",
+      "deceased_male": "DÉCÉDÉ",
+      "deceased_female": "DÉCÉDÉE",
+      "injured_male": "BLESSÉ",
+      "injured_female": "BLESSÉE",
+      "person_found": "PERSONNE RETROUVÉE",
+      "animal_found": "ANIMAL RETROUVÉ",
+      "footer_found_line1": "Toutes vos informations et mobilisations ont permis",
+      "footer_found_line2_person": "de retrouver cette personne, nous vous remercions",
+      "footer_found_line2_animal": "de retrouver cet animal, nous vous remercions",
+      "declared_found": "DÉCLARÉ(E) RETROUVÉ(E)",
+      "on_platform": "sur la plateforme disparus.org"
     }
   }
 }
