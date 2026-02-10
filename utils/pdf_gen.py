@@ -535,16 +535,110 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
                         return text
                 return text
 
-        # Dimensions et Couleurs
+        # Dimensions
         width, height = 1080, 1350
 
-        # Palette basée sur l'image de référence
-        RED_HEADER = (153, 27, 27)    # Rouge sombre en haut
-        DARK_BAR = (17, 24, 39)       # Bande bleu/noir 'Personne Disparue'
+        # --- Theme Logic based on Status ---
+        status = getattr(disparu, 'status', 'missing')
+        person_type = getattr(disparu, 'person_type', 'adult')
+        is_animal = (person_type == 'animal')
+
+        # Default Theme (Missing)
+        theme = {
+            'header_color': (153, 27, 27),     # RED_HEADER
+            'bar_color': (17, 24, 39),         # DARK_BAR
+            'block_bg': (127, 29, 29),         # CONTACT_BG (Red)
+            'accent_color': (185, 28, 28),     # RED_ACCENT
+            'footer_bar': (88, 28, 28),        # FOOTER_BAR
+            'header_text': t('pdf.help_find'),
+            'main_title': t('pdf.missing_person'),
+            'sub_title': None,
+            'block_type': 'contact',
+            'header_font_size': 36,
+            'footer_lines': [t('pdf.social.footer_line1'), t('pdf.social.footer_line2')]
+        }
+
+        # Override for Found / Found Alive (Green)
+        if status in ['found', 'found_alive']:
+            theme['header_color'] = (4, 120, 87)    # Emerald 700
+            theme['bar_color'] = (6, 78, 59)        # Emerald 900
+            theme['block_bg'] = (4, 120, 87)        # Emerald 700
+            theme['accent_color'] = (4, 120, 87)
+            theme['footer_bar'] = (6, 78, 59)
+
+            theme['header_text'] = "MERCI DE TOUT COEUR !"
+            theme['header_font_size'] = 36
+
+            noun = "ANIMAL" if is_animal else "PERSONNE"
+            # Personne is always feminine in French grammar for agreement here?
+            # actually "Personne retrouvée saine et sauve"
+            # "Animal retrouvé sain et sauf"
+
+            if is_animal:
+                theme['main_title'] = f"{noun} RETROUVÉ"
+                theme['sub_title'] = "SAIN ET SAUF"
+            else:
+                theme['main_title'] = f"{noun} RETROUVÉE"
+                theme['sub_title'] = "SAINE ET SAUVE"
+
+            theme['block_type'] = 'date'
+            theme['footer_lines'] = [
+                "Toutes vos informations et mobilisations ont permis",
+                "de retrouver cette personne, nous vous remercions"
+            ]
+
+        # Override for Deceased / Found Deceased (Gray)
+        elif status in ['deceased', 'found_deceased']:
+            theme['header_color'] = (31, 41, 55)    # Gray 800
+            theme['bar_color'] = (17, 24, 39)       # Gray 900
+            theme['block_bg'] = (55, 65, 81)        # Gray 700
+            theme['accent_color'] = (31, 41, 55)
+            theme['footer_bar'] = (17, 24, 39)
+
+            theme['header_text'] = "MERCI POUR VOTRE MOBILISATION, MALHEURESEMENT..."
+            theme['header_font_size'] = 28
+
+            noun = "ANIMAL" if is_animal else "PERSONNE"
+            if is_animal:
+                theme['main_title'] = f"{noun} RETROUVÉ"
+                theme['sub_title'] = "DÉCÉDÉ"
+            else:
+                theme['main_title'] = f"{noun} RETROUVÉE"
+                theme['sub_title'] = "DÉCÉDÉE"
+
+            theme['block_type'] = 'date'
+            theme['footer_lines'] = [
+                "Toutes vos informations et mobilisations ont permis",
+                "de retrouver cette personne, nous vous remercions"
+            ]
+
+        # Override for Injured (Orange - if supported or manually set)
+        elif status in ['injured', 'found_injured', 'blesse']:
+            theme['header_color'] = (194, 65, 12)   # Orange 700
+            theme['bar_color'] = (124, 45, 18)      # Orange 900
+            theme['block_bg'] = (194, 65, 12)       # Orange 700
+            theme['accent_color'] = (194, 65, 12)
+            theme['footer_bar'] = (124, 45, 18)
+
+            theme['header_text'] = "MERCI POUR VOTRE MOBILISATION"
+            theme['header_font_size'] = 36
+
+            noun = "ANIMAL" if is_animal else "PERSONNE"
+            if is_animal:
+                theme['main_title'] = f"{noun} RETROUVÉ"
+                theme['sub_title'] = "BLESSÉ"
+            else:
+                theme['main_title'] = f"{noun} RETROUVÉE"
+                theme['sub_title'] = "BLESSÉE"
+
+            theme['block_type'] = 'date'
+            theme['footer_lines'] = [
+                "Toutes vos informations et mobilisations ont permis",
+                "de retrouver cette personne, nous vous remercions"
+            ]
+
+        # Common Colors
         BG_WHITE = (255, 255, 255)
-        RED_ACCENT = (185, 28, 28)    # Rouge vif texte date
-        CONTACT_BG = (127, 29, 29)    # Fond rouge bloc contact
-        FOOTER_BAR = (88, 28, 28)     # Fond barre URL en bas
         TEXT_BLACK = (0, 0, 0)
         TEXT_GRAY = (80, 80, 80)
         TEXT_WHITE = (255, 255, 255)
@@ -558,8 +652,8 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             font_path_bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
             font_path_reg = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
-            font_heavy = ImageFont.truetype(font_path_bold, 48) # Contact Phone
-            font_bold_large = ImageFont.truetype(font_path_bold, 36) # Titres principaux
+            font_heavy = ImageFont.truetype(font_path_bold, 48) # Contact Phone / Big Date
+            font_bold_large = ImageFont.truetype(font_path_bold, theme.get('header_font_size', 36)) # Titres principaux (variable)
             font_bold_med = ImageFont.truetype(font_path_bold, 28) # Footer text
             font_reg = ImageFont.truetype(font_path_reg, 24) # Textes normaux
             font_small = ImageFont.truetype(font_path_reg, 20) # Petits textes
@@ -572,14 +666,13 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             font_small = font_heavy
             font_name = font_heavy
 
-        # --- 1. Header Rouge (Top) ---
-        header_height = 120 # Reduit de 140
-        draw.rectangle([0, 0, width, header_height], fill=RED_HEADER)
+        # --- 1. Header (Top) ---
+        header_height = 120
+        draw.rectangle([0, 0, width, header_height], fill=theme['header_color'])
 
         # Texte Header
-        header_text = t('pdf.help_find')
-        bbox = draw.textbbox((0, 0), header_text, font=font_bold_large)
-        draw.text(((width - (bbox[2]-bbox[0])) // 2, 40), header_text, fill=TEXT_WHITE, font=font_bold_large)
+        bbox = draw.textbbox((0, 0), theme['header_text'], font=font_bold_large)
+        draw.text(((width - (bbox[2]-bbox[0])) // 2, 40), theme['header_text'], fill=TEXT_WHITE, font=font_bold_large)
 
         # Sous-textes header (gauche/droite)
         draw.text((30, 85), t('site.name'), fill=TEXT_WHITE, font=font_small)
@@ -589,16 +682,25 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
 
         # --- 2. Bande Sombre 'Personne Disparue' ---
         bar_y = header_height
-        bar_height = 90 # Reduit de 110
-        draw.rectangle([0, bar_y, width, bar_y + bar_height], fill=DARK_BAR)
+        bar_height = 90
+        draw.rectangle([0, bar_y, width, bar_y + bar_height], fill=theme['bar_color'])
 
-        main_title = t('pdf.missing_person')
-        bbox_mt = draw.textbbox((0, 0), main_title, font=font_bold_large)
-        draw.text(((width - (bbox_mt[2]-bbox_mt[0])) // 2, bar_y + 15), main_title, fill=TEXT_WHITE, font=font_bold_large)
+        main_title = theme['main_title']
+        sub_title = theme['sub_title']
 
-        # sub_title = "MISSING PERSON"
-        # bbox_st = draw.textbbox((0, 0), sub_title, font=font_small)
-        # draw.text(((width - (bbox_st[2]-bbox_st[0])) // 2, bar_y + 60), sub_title, fill=(200, 200, 200), font=font_small)
+        # Determine positions based on if subtitle exists
+        if sub_title:
+             # Two lines
+             bbox_mt = draw.textbbox((0, 0), main_title, font=font_bold_med)
+             draw.text(((width - (bbox_mt[2]-bbox_mt[0])) // 2, bar_y + 15), main_title, fill=TEXT_WHITE, font=font_bold_med)
+
+             bbox_st = draw.textbbox((0, 0), sub_title, font=font_bold_med)
+             draw.text(((width - (bbox_st[2]-bbox_st[0])) // 2, bar_y + 50), sub_title, fill=TEXT_WHITE, font=font_bold_med)
+        else:
+             # One line centered
+             bbox_mt = draw.textbbox((0, 0), main_title, font=font_bold_large)
+             draw.text(((width - (bbox_mt[2]-bbox_mt[0])) // 2, bar_y + 25), main_title, fill=TEXT_WHITE, font=font_bold_large)
+
 
         # --- 3. Photo Centrale (Arrondie) ---
         photo_area_y = bar_y + bar_height + 40 # Marge reduite
@@ -704,7 +806,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             date_str = t('pdf.social.missing_since', date=d, time=h)
 
         bbox_date = draw.textbbox((0, 0), date_str, font=font_bold_large)
-        draw.text(((width - (bbox_date[2]-bbox_date[0])) // 2, text_y_cursor), date_str, fill=RED_ACCENT, font=font_bold_large)
+        draw.text(((width - (bbox_date[2]-bbox_date[0])) // 2, text_y_cursor), date_str, fill=theme['accent_color'], font=font_bold_large)
         text_y_cursor += 50
 
         # --- 5. Description (Ajouté selon demande, entre date et contact) ---
@@ -740,33 +842,56 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
 
             text_y_cursor += 15 # Marge après description
 
-        # --- 6. Bloc Contact ---
-        # Fond rouge sombre
+        # --- 6. Bloc Contact OU Date ---
         box_margin = 120
         box_height = 160
         box_y = text_y_cursor + 10
 
-        draw.rectangle([box_margin, box_y, width - box_margin, box_y + box_height], fill=CONTACT_BG)
+        draw.rectangle([box_margin, box_y, width - box_margin, box_y + box_height], fill=theme['block_bg'])
 
-        # Texte titre box
-        c_title = t('pdf.social.contact_title')
-        bbox_ct = draw.textbbox((0, 0), c_title, font=font_small) # Font plus petite pour etre sur que ca rentre
-        draw.text(((width - (bbox_ct[2]-bbox_ct[0])) // 2, box_y + 20), c_title, fill=TEXT_WHITE, font=font_small)
+        if theme['block_type'] == 'contact':
+            # Texte titre box
+            c_title = t('pdf.social.contact_title')
+            bbox_ct = draw.textbbox((0, 0), c_title, font=font_small)
+            draw.text(((width - (bbox_ct[2]-bbox_ct[0])) // 2, box_y + 20), c_title, fill=TEXT_WHITE, font=font_small)
 
-        # Info Contact
-        contacts = getattr(disparu, 'contacts', [])
-        if contacts:
-            c = contacts[0] # Premier contact
-            c_name = c.get('name', '').upper()
-            c_phone = c.get('phone', '')
+            # Info Contact
+            contacts = getattr(disparu, 'contacts', [])
+            if contacts:
+                c = contacts[0] # Premier contact
+                c_name = c.get('name', '').upper()
+                c_phone = c.get('phone', '')
 
-            bbox_cn = draw.textbbox((0, 0), c_name, font=font_bold_med)
-            draw.text(((width - (bbox_cn[2]-bbox_cn[0])) // 2, box_y + 60), c_name, fill=TEXT_WHITE, font=font_bold_med)
+                bbox_cn = draw.textbbox((0, 0), c_name, font=font_bold_med)
+                draw.text(((width - (bbox_cn[2]-bbox_cn[0])) // 2, box_y + 60), c_name, fill=TEXT_WHITE, font=font_bold_med)
 
-            bbox_cp = draw.textbbox((0, 0), c_phone, font=font_heavy) # Gros pour le tel
-            draw.text(((width - (bbox_cp[2]-bbox_cp[0])) // 2, box_y + 100), c_phone, fill=TEXT_WHITE, font=font_heavy)
+                bbox_cp = draw.textbbox((0, 0), c_phone, font=font_heavy) # Gros pour le tel
+                draw.text(((width - (bbox_cp[2]-bbox_cp[0])) // 2, box_y + 100), c_phone, fill=TEXT_WHITE, font=font_heavy)
 
-        # --- 7. Footer Texte Rouge ---
+        else: # 'date'
+            line1 = "DÉCLARÉ RETROUVÉ LE" # Hardcoded as per request (or approximate)
+            # Actually user asked for "Declarer retouver" (sic)
+            line1 = "DÉCLARÉ(E) RETROUVÉ(E)"
+
+            # Date (Big)
+            # Use updated_at or today
+            found_date = getattr(disparu, 'updated_at', datetime.now())
+            if not found_date: found_date = datetime.now()
+            line2 = found_date.strftime("%d/%m/%Y")
+
+            line3 = "sur la plateforme disparus.org"
+
+            bbox_l1 = draw.textbbox((0, 0), line1, font=font_bold_med)
+            draw.text(((width - (bbox_l1[2]-bbox_l1[0])) // 2, box_y + 20), line1, fill=TEXT_WHITE, font=font_bold_med)
+
+            bbox_l2 = draw.textbbox((0, 0), line2, font=font_heavy)
+            draw.text(((width - (bbox_l2[2]-bbox_l2[0])) // 2, box_y + 60), line2, fill=TEXT_WHITE, font=font_heavy)
+
+            bbox_l3 = draw.textbbox((0, 0), line3, font=font_small)
+            draw.text(((width - (bbox_l3[2]-bbox_l3[0])) // 2, box_y + 120), line3, fill=TEXT_WHITE, font=font_small)
+
+
+        # --- 7. Footer Texte ---
         # Calculer l'espace restant avant le footer du bas
         footer_bar_y = height - 60
         remaining_space = footer_bar_y - (box_y + box_height)
@@ -775,19 +900,19 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
         if remaining_space > 60:
             footer_warn_y = (box_y + box_height) + (remaining_space // 2) - 40
 
-            line1 = t('pdf.social.footer_line1')
-            line2 = t('pdf.social.footer_line2')
+            line1 = theme['footer_lines'][0]
+            line2 = theme['footer_lines'][1]
 
             bbox_f1 = draw.textbbox((0, 0), line1, font=font_reg)
-            draw.text(((width - (bbox_f1[2]-bbox_f1[0])) // 2, footer_warn_y), line1, fill=RED_ACCENT, font=font_reg)
+            draw.text(((width - (bbox_f1[2]-bbox_f1[0])) // 2, footer_warn_y), line1, fill=theme['accent_color'], font=font_reg)
 
             bbox_f2 = draw.textbbox((0, 0), line2, font=font_reg)
-            draw.text(((width - (bbox_f2[2]-bbox_f2[0])) // 2, footer_warn_y + 35), line2, fill=RED_ACCENT, font=font_reg)
+            draw.text(((width - (bbox_f2[2]-bbox_f2[0])) // 2, footer_warn_y + 35), line2, fill=theme['accent_color'], font=font_reg)
 
         # --- 8. Barre URL Bas ---
         url_text = f"{base_url}/disparu/{disparu.public_id}".upper()
 
-        draw.rectangle([0, footer_bar_y, width, height], fill=FOOTER_BAR)
+        draw.rectangle([0, footer_bar_y, width, height], fill=theme['footer_bar'])
         bbox_url = draw.textbbox((0, 0), url_text, font=font_small)
         draw.text(((width - (bbox_url[2]-bbox_url[0])) // 2, footer_bar_y + 15), url_text, fill=TEXT_WHITE, font=font_small)
 
