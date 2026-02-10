@@ -14,3 +14,4 @@ env/
 venv/
 flask.log
 statics/verification/
+test_output/
