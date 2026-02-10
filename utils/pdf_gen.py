@@ -593,7 +593,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['accent_color'] = (31, 41, 55)
             theme['footer_bar'] = (17, 24, 39)
 
-            theme['header_text'] = "MERCI DE VOTRE SOUTIEN"
+            theme['header_text'] = "MERCI POUR VOTRE MOBILISATION, MALHEURESEMENT..."
 
             noun = "ANIMAL" if is_animal else "PERSONNE"
             if is_animal:
@@ -617,7 +617,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['accent_color'] = (194, 65, 12)
             theme['footer_bar'] = (124, 45, 18)
 
-            theme['header_text'] = "MERCI DE VOTRE AIDE"
+            theme['header_text'] = "MERCI POUR VOTRE MOBILISATION"
 
             noun = "ANIMAL" if is_animal else "PERSONNE"
             if is_animal:
