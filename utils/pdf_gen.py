@@ -90,12 +90,13 @@ def draw_rounded_rect(c, x, y, width, height, radius, fill_color=None, stroke_co
 def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None, locale='fr'):
     """
     Génère un PDF A4 reproduisant le design original du site (horizontal).
+    Robustified to handle missing data and errors gracefully.
     """
     if not HAS_REPORTLAB:
         return None
 
+    # Use global get_translation if available
     if t is None:
-        from utils.i18n import get_translation
         def t(key, **kwargs):
             text = get_translation(key, locale)
             if kwargs:
@@ -107,382 +108,376 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
     def bl(key):
         """Bilingual label helper"""
-        fr = get_translation(key, 'fr')
-        en = get_translation(key, 'en')
-        if fr == en: return fr
-        return f"{fr} / {en}"
+        try:
+            fr = get_translation(key, 'fr')
+            en = get_translation(key, 'en')
+            if fr == en: return fr
+            return f"{fr} / {en}"
+        except Exception:
+            return key
 
-    settings = get_site_settings()
-    site_name = settings.get('site_name', 'DISPARUS.ORG')
+    try:
+        settings = get_site_settings()
+        site_name = settings.get('site_name', 'DISPARUS.ORG')
+    except Exception:
+        settings = {}
+        site_name = 'DISPARUS.ORG'
 
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4 # approx 21cm x 29.7cm
+    try:
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4 # approx 21cm x 29.7cm
 
-    # --- 1. En-tête (Logo + Titre Site) ---
-    # Fond blanc pour le haut, pas de gros bloc rouge tout en haut comme l'affiche
+        # --- 1. En-tête (Logo + Titre Site) ---
+        logo_size = 2.5*cm
+        logo_x = 1.5*cm
+        logo_y = height - 4*cm
+        logo_drawn = False
 
-    # Logo
-    logo_size = 2.5*cm
-    logo_x = 1.5*cm
-    logo_y = height - 4*cm
-
-    logo_drawn = False
-
-    # Priorite 1: Favicon configure dans les parametres
-    favicon_setting = settings.get('favicon')
-    if favicon_setting and not logo_drawn:
-        if favicon_setting.startswith('/'):
-            favicon_setting = favicon_setting[1:]
-        if not favicon_setting.startswith('statics/'):
-            favicon_setting = f'statics/{favicon_setting}'
-        if os.path.exists(favicon_setting):
+        favicon_setting = settings.get('favicon')
+        if favicon_setting:
             try:
-                logo = ImageReader(favicon_setting)
-                p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
-                logo_drawn = True
+                if favicon_setting.startswith('/'):
+                    favicon_setting = favicon_setting[1:]
+                if not favicon_setting.startswith('statics/'):
+                    favicon_setting = f'statics/{favicon_setting}'
+                if os.path.exists(favicon_setting):
+                    logo = ImageReader(favicon_setting)
+                    p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
+                    logo_drawn = True
             except Exception:
                 pass
 
-    # Priorite 2: Logo texte "DISPARUS.ORG" (cercle D) - jamais site_logo ni favicon par defaut
-    if not logo_drawn:
-        p.setFillColor(WHITE) 
-        p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0) 
-        p.setFillColor(RED_PRIMARY)
-        p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
-        p.setFillColor(WHITE)
-        p.setFont("Helvetica-Bold", 40)
-        p.drawCentredString(logo_x + logo_size/2, logo_y + logo_size/2 - 10, "D")
+        if not logo_drawn:
+            p.setFillColor(WHITE)
+            p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
+            p.setFillColor(RED_PRIMARY)
+            p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
+            p.setFillColor(WHITE)
+            p.setFont("Helvetica-Bold", 40)
+            p.drawCentredString(logo_x + logo_size/2, logo_y + logo_size/2 - 10, "D")
 
-    # Titre du site à droite du logo - toujours "DISPARUS.ORG"
-    title_x = logo_x + logo_size + 0.5*cm
-    title_y = height - 2.5*cm
-    p.setFillColor(RED_DARK) 
-    p.setFont("Helvetica-Bold", 28)
-    p.drawString(title_x, title_y, "DISPARUS.ORG")
+        title_x = logo_x + logo_size + 0.5*cm
+        title_y = height - 2.5*cm
+        p.setFillColor(RED_DARK)
+        p.setFont("Helvetica-Bold", 28)
+        p.drawString(title_x, title_y, "DISPARUS.ORG")
 
-    # Slogan
-    p.setFont("Helvetica", 10)
-    p.setFillColor(GRAY_MEDIUM)
-    p.drawString(title_x, title_y - 0.6*cm, t('site.description'))
-    p.drawString(title_x, title_y - 1.0*cm, get_translation('site.description', 'en'))
+        p.setFont("Helvetica", 10)
+        p.setFillColor(GRAY_MEDIUM)
+        p.drawString(title_x, title_y - 0.6*cm, t('site.description'))
+        p.drawString(title_x, title_y - 1.0*cm, get_translation('site.description', 'en'))
 
-    # ID à droite
-    p.setFont("Helvetica-Bold", 14)
-    p.setFillColor(BLACK)
-    p.drawRightString(width - 1.5*cm, title_y, f"ID: {disparu.public_id}")
+        p.setFont("Helvetica-Bold", 14)
+        p.setFillColor(BLACK)
+        p.drawRightString(width - 1.5*cm, title_y, f"ID: {disparu.public_id}")
 
-    # --- 2. Titre Principal "PERSONNE DISPARUE" ---
-    # On remonte tout le bloc de 0.5 cm vers le haut (avant height - 6*cm)
-    main_title_y = height - 5.5*cm 
+        # --- 2. Titre Principal ---
+        main_title_y = height - 5.5*cm
 
-    # Fond rouge léger (10% opacité) derrière tout le bloc
-    p.saveState()
-    # Création couleur rouge avec alpha 0.1
-    bg_color = Color(RED_PRIMARY.red, RED_PRIMARY.green, RED_PRIMARY.blue, alpha=0.1)
-    p.setFillColor(bg_color)
-    # Rectangle couvrant le titre, sous-titre et les lignes
-    # Calcul approximatif pour couvrir la zone
-    rect_bottom = main_title_y - 2.2*cm # Juste en dessous de la ligne or
-    rect_height = 3.5*cm # Assez haut pour couvrir le texte PERSONNE DISPARUE
-    p.rect(0, rect_bottom, width, rect_height, fill=1, stroke=0)
-    p.restoreState()
+        p.saveState()
+        bg_color = Color(RED_PRIMARY.red, RED_PRIMARY.green, RED_PRIMARY.blue, alpha=0.1)
+        p.setFillColor(bg_color)
+        rect_bottom = main_title_y - 2.2*cm
+        rect_height = 3.5*cm
+        p.rect(0, rect_bottom, width, rect_height, fill=1, stroke=0)
+        p.restoreState()
 
-    p.setFillColor(RED_DARK) # Rouge sombre pour le titre principal
-    p.setFont("Helvetica-Bold", 36)
-    p.drawCentredString(width/2, main_title_y, t('pdf.missing_person'))
+        p.setFillColor(RED_DARK)
+        p.setFont("Helvetica-Bold", 36)
+        p.drawCentredString(width/2, main_title_y, t('pdf.missing_person'))
 
-    # Sous-titre EN
-    p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica-Bold", 20)
-    p.drawCentredString(width/2, main_title_y - 1*cm, get_translation('pdf.missing_person', 'en').upper())
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica-Bold", 20)
+        p.drawCentredString(width/2, main_title_y - 1*cm, get_translation('pdf.missing_person', 'en').upper())
 
-    # Lignes décoratives
-    p.setStrokeColor(RED_PRIMARY)
-    p.setLineWidth(3)
-    p.line(3*cm, main_title_y - 1.5*cm, width - 3*cm, main_title_y - 1.5*cm) # Ligne rouge épaisse
+        p.setStrokeColor(RED_PRIMARY)
+        p.setLineWidth(3)
+        p.line(3*cm, main_title_y - 1.5*cm, width - 3*cm, main_title_y - 1.5*cm)
 
-    p.setStrokeColor(ACCENT_GOLD)
-    p.setLineWidth(1)
-    p.line(5*cm, main_title_y - 1.7*cm, width - 5*cm, main_title_y - 1.7*cm) # Ligne or fine
+        p.setStrokeColor(ACCENT_GOLD)
+        p.setLineWidth(1)
+        p.line(5*cm, main_title_y - 1.7*cm, width - 5*cm, main_title_y - 1.7*cm)
 
-    # --- 3. Corps (Photo gauche / Infos droite) ---
-    # Remonté de 0.5cm (était 3*cm) pour rapprocher du titre
-    content_y = main_title_y - 2.5*cm 
+        # --- 3. Corps ---
+        content_y = main_title_y - 2.5*cm
+        photo_x = 1.5*cm
+        photo_w = 7*cm
+        photo_h = 8*cm
 
-    # Photo décalée de 0.5cm vers la gauche (était 2*cm)
-    photo_x = 1.5*cm
-    photo_w = 7*cm
-    photo_h = 8*cm
+        photo_loaded = False
+        try:
+            if getattr(disparu, 'photo_url', None):
+                p_url = str(disparu.photo_url)
+                if '/statics/' in p_url:
+                    photo_path = p_url.replace('/statics/', 'statics/')
+                elif p_url.startswith('statics/'):
+                    photo_path = p_url
+                else:
+                    photo_path = p_url.lstrip('/')
 
-    # PAS de cadre rouge autour de la photo (modifié sur demande)
+                if os.path.exists(photo_path):
+                    photo = ImageReader(photo_path)
+                    p.drawImage(photo, photo_x, content_y - photo_h, width=photo_w, height=photo_h, preserveAspectRatio=True, mask='auto')
+                    photo_loaded = True
+        except Exception:
+            pass
 
-    # Photo
-    photo_loaded = False
-    if disparu.photo_url:
-        photo_path = disparu.photo_url.replace('/statics/', 'statics/')
-        if os.path.exists(photo_path):
-            try:
-                photo = ImageReader(photo_path)
-                # On dessine l'image
-                p.drawImage(photo, photo_x, content_y - photo_h, width=photo_w, height=photo_h, preserveAspectRatio=True, mask='auto')
-                photo_loaded = True
-            except Exception:
-                pass
+        if not photo_loaded:
+             draw_rounded_rect(p, photo_x, content_y - photo_h, photo_w, photo_h, 3*mm, fill_color=GRAY_LIGHT)
+             p.setFillColor(GRAY_MEDIUM)
+             p.setFont("Helvetica", 10)
+             p.drawCentredString(photo_x + photo_w/2, content_y - photo_h/2, t('pdf.photo_unavailable'))
 
-    if not photo_loaded:
-         # Placeholder si pas d'image
-         draw_rounded_rect(p, photo_x, content_y - photo_h, photo_w, photo_h, 3*mm, fill_color=GRAY_LIGHT)
-         p.setFillColor(GRAY_MEDIUM)
-         p.setFont("Helvetica", 10)
-         p.drawCentredString(photo_x + photo_w/2, content_y - photo_h/2, t('pdf.photo_unavailable'))
+        info_x = photo_x + photo_w + 0.5*cm
+        info_y_cursor = content_y - 1.3*cm
 
-    # Infos à droite - TAILLE POLICE AUGMENTÉE
-    # Infos décalées de 1cm vers la gauche par rapport à l'original (2+7+1 = 10cm).
-    # Nouveau calcul : photo_x (1.5) + photo_w (7) + marge (0.5) = 9cm.
-    info_x = photo_x + photo_w + 0.5*cm
+        # Safe name
+        first_name = str(getattr(disparu, 'first_name', '') or '')
+        last_name = str(getattr(disparu, 'last_name', '') or '')
+        name = f"{first_name} {last_name}".strip() or "Inconnu"
 
-    # On descend le nom de 0.5 cm supplémentaires vers le bas (était 0.8cm, devient 1.3cm)
-    info_y_cursor = content_y - 1.3*cm 
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica-Bold", 20)
+        p.drawString(info_x, info_y_cursor, name)
+        info_y_cursor -= 1.3*cm
 
-    # Nom
-    p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica-Bold", 20) # Réduit pour éviter dépassement
-    name = f"{disparu.first_name} {disparu.last_name}"
-    p.drawString(info_x, info_y_cursor, name)
-    info_y_cursor -= 1.3*cm # Espacement réduit de 1.8 à 1.3 pour faire monter les détails de 0.5cm
-
-    # Date et Heure formatée (Séparées)
-    date_val = t('common.not_available')
-    heure_val = ""
-    if disparu.disappearance_date:
-        if isinstance(disparu.disappearance_date, datetime):
-            date_val = disparu.disappearance_date.strftime('%d/%m/%Y')
-            t_str = disparu.disappearance_date.strftime('%H:%M')
-            if t_str and t_str != "00:00":
-                 heure_val = t_str
-        elif isinstance(disparu.disappearance_date, str):
-            try:
-                # Try parsing ISO format if string
-                dt = datetime.fromisoformat(disparu.disappearance_date.replace('Z', '+00:00'))
-                date_val = dt.strftime('%d/%m/%Y')
-                t_str = dt.strftime('%H:%M')
+        # Safe date
+        date_val = t('common.not_available')
+        heure_val = ""
+        d_date = getattr(disparu, 'disappearance_date', None)
+        if d_date:
+            if isinstance(d_date, datetime):
+                date_val = d_date.strftime('%d/%m/%Y')
+                t_str = d_date.strftime('%H:%M')
                 if t_str and t_str != "00:00":
                      heure_val = t_str
-            except ValueError:
-                date_val = str(disparu.disappearance_date)
+            elif isinstance(d_date, str):
+                try:
+                    dt = datetime.fromisoformat(d_date.replace('Z', '+00:00'))
+                    date_val = dt.strftime('%d/%m/%Y')
+                    t_str = dt.strftime('%H:%M')
+                    if t_str and t_str != "00:00":
+                         heure_val = t_str
+                except ValueError:
+                    date_val = str(d_date)
 
-    # Logic for Animal vs Person details
-    is_animal = (disparu.person_type == 'animal')
+        # Logic for Animal vs Person details
+        is_animal = (getattr(disparu, 'person_type', 'adult') == 'animal')
 
-    # Bilingual sex value
-    sex_fr = t('pdf.gender.female')
-    sex_en = get_translation('pdf.gender.female', 'en')
+        sex_fr = t('pdf.gender.female')
+        sex_en = get_translation('pdf.gender.female', 'en')
 
-    is_male = False
-    if disparu.sex:
-        s = str(disparu.sex).lower()
-        if s in ['m', 'male', 'homme', '1', 'true']:
-            is_male = True
+        is_male = False
+        sex_val = getattr(disparu, 'sex', None)
+        if sex_val:
+            s = str(sex_val).lower()
+            if s in ['m', 'male', 'homme', '1', 'true']:
+                is_male = True
 
-    if is_male:
-        sex_fr = t('pdf.gender.male')
-        sex_en = get_translation('pdf.gender.male', 'en')
-
-    if is_animal:
         if is_male:
-            sex_fr = t('pdf.gender.male_animal')
-            sex_en = get_translation('pdf.gender.male_animal', 'en')
-        else:
-            sex_fr = t('pdf.gender.female_animal')
-            sex_en = get_translation('pdf.gender.female_animal', 'en')
+            sex_fr = t('pdf.gender.male')
+            sex_en = get_translation('pdf.gender.male', 'en')
 
-    sex_label = f"{sex_fr} / {sex_en}"
-
-    details = []
-
-    # Hide age if -1 (unknown/irrelevant)
-    if disparu.age != -1:
-        details.append((bl('pdf.label.age') + ":", f"{disparu.age} {t('detail.age_years')}"))
-
-    details.append((bl('pdf.label.sex') + ":", sex_label))
-    details.append((bl('pdf.label.location') + ":", f"{disparu.city}, {disparu.country}"))
-    details.append((bl('pdf.label.date') + ":", date_val))
-
-    # Affichage des détails standard
-    for label, value in details:
-        p.setFillColor(RED_DARK)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(info_x, info_y_cursor, label)
-
-        p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica", 14)
-        label_w = p.stringWidth(label, "Helvetica-Bold", 14)
-        p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, value)
-        info_y_cursor -= 1.0*cm 
-
-    # Ajout Heure sur la ligne suivante si elle existe
-    if heure_val:
-        time_label = bl('pdf.label.time') + ":"
-        p.setFillColor(RED_DARK)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(info_x, info_y_cursor, time_label)
-
-        p.setFillColor(GRAY_DARK)
-        p.setFont("Helvetica", 14)
-        label_w = p.stringWidth(time_label, "Helvetica-Bold", 14)
-        p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, heure_val)
-        info_y_cursor -= 1.0*cm
-
-    # Ajout ID sur la ligne suivante encore
-    p.setFillColor(RED_DARK)
-    p.setFont("Helvetica-Bold", 14)
-    label_id = bl('pdf.label.id') + ":"
-    p.drawString(info_x, info_y_cursor, label_id)
-
-    p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica", 14)
-    label_w = p.stringWidth(label_id, "Helvetica-Bold", 14)
-    p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(disparu.public_id))
-    # info_y_cursor -= 1.0*cm # Pas nécessaire pour le dernier élément
-
-    # --- 4. Description & Circonstances ---
-    # REMONTÉ de 0.5cm (était -1.5*cm, maintenant -1.0*cm)
-    section_y = content_y - photo_h - 1.0*cm
-
-    def draw_section_block(title, content, y_pos):
-        # Petit rectangle rouge puce
-        p.setFillColor(RED_PRIMARY)
-        p.rect(2*cm, y_pos, 0.4*cm, 0.4*cm, fill=1, stroke=0)
-
-        # Titre - COULEUR CHANGÉE en RED_DARK
-        p.setFillColor(RED_DARK)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(2.6*cm, y_pos, title)
-
-        # Ligne grise séparation
-        p.setStrokeColor(GRAY_LIGHT)
-        p.setLineWidth(1)
-        p.line(2*cm, y_pos - 0.2*cm, width - 2*cm, y_pos - 0.2*cm)
-
-        # Contenu
-        text_y = y_pos - 0.8*cm
-        p.setFillColor(BLACK)
-        p.setFont("Helvetica", 11)
-
-        max_width = width - 4*cm
-        words = content.split()
-        line = ""
-        for word in words:
-            if p.stringWidth(line + " " + word, "Helvetica", 11) < max_width:
-                line += " " + word if line else word
+        if is_animal:
+            if is_male:
+                sex_fr = t('pdf.gender.male_animal')
+                sex_en = get_translation('pdf.gender.male_animal', 'en')
             else:
-                p.drawString(2*cm, text_y, line)
-                text_y -= 0.5*cm
-                line = word
-        if line:
-            p.drawString(2*cm, text_y, line)
-            text_y -= 0.5*cm
+                sex_fr = t('pdf.gender.female_animal')
+                sex_en = get_translation('pdf.gender.female_animal', 'en')
 
-        return text_y - 0.5*cm
+        sex_label = f"{sex_fr} / {sex_en}"
 
-    desc = str(disparu.physical_description) if disparu.physical_description else t('common.not_available')
-    section_y = draw_section_block(bl('pdf.label.description'), desc, section_y)
+        details = []
 
-    clothing = str(disparu.clothing) if disparu.clothing else t('common.not_available')
-    clothing_label = bl('pdf.label.clothing_animal') if is_animal else bl('pdf.label.clothing')
-    section_y = draw_section_block(clothing_label, clothing, section_y)
+        age = getattr(disparu, 'age', -1)
+        if age is not None and str(age) != '-1':
+            details.append((bl('pdf.label.age') + ":", f"{age} {t('detail.age_years')}"))
 
-    if not is_animal:
-        circ = str(disparu.circumstances) if disparu.circumstances else t('common.not_available')
-        section_y = draw_section_block(bl('pdf.label.circumstances'), circ, section_y)
+        details.append((bl('pdf.label.sex') + ":", sex_label))
 
-    # --- 5. Contacts (Bloc dédié) ---
-    if section_y < 8*cm: # Si on est trop bas
-        pass
+        city = str(getattr(disparu, 'city', '') or '')
+        country = str(getattr(disparu, 'country', '') or '')
+        loc_str = f"{city}, {country}".strip(', ')
+        details.append((bl('pdf.label.location') + ":", loc_str))
 
-    # Titre "CONTACTS"
-    p.setFillColor(RED_PRIMARY)
-    p.rect(2*cm, section_y, 0.4*cm, 0.4*cm, fill=1, stroke=0)
-    p.setFillColor(GRAY_DARK)
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(2.6*cm, section_y, bl('pdf.label.contacts'))
-    p.setStrokeColor(GRAY_LIGHT)
-    p.line(2*cm, section_y - 0.2*cm, width - 6*cm, section_y - 0.2*cm) # Ligne plus courte
+        details.append((bl('pdf.label.date') + ":", date_val))
 
-    contact_y = section_y - 1.2*cm # Espacement un peu plus grand avant le premier contact
-    contacts = getattr(disparu, 'contacts', []) or []
+        for label, value in details:
+            p.setFillColor(RED_DARK)
+            p.setFont("Helvetica-Bold", 14)
+            p.drawString(info_x, info_y_cursor, str(label))
 
-    for contact in contacts[:3]:
-        name = contact.get('name', '') if isinstance(contact, dict) else getattr(contact, 'name', '')
-        phone = contact.get('phone', '') if isinstance(contact, dict) else getattr(contact, 'phone', '')
+            p.setFillColor(GRAY_DARK)
+            p.setFont("Helvetica", 14)
+            label_w = p.stringWidth(str(label), "Helvetica-Bold", 14)
+            p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(value))
+            info_y_cursor -= 1.0*cm
 
-        if name or phone:
-            p.setFillColor(BLACK)
-            p.setFont("Helvetica-Bold", 18) # Revert to 18
-            p.drawString(2*cm, contact_y, f"{name}: {phone}")
-            contact_y -= 1.0*cm # Espacement vertical augmenté
+        if heure_val:
+            time_label = bl('pdf.label.time') + ":"
+            p.setFillColor(RED_DARK)
+            p.setFont("Helvetica-Bold", 14)
+            p.drawString(info_x, info_y_cursor, str(time_label))
 
-    # --- 6. Footer (QR Code + Bandes couleur) ---
+            p.setFillColor(GRAY_DARK)
+            p.setFont("Helvetica", 14)
+            label_w = p.stringWidth(str(time_label), "Helvetica-Bold", 14)
+            p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(heure_val))
+            info_y_cursor -= 1.0*cm
 
-    # QR Code (en bas à droite, au dessus des bandes)
-    qr_size = 3.5*cm
-    qr_x = width - 5*cm
-    qr_y = 3.5*cm 
+        p.setFillColor(RED_DARK)
+        p.setFont("Helvetica-Bold", 14)
+        label_id = bl('pdf.label.id') + ":"
+        p.drawString(info_x, info_y_cursor, str(label_id))
 
-    # PAS de cadre autour du QR Code (modifié sur demande)
-    # draw_rounded_rect(p, qr_x - 0.2*cm, qr_y - 0.2*cm, qr_size + 0.4*cm, qr_size + 0.6*cm, 0.2*cm, stroke_color=RED_PRIMARY, stroke_width=1)
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica", 14)
+        label_w = p.stringWidth(str(label_id), "Helvetica-Bold", 14)
+        p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(disparu.public_id))
 
-    url_text = f"{base_url}/disparu/{disparu.public_id}"
-    try:
-        qr = qrcode.QRCode(version=1, box_size=10, border=1)
-        qr.add_data(url_text)
-        qr.make(fit=True)
-        qr_img = qr.make_image(fill_color="#7F1D1D", back_color="white")
-        qr_buffer = io.BytesIO()
-        qr_img.save(qr_buffer, format='PNG')
-        qr_buffer.seek(0)
-        qr_reader = ImageReader(qr_buffer)
-        p.drawImage(qr_reader, qr_x, qr_y + 0.2*cm, width=qr_size, height=qr_size)
-    except:
-        pass
+        # --- 4. Description & Circonstances ---
+        section_y = content_y - photo_h - 1.0*cm
 
-    p.setFillColor(RED_DARK)
-    p.setFont("Helvetica-Bold", 6)
-    # Bilingual QR text (2 lines)
-    p.drawCentredString(qr_x + qr_size/2, qr_y, "Scannez pour voir & contribuer")
-    p.drawCentredString(qr_x + qr_size/2, qr_y - 0.25*cm, "Scan to view & contribute")
+        def draw_section_block(title, content, y_pos):
+            try:
+                p.setFillColor(RED_PRIMARY)
+                p.rect(2*cm, y_pos, 0.4*cm, 0.4*cm, fill=1, stroke=0)
 
-    # Bandes de bas de page
-    # Bande Or fine
-    p.setFillColor(ACCENT_GOLD)
-    p.rect(0, 2*cm, width, 0.2*cm, fill=1, stroke=0)
+                p.setFillColor(RED_DARK)
+                p.setFont("Helvetica-Bold", 14)
+                p.drawString(2.6*cm, y_pos, str(title))
 
-    # Bande Rouge épaisse en bas
-    p.setFillColor(RED_PRIMARY)
-    p.rect(0, 0, width, 2*cm, fill=1, stroke=0)
+                p.setStrokeColor(GRAY_LIGHT)
+                p.setLineWidth(1)
+                p.line(2*cm, y_pos - 0.2*cm, width - 2*cm, y_pos - 0.2*cm)
 
-    # Bande Rouge Foncé très fine tout en bas (optionnel, pour le style)
-    p.setFillColor(RED_DARK)
-    p.rect(0, 0, width, 0.3*cm, fill=1, stroke=0)
+                text_y = y_pos - 0.8*cm
+                p.setFillColor(BLACK)
+                p.setFont("Helvetica", 11)
 
-    # Texte dans la bande rouge
-    p.setFillColor(WHITE)
-    p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(width/2, 1.2*cm, base_url)
+                max_width = width - 4*cm
+                words = str(content).split()
+                line = ""
+                for word in words:
+                    if p.stringWidth(line + " " + word, "Helvetica", 11) < max_width:
+                        line += " " + word if line else word
+                    else:
+                        p.drawString(2*cm, text_y, line)
+                        text_y -= 0.5*cm
+                        line = word
+                if line:
+                    p.drawString(2*cm, text_y, line)
+                    text_y -= 0.5*cm
 
-    p.setFont("Helvetica", 10)
-    p.drawCentredString(width/2, 0.6*cm, "Toute information peut être utile / Any information can be useful")
+                return text_y - 0.5*cm
+            except Exception:
+                return y_pos - 1.0*cm
 
-    # Timestamp discret au dessus du footer
-    p.setFillColor(GRAY_MEDIUM)
-    p.setFont("Helvetica", 8)
-    p.drawString(2*cm, 2.5*cm, f"{t('pdf.footer.generated_on')} {datetime.now().strftime('%d/%m/%Y')} {t('pdf.label.time')} {datetime.now().strftime('%H:%M')}")
+        desc = str(getattr(disparu, 'physical_description', '') or t('common.not_available'))
+        section_y = draw_section_block(bl('pdf.label.description'), desc, section_y)
 
-    p.showPage()
-    p.save()
-    buffer.seek(0)
-    return buffer
+        clothing = str(getattr(disparu, 'clothing', '') or t('common.not_available'))
+        clothing_label = bl('pdf.label.clothing_animal') if is_animal else bl('pdf.label.clothing')
+        section_y = draw_section_block(clothing_label, clothing, section_y)
+
+        if not is_animal:
+            circ = str(getattr(disparu, 'circumstances', '') or t('common.not_available'))
+            section_y = draw_section_block(bl('pdf.label.circumstances'), circ, section_y)
+
+        # --- 5. Contacts (Bloc dédié) ---
+        if section_y < 8*cm:
+            pass
+
+        p.setFillColor(RED_PRIMARY)
+        p.rect(2*cm, section_y, 0.4*cm, 0.4*cm, fill=1, stroke=0)
+        p.setFillColor(GRAY_DARK)
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(2.6*cm, section_y, bl('pdf.label.contacts'))
+        p.setStrokeColor(GRAY_LIGHT)
+        p.line(2*cm, section_y - 0.2*cm, width - 6*cm, section_y - 0.2*cm)
+
+        contact_y = section_y - 1.2*cm
+        contacts = getattr(disparu, 'contacts', []) or []
+        # Handle dict case (invalid json)
+        if isinstance(contacts, dict):
+            contacts = [contacts]
+        elif not isinstance(contacts, list):
+            contacts = []
+
+        for contact in contacts[:3]:
+            try:
+                name = ""
+                phone = ""
+                if isinstance(contact, dict):
+                    name = contact.get('name', '')
+                    phone = contact.get('phone', '')
+                else:
+                    name = getattr(contact, 'name', '')
+                    phone = getattr(contact, 'phone', '')
+
+                if name or phone:
+                    p.setFillColor(BLACK)
+                    p.setFont("Helvetica-Bold", 18)
+                    p.drawString(2*cm, contact_y, f"{name}: {phone}")
+                    contact_y -= 1.0*cm
+            except Exception:
+                pass
+
+        # --- 6. Footer (QR Code + Bandes couleur) ---
+        qr_size = 3.5*cm
+        qr_x = width - 5*cm
+        qr_y = 3.5*cm
+
+        url_text = f"{base_url}/disparu/{disparu.public_id}"
+        try:
+            qr = qrcode.QRCode(version=1, box_size=10, border=1)
+            qr.add_data(url_text)
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="#7F1D1D", back_color="white")
+            qr_buffer = io.BytesIO()
+            qr_img.save(qr_buffer, format='PNG')
+            qr_buffer.seek(0)
+            qr_reader = ImageReader(qr_buffer)
+            p.drawImage(qr_reader, qr_x, qr_y + 0.2*cm, width=qr_size, height=qr_size)
+        except:
+            pass
+
+        p.setFillColor(RED_DARK)
+        p.setFont("Helvetica-Bold", 6)
+        p.drawCentredString(qr_x + qr_size/2, qr_y, "Scannez pour voir & contribuer")
+        p.drawCentredString(qr_x + qr_size/2, qr_y - 0.25*cm, "Scan to view & contribute")
+
+        p.setFillColor(ACCENT_GOLD)
+        p.rect(0, 2*cm, width, 0.2*cm, fill=1, stroke=0)
+
+        p.setFillColor(RED_PRIMARY)
+        p.rect(0, 0, width, 2*cm, fill=1, stroke=0)
+
+        p.setFillColor(RED_DARK)
+        p.rect(0, 0, width, 0.3*cm, fill=1, stroke=0)
+
+        p.setFillColor(WHITE)
+        p.setFont("Helvetica-Bold", 14)
+        p.drawCentredString(width/2, 1.2*cm, str(base_url))
+
+        p.setFont("Helvetica", 10)
+        p.drawCentredString(width/2, 0.6*cm, "Toute information peut être utile / Any information can be useful")
+
+        p.setFillColor(GRAY_MEDIUM)
+        p.setFont("Helvetica", 8)
+        p.drawString(2*cm, 2.5*cm, f"{t('pdf.footer.generated_on')} {datetime.now().strftime('%d/%m/%Y')} {t('pdf.label.time')} {datetime.now().strftime('%H:%M')}")
+
+        p.showPage()
+        p.save()
+        buffer.seek(0)
+        return buffer
+
+    except Exception as e:
+        import logging
+        logging.error(f"Critical error generating PDF: {e}")
+        return None # Graceful failure
 
 
 def generate_qr_code(url, size=10):
