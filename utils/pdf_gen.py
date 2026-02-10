@@ -554,6 +554,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             'main_title': t('pdf.missing_person'),
             'sub_title': None,
             'block_type': 'contact',
+            'header_font_size': 36,
             'footer_lines': [t('pdf.social.footer_line1'), t('pdf.social.footer_line2')]
         }
 
@@ -566,6 +567,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['footer_bar'] = (6, 78, 59)
 
             theme['header_text'] = "MERCI DE TOUT COEUR !"
+            theme['header_font_size'] = 36
 
             noun = "ANIMAL" if is_animal else "PERSONNE"
             # Personne is always feminine in French grammar for agreement here?
@@ -594,6 +596,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['footer_bar'] = (17, 24, 39)
 
             theme['header_text'] = "MERCI POUR VOTRE MOBILISATION, MALHEURESEMENT..."
+            theme['header_font_size'] = 28
 
             noun = "ANIMAL" if is_animal else "PERSONNE"
             if is_animal:
@@ -618,6 +621,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             theme['footer_bar'] = (124, 45, 18)
 
             theme['header_text'] = "MERCI POUR VOTRE MOBILISATION"
+            theme['header_font_size'] = 36
 
             noun = "ANIMAL" if is_animal else "PERSONNE"
             if is_animal:
@@ -649,7 +653,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             font_path_reg = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
             font_heavy = ImageFont.truetype(font_path_bold, 48) # Contact Phone / Big Date
-            font_bold_large = ImageFont.truetype(font_path_bold, 36) # Titres principaux
+            font_bold_large = ImageFont.truetype(font_path_bold, theme.get('header_font_size', 36)) # Titres principaux (variable)
             font_bold_med = ImageFont.truetype(font_path_bold, 28) # Footer text
             font_reg = ImageFont.truetype(font_path_reg, 24) # Textes normaux
             font_small = ImageFont.truetype(font_path_reg, 20) # Petits textes
