@@ -167,8 +167,8 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         }
 
         if is_animal and status == 'missing':
-             theme['main_title_fr'] = t('detail.animal_missing').upper()
-             theme['main_title_en'] = get_translation('detail.animal_missing', 'en').upper()
+            theme['main_title_fr'] = t('detail.animal_missing').upper()
+            theme['main_title_en'] = get_translation('detail.animal_missing', 'en').upper()
 
         # Override for Found / Found Alive (Green)
         if status in ['found', 'found_alive']:
@@ -196,13 +196,13 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
         # Override for Injured (Orange)
         elif status in ['injured', 'found_injured', 'blesse']:
-             theme['primary_color'] = HexColor('#C2410C')
-             theme['dark_color'] = HexColor('#7C2D12')
+            theme['primary_color'] = HexColor('#C2410C')
+            theme['dark_color'] = HexColor('#7C2D12')
 
-             if is_animal:
+            if is_animal:
                 theme['main_title_fr'] = t('pdf.social.animal_found')
                 theme['main_title_en'] = get_translation('pdf.social.animal_found', 'en')
-             else:
+            else:
                 theme['main_title_fr'] = t('pdf.social.person_found')
                 theme['main_title_en'] = get_translation('pdf.social.person_found', 'en')
 
