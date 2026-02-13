@@ -152,10 +152,67 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
             except Exception:
                 pass
 
+        # Define colors early for logo
+        # --- Theme Logic based on Status ---
+        status = getattr(disparu, 'status', 'missing')
+        person_type = getattr(disparu, 'person_type', 'adult')
+        is_animal = (person_type == 'animal')
+
+        # Default Theme (Missing)
+        theme = {
+            'primary_color': RED_PRIMARY,
+            'dark_color': RED_DARK,
+            'main_title_fr': t('pdf.missing_person'),
+            'main_title_en': get_translation('pdf.missing_person', 'en').upper(),
+        }
+
+        if is_animal and status == 'missing':
+             theme['main_title_fr'] = t('detail.animal_missing').upper()
+             theme['main_title_en'] = get_translation('detail.animal_missing', 'en').upper()
+
+        # Override for Found / Found Alive (Green)
+        if status in ['found', 'found_alive']:
+            theme['primary_color'] = HexColor('#047857')
+            theme['dark_color'] = HexColor('#064E3B')
+
+            if is_animal:
+                theme['main_title_fr'] = t('pdf.social.animal_found')
+                theme['main_title_en'] = get_translation('pdf.social.animal_found', 'en')
+            else:
+                theme['main_title_fr'] = t('pdf.social.person_found')
+                theme['main_title_en'] = get_translation('pdf.social.person_found', 'en')
+
+        # Override for Deceased / Found Deceased (Gray)
+        elif status in ['deceased', 'found_deceased']:
+            theme['primary_color'] = HexColor('#374151')
+            theme['dark_color'] = HexColor('#111827')
+
+            if is_animal:
+                theme['main_title_fr'] = t('pdf.social.animal_found')
+                theme['main_title_en'] = get_translation('pdf.social.animal_found', 'en')
+            else:
+                theme['main_title_fr'] = t('pdf.social.person_found')
+                theme['main_title_en'] = get_translation('pdf.social.person_found', 'en')
+
+        # Override for Injured (Orange)
+        elif status in ['injured', 'found_injured', 'blesse']:
+             theme['primary_color'] = HexColor('#C2410C')
+             theme['dark_color'] = HexColor('#7C2D12')
+
+             if is_animal:
+                theme['main_title_fr'] = t('pdf.social.animal_found')
+                theme['main_title_en'] = get_translation('pdf.social.animal_found', 'en')
+             else:
+                theme['main_title_fr'] = t('pdf.social.person_found')
+                theme['main_title_en'] = get_translation('pdf.social.person_found', 'en')
+
+        primary_color = theme['primary_color']
+        dark_color = theme['dark_color']
+
         if not logo_drawn:
             p.setFillColor(WHITE)
             p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
-            p.setFillColor(RED_PRIMARY)
+            p.setFillColor(primary_color)
             p.circle(logo_x + logo_size/2, logo_y + logo_size/2, logo_size/2, fill=1, stroke=0)
             p.setFillColor(WHITE)
             p.setFont("Helvetica-Bold", 40)
@@ -163,7 +220,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
         title_x = logo_x + logo_size + 0.5*cm
         title_y = height - 2.5*cm
-        p.setFillColor(RED_DARK)
+        p.setFillColor(dark_color)
         p.setFont("Helvetica-Bold", 28)
         p.drawString(title_x, title_y, "DISPARUS.ORG")
 
@@ -180,22 +237,22 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         main_title_y = height - 5.5*cm
 
         p.saveState()
-        bg_color = Color(RED_PRIMARY.red, RED_PRIMARY.green, RED_PRIMARY.blue, alpha=0.1)
+        bg_color = Color(primary_color.red, primary_color.green, primary_color.blue, alpha=0.1)
         p.setFillColor(bg_color)
         rect_bottom = main_title_y - 2.2*cm
         rect_height = 3.5*cm
         p.rect(0, rect_bottom, width, rect_height, fill=1, stroke=0)
         p.restoreState()
 
-        p.setFillColor(RED_DARK)
+        p.setFillColor(dark_color)
         p.setFont("Helvetica-Bold", 36)
-        p.drawCentredString(width/2, main_title_y, t('pdf.missing_person'))
+        p.drawCentredString(width/2, main_title_y, theme['main_title_fr'])
 
         p.setFillColor(GRAY_DARK)
         p.setFont("Helvetica-Bold", 20)
-        p.drawCentredString(width/2, main_title_y - 1*cm, get_translation('pdf.missing_person', 'en').upper())
+        p.drawCentredString(width/2, main_title_y - 1*cm, theme['main_title_en'])
 
-        p.setStrokeColor(RED_PRIMARY)
+        p.setStrokeColor(primary_color)
         p.setLineWidth(3)
         p.line(3*cm, main_title_y - 1.5*cm, width - 3*cm, main_title_y - 1.5*cm)
 
@@ -313,7 +370,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         details.append((bl('pdf.label.date') + ":", date_val))
 
         for label, value in details:
-            p.setFillColor(RED_DARK)
+            p.setFillColor(dark_color)
             p.setFont("Helvetica-Bold", 14)
             p.drawString(info_x, info_y_cursor, str(label))
 
@@ -325,7 +382,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
         if heure_val:
             time_label = bl('pdf.label.time') + ":"
-            p.setFillColor(RED_DARK)
+            p.setFillColor(dark_color)
             p.setFont("Helvetica-Bold", 14)
             p.drawString(info_x, info_y_cursor, str(time_label))
 
@@ -335,7 +392,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
             p.drawString(info_x + label_w + 0.3*cm, info_y_cursor, str(heure_val))
             info_y_cursor -= 1.0*cm
 
-        p.setFillColor(RED_DARK)
+        p.setFillColor(dark_color)
         p.setFont("Helvetica-Bold", 14)
         label_id = bl('pdf.label.id') + ":"
         p.drawString(info_x, info_y_cursor, str(label_id))
@@ -350,10 +407,10 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
 
         def draw_section_block(title, content, y_pos):
             try:
-                p.setFillColor(RED_PRIMARY)
+                p.setFillColor(primary_color)
                 p.rect(2*cm, y_pos, 0.4*cm, 0.4*cm, fill=1, stroke=0)
 
-                p.setFillColor(RED_DARK)
+                p.setFillColor(dark_color)
                 p.setFont("Helvetica-Bold", 14)
                 p.drawString(2.6*cm, y_pos, str(title))
 
@@ -398,7 +455,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         if section_y < 8*cm:
             pass
 
-        p.setFillColor(RED_PRIMARY)
+        p.setFillColor(primary_color)
         p.rect(2*cm, section_y, 0.4*cm, 0.4*cm, fill=1, stroke=0)
         p.setFillColor(GRAY_DARK)
         p.setFont("Helvetica-Bold", 14)
@@ -452,7 +509,7 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         except:
             pass
 
-        p.setFillColor(RED_DARK)
+        p.setFillColor(dark_color)
         p.setFont("Helvetica-Bold", 6)
         p.drawCentredString(qr_x + qr_size/2, qr_y, "Scannez pour voir & contribuer")
         p.drawCentredString(qr_x + qr_size/2, qr_y - 0.25*cm, "Scan to view & contribute")
@@ -460,10 +517,10 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         p.setFillColor(ACCENT_GOLD)
         p.rect(0, 2*cm, width, 0.2*cm, fill=1, stroke=0)
 
-        p.setFillColor(RED_PRIMARY)
+        p.setFillColor(primary_color)
         p.rect(0, 0, width, 2*cm, fill=1, stroke=0)
 
-        p.setFillColor(RED_DARK)
+        p.setFillColor(dark_color)
         p.rect(0, 0, width, 0.3*cm, fill=1, stroke=0)
 
         p.setFillColor(WHITE)
