@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}451 - Censuré | {{ site_settings.get('site_name', 'DISPARUS.ORG') }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center bg-gray-900 text-gray-100 px-4 py-12">
+    <div class="max-w-2xl w-full text-center space-y-8">
+
+        <!-- Lottie Animation -->
+        <div class="w-64 h-64 mx-auto opacity-80">
+            <lottie-player
+                src="/statics/lottie/451-burning-book.json"
+                background="transparent"
+                speed="1"
+                style="width: 100%; height: 100%;"
+                loop
+                autoplay>
+            </lottie-player>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold font-mono tracking-wider text-red-500">
+            ERREUR 451
+        </h1>
+
+        <div class="bg-black/30 backdrop-blur-sm border border-gray-700 rounded-xl p-8 shadow-2xl relative overflow-hidden">
+             <!-- "Classified" stamp effect -->
+            <div class="absolute -top-4 -right-4 transform rotate-12 border-4 border-red-800 text-red-800 text-xl font-black px-4 py-1 opacity-40 select-none">
+                CENSURÉ
+            </div>
+
+            <h2 class="text-2xl font-bold mb-4 font-mono">Contenu Indisponible pour Raisons Légales</h2>
+
+            <p class="text-gray-400 mb-6 leading-relaxed font-mono text-sm">
+                "C'était un plaisir de brûler." — Ray Bradbury, <em>Fahrenheit 451</em>.
+            </p>
+
+            <p class="text-gray-300 mb-8">
+                Cette page existe peut-être, mais nous ne sommes pas autorisés à vous la montrer.
+                Cela peut être dû à une restriction légale, une censure gouvernementale ou une décision de justice.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/" class="bg-gray-700 hover:bg-gray-600 text-white font-mono py-3 px-8 rounded-lg transition-all border border-gray-600 hover:border-gray-500">
+                    <span class="mr-2">&lt;</span> Retour à la base
+                </a>
+                <a href="https://wa.me/{{ config.WHATSAPP_NUMBER }}" target="_blank" class="bg-red-900/50 hover:bg-red-900 text-red-100 font-mono py-3 px-8 rounded-lg transition-all border border-red-900 hover:border-red-700">
+                    Contacter le support
+                </a>
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-600 font-mono">
+            Code: UNAVAILABLE_FOR_LEGAL_REASONS
+        </p>
+
+    </div>
+</div>
+{% endblock %}
