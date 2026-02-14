@@ -24,6 +24,9 @@ class Config:
     UPLOAD_FOLDER = 'statics/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
+    WHATSAPP_NUMBER = os.environ.get('WHATSAPP_NUMBER', '243860493345')
+    TIDYCAL_URL = os.environ.get('TIDYCAL_URL', 'https://tidycal.com/moamyoneart/consultation-gratuite-15-min')
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

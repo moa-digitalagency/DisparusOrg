@@ -45,6 +45,9 @@ def create_app(config_name='default'):
     app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
     app.config['UPLOAD_FOLDER'] = 'statics/uploads'
     
+    app.config['WHATSAPP_NUMBER'] = os.environ.get('WHATSAPP_NUMBER', '243860493345')
+    app.config['TIDYCAL_URL'] = os.environ.get('TIDYCAL_URL', 'https://tidycal.com/moamyoneart/consultation-gratuite-15-min')
+
     # Secure Session Cookies
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -87,16 +90,49 @@ def create_app(config_name='default'):
         return {
             'site_settings': site_settings,
             'parse_json_links': parse_json_links,
-            't': t
+            't': t,
+            'config': app.config
         }
     
     register_blueprints(app)
     
     register_utility_routes(app)
 
+    @app.errorhandler(400)
+    def bad_request(e):
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+             return jsonify({
+                'error': 'Bad Request',
+                'message': str(e.description) if hasattr(e, 'description') else 'Bad Request'
+            }), 400
+        return render_template('400.html', error=e), 400
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+             return jsonify({
+                'error': 'Forbidden',
+                'message': str(e.description) if hasattr(e, 'description') else 'Forbidden'
+            }), 403
+        return render_template('403.html', error=e), 403
+
     @app.errorhandler(404)
     def page_not_found(e):
-        return render_template('404.html'), 404
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+             return jsonify({
+                'error': 'Not Found',
+                'message': str(e.description) if hasattr(e, 'description') else 'Not Found'
+            }), 404
+        return render_template('404.html', error=e), 404
+
+    @app.errorhandler(451)
+    def unavailable_for_legal_reasons(e):
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+             return jsonify({
+                'error': 'Unavailable For Legal Reasons',
+                'message': str(e.description) if hasattr(e, 'description') else 'Unavailable For Legal Reasons'
+            }), 451
+        return render_template('451.html', error=e), 451
 
     @app.errorhandler(429)
     def ratelimit_handler(e):
