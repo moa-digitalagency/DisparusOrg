@@ -49,41 +49,7 @@
     </div>
     <div id="admin-map" class="h-[600px]"></div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<style>
-    .hover-card {
-        position: absolute;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        padding: 12px;
-        z-index: 1000;
-        pointer-events: none;
-        min-width: 220px;
-        max-width: 280px;
-        border: 1px solid #e5e7eb;
-        transform: translate(-50%, -100%);
-        margin-top: -15px;
-    }
-    .hover-card img {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
-        object-fit: cover;
-        border: 2px solid #fee2e2;
-    }
-    .hover-card .no-photo {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
-        background: #f3f4f6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-</style>
 <div id="hover-card" class="hover-card hidden">
     <div class="flex gap-3">
         <div id="hover-photo"></div>
@@ -98,117 +64,14 @@
         {% if get_locale() == 'fr' %}Voir la fiche{% else %}View profile{% endif %}
     </a>
 </div>
-<script>
-    function escapeHtml(text) {
-        if (!text) return '';
-        return String(text)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
 
-    const map = L.map('admin-map').setView([7.5, 15], 4);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap'
-    }).addTo(map);
-    
-    const hoverCard = document.getElementById('hover-card');
-    const adminCountryFilter = document.getElementById('admin-country-filter');
-    const adminTypeFilter = document.getElementById('admin-type-filter');
-    const adminCount = document.getElementById('admin-count');
-    let markersLayer = L.layerGroup().addTo(map);
-    
-    const savedAdminCountry = localStorage.getItem('disparus_admin_country_filter');
-    if (savedAdminCountry) {
-        adminCountryFilter.value = savedAdminCountry;
-    }
-    
-    function fetchAdminMapData() {
-        const bounds = map.getBounds();
-        const params = new URLSearchParams({
-            min_lat: bounds.getSouth(),
-            max_lat: bounds.getNorth(),
-            min_lng: bounds.getWest(),
-            max_lng: bounds.getEast(),
-            type: adminTypeFilter.value,
-            country: adminCountryFilter.value
-        });
+<div id="admin-map-config"
+     class="hidden"
+     data-label-reports="{% if get_locale() == 'fr' %}signalements{% else %}reports{% endif %}">
+</div>
+{% endblock %}
 
-        fetch(`/api/map-data?${params.toString()}`)
-            .then(r => r.json())
-            .then(data => {
-                markersLayer.clearLayers();
-
-                adminCount.textContent = data.length + ' {% if get_locale() == "fr" %}signalements{% else %}reports{% endif %}';
-
-                data.forEach(d => {
-                    let color = '#ef4444'; // missing (red)
-                    if (['found', 'found_alive'].includes(d.status)) {
-                        color = '#22c55e'; // green
-                    } else if (['deceased', 'found_deceased'].includes(d.status)) {
-                        color = '#4b5563'; // gray
-                    } else if (d.is_flagged) {
-                        color = '#f97316'; // orange
-                    }
-
-                    const marker = L.circleMarker([d.latitude, d.longitude], {
-                        radius: 10,
-                        fillColor: color,
-                        color: '#fff',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.9
-                    });
-            
-                    // Tooltip on hover (Photo + Name)
-                    const tooltipContent = '<div class="text-center p-1">' +
-                        (d.photo_url ? '<img src="' + d.photo_url + '" class="w-16 h-16 mx-auto rounded-lg object-cover mb-1">' : '') +
-                        '<div class="font-bold text-sm text-gray-900">' + escapeHtml(d.full_name) + '</div>' +
-                        '<div class="text-xs text-gray-500">' + escapeHtml(d.city) + '</div>' +
-                        '</div>';
-
-                    marker.bindTooltip(tooltipContent, {
-                        direction: 'top',
-                        offset: [0, -5],
-                        opacity: 1,
-                        className: 'leaflet-tooltip-custom'
-                    });
-
-                    marker.on('click', function() {
-                        window.location.href = '/disparu/' + d.public_id;
-                    });
-                    markersLayer.addLayer(marker);
-                });
-            })
-            .catch(console.error);
-    }
-    
-    adminCountryFilter.addEventListener('change', function() {
-        localStorage.setItem('disparus_admin_country_filter', this.value);
-        fetchAdminMapData();
-    });
-
-    adminTypeFilter.addEventListener('change', fetchAdminMapData);
-    map.on('moveend', fetchAdminMapData);
-    
-    hoverCard.addEventListener('mouseleave', function() {
-        hoverCard.classList.add('hidden');
-    });
-    
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                if (!adminCountryFilter.value) {
-                    map.setView([position.coords.latitude, position.coords.longitude], 8);
-                }
-            },
-            function() {},
-            { enableHighAccuracy: false, timeout: 5000 }
-        );
-    }
-    
-    fetchAdminMapData();
-</script>
+{% block scripts %}
+<link rel="stylesheet" href="/static/css/admin_map.css">
+<script src="/static/js/admin_map.js"></script>
 {% endblock %}

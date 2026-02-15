@@ -143,8 +143,8 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
             try:
                 if favicon_setting.startswith('/'):
                     favicon_setting = favicon_setting[1:]
-                if not favicon_setting.startswith('statics/'):
-                    favicon_setting = f'statics/{favicon_setting}'
+                if not favicon_setting.startswith('static/'):
+                    favicon_setting = f'static/{favicon_setting}'
                 if os.path.exists(favicon_setting):
                     logo = ImageReader(favicon_setting)
                     p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
@@ -270,9 +270,9 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
         try:
             if getattr(disparu, 'photo_url', None):
                 p_url = str(disparu.photo_url)
-                if '/statics/' in p_url:
-                    photo_path = p_url.replace('/statics/', 'statics/')
-                elif p_url.startswith('statics/'):
+                if '/static/' in p_url:
+                    photo_path = p_url.replace('/static/', 'static/')
+                elif p_url.startswith('static/'):
                     photo_path = p_url
                 else:
                     photo_path = p_url.lstrip('/')
@@ -1041,7 +1041,7 @@ def generate_statistics_pdf(stats_data, t, locale='fr', generated_by='System'):
     logo_path = settings.get('favicon')
     if logo_path:
         if logo_path.startswith('/'): logo_path = logo_path[1:]
-        if not logo_path.startswith('statics/'): logo_path = f'statics/{logo_path}'
+        if not logo_path.startswith('static/'): logo_path = f'static/{logo_path}'
         if os.path.exists(logo_path):
             from reportlab.platypus import Image
             try:

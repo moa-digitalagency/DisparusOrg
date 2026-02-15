@@ -39,7 +39,7 @@
                         {{ log.user_agent }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="showDetails('{{ log.metadata_json|replace('\'', '\\\'')|replace('\"', '\\\"') }}')" class="text-red-600 hover:text-red-900">Details</button>
+                        <button data-details="{{ log.metadata_json }}" class="btn-show-details text-red-600 hover:text-red-900">Details</button>
                     </td>
                 </tr>
                 {% else %}
@@ -115,7 +115,7 @@
 <!-- Details Modal -->
 <div id="detailsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal()"></div>
+        <div id="modal-backdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -131,33 +131,15 @@
                 </div>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" onclick="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                <button type="button" id="btn-close-modal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     {% if get_locale() == 'fr' %}Fermer{% else %}Close{% endif %}
                 </button>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-    function showDetails(jsonStr) {
-        const modal = document.getElementById('detailsModal');
-        const content = document.getElementById('modal-content');
-        try {
-            // Unescape the string first if needed, or parse directly if it's clean
-            // Since we replaced quotes, it might be tricky. Let's try simple display first.
-            // Ideally we pass the ID and fetch details, but let's try displaying the raw string for now
-            // or pretty print if possible.
-            let jsonObj = JSON.parse(jsonStr);
-            content.textContent = JSON.stringify(jsonObj, null, 2);
-        } catch (e) {
-            content.textContent = jsonStr;
-        }
-        modal.classList.remove('hidden');
-    }
-
-    function closeModal() {
-        document.getElementById('detailsModal').classList.add('hidden');
-    }
-</script>
+{% block scripts %}
+<script src="/static/js/admin_blocked.js"></script>
 {% endblock %}

@@ -398,7 +398,7 @@ def run_migrations():
 
 def generate_demo_images():
     """Generate demo profile images if they don't exist"""
-    demo_folder = 'statics/uploads/demo'
+    demo_folder = 'static/uploads/demo'
     
     demo_images = [
         'demo_child_male.jpg',

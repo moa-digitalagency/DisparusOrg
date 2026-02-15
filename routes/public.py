@@ -261,7 +261,7 @@ async def report():
                     unique_name = f"{generate_public_id()}_{filename}"
                     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
                     file.save(filepath)
-                    photo_url = f"/statics/uploads/{unique_name}"
+                    photo_url = f"/static/uploads/{unique_name}"
             
             contacts = []
             for i in range(3):
@@ -373,7 +373,7 @@ async def contribute(public_id):
                 unique_name = f"proof_{generate_public_id()}_{filename}"
                 filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
                 file.save(filepath)
-                proof_url = f"/statics/uploads/{unique_name}"
+                proof_url = f"/static/uploads/{unique_name}"
         
         lat = request.form.get('latitude')
         lng = request.form.get('longitude')
@@ -620,7 +620,7 @@ Disallow: /api/
 Disallow: /moderation
 
 # Fichiers statiques autorises
-Allow: /statics/
+Allow: /static/
 Allow: /manifest.json
 
 # Sitemap

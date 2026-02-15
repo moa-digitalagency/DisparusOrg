@@ -41,7 +41,7 @@ def setup_data():
             circumstances='Test',
             disappearance_date=datetime.now(),
             status='found',
-            photo_url='/statics/img/logo.png' # Use dummy photo
+            photo_url='/static/img/logo.png' # Use dummy photo
         )
 
         # Create 'Deceased' record (Gray overlay)
@@ -58,7 +58,7 @@ def setup_data():
             circumstances='Test',
             disappearance_date=datetime.now(),
             status='deceased',
-            photo_url='/statics/img/logo.png' # Use dummy photo
+            photo_url='/static/img/logo.png' # Use dummy photo
         )
 
         # Create 'Missing' record (No overlay / red badge)
@@ -75,7 +75,7 @@ def setup_data():
             circumstances='Test',
             disappearance_date=datetime.now(),
             status='missing',
-            photo_url='/statics/img/logo.png'
+            photo_url='/static/img/logo.png'
         )
 
         db.session.add(found)

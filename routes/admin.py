@@ -699,7 +699,7 @@ def settings():
                     
                     setting_key = f'seo_{field}' if field == 'og_image' else field
                     existing = all_settings.get(setting_key)
-                    value = f'/statics/uploads/settings/{new_filename}'
+                    value = f'/static/uploads/settings/{new_filename}'
                     if existing:
                         existing.value = value
                         existing.updated_by = session.get('admin_username')

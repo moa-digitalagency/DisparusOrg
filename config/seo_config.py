@@ -12,6 +12,6 @@ SEO_CONFIG = {
         'title': 'DISPARUS.ORG - Personnes Disparues en Afrique',
         'description': 'Plateforme citoyenne pour signaler et rechercher les personnes disparues en Afrique.',
         'url': 'https://disparus.org',
-        'image': 'https://disparus.org/statics/img/og-image.png'
+        'image': 'https://disparus.org/static/img/og-image.png'
     }
 }

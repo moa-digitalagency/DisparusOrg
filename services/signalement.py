@@ -26,7 +26,7 @@ def create_signalement(form_data, photo_file=None):
         unique_name = f"{generate_public_id()}_{filename}"
         filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
         photo_file.save(filepath)
-        photo_url = f"/statics/uploads/{unique_name}"
+        photo_url = f"/static/uploads/{unique_name}"
     
     contacts = []
     for i in range(3):
