@@ -45,7 +45,7 @@ Récupère la liste filtrée des signalements.
     "last_name": "Diop",
     "country": "Senegal",
     "city": "Dakar",
-    "photo_url": "/statics/uploads/...",
+    "photo_url": "/static/uploads/...",
     "distance": 5.2
   }
 ]

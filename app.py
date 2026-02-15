@@ -43,7 +43,7 @@ def create_app(config_name='default'):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
     app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
-    app.config['UPLOAD_FOLDER'] = 'statics/uploads'
+    app.config['UPLOAD_FOLDER'] = 'static/uploads'
     
     app.config['WHATSAPP_NUMBER'] = os.environ.get('WHATSAPP_NUMBER', '243860493345')
     app.config['TIDYCAL_URL'] = os.environ.get('TIDYCAL_URL', 'https://tidycal.com/moamyoneart/consultation-gratuite-15-min')
@@ -195,7 +195,7 @@ def register_utility_routes(app):
         description = SiteSetting.get('site_description', 'Plateforme citoyenne de signalement de personnes disparues en Afrique')
         theme_color = "#b91c1c"
         background_color = "#ffffff"
-        icon_src = "/statics/img/favicon.png"
+        icon_src = "/static/img/favicon.png"
 
         # Override if custom
         if display_mode == 'custom':
@@ -214,7 +214,7 @@ def register_utility_routes(app):
         description = str(description) if description else ""
         theme_color = str(theme_color) if theme_color else "#b91c1c"
         background_color = str(background_color) if background_color else "#ffffff"
-        icon_src = str(icon_src) if icon_src else "/statics/img/favicon.png"
+        icon_src = str(icon_src) if icon_src else "/static/img/favicon.png"
 
         return jsonify({
             "name": name,
@@ -232,8 +232,4 @@ def register_utility_routes(app):
     
     @app.route('/sw.js')
     def service_worker():
-        return send_from_directory('statics/js', 'sw.js', mimetype='application/javascript')
-    
-    @app.route('/statics/<path:filename>')
-    def serve_statics(filename):
-        return send_from_directory('statics', filename)
+        return send_from_directory('static/js', 'sw.js', mimetype='application/javascript')

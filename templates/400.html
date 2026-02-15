@@ -3,16 +3,17 @@
 {% block title %}400 - Mauvaise Requête | {{ site_settings.get('site_name', 'DISPARUS.ORG') }}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="/static/css/error.css">
 <div class="min-h-[70vh] flex items-center justify-center bg-yellow-50 dark:bg-yellow-900/10 px-4 py-12">
     <div class="max-w-xl w-full text-center space-y-8">
 
         <!-- Lottie Animation -->
         <div class="w-64 h-64 mx-auto">
             <lottie-player
-                src="/statics/lottie/400-bad-request.json"
+                src="/static/lottie/400-bad-request.json"
                 background="transparent"
                 speed="1"
-                style="width: 100%; height: 100%;"
+                class="lottie-full"
                 loop
                 autoplay>
             </lottie-player>

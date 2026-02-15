@@ -94,7 +94,7 @@
                 <div class="bg-white rounded-xl border border-red-100 overflow-hidden shadow-sm">
                     <div class="aspect-video bg-gray-100 relative">
                         {% if person.photo_url %}
-                        <img src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity" onclick="openImageModal()">
+                        <img id="detail-photo" src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity">
                         {% else %}
                         <div class="absolute inset-0 flex items-center justify-center">
                             <svg class="w-24 h-24 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -208,7 +208,7 @@
                             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                             <span class="text-xs font-medium text-purple-700">QR Code</span>
                         </a>
-                        <button onclick="openShareModal()" class="flex flex-col items-center gap-2 p-3 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 transition-all">
+                        <button id="btn-open-share" class="flex flex-col items-center gap-2 p-3 bg-green-50 hover:bg-green-100 rounded-xl border border-green-200 transition-all">
                             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                             <span class="text-xs font-medium text-green-700">{{ t('detail.share') }}</span>
                         </button>
@@ -324,27 +324,6 @@
                     </div>
                     <p class="text-center text-white/80 text-xs mt-3">{{ t('detail.since') }} {{ person.disappearance_date.strftime('%d/%m/%Y') }} {{ t('detail.at') }} {{ person.disappearance_date.strftime('%H:%M') }}</p>
                 </div>
-                <script>
-                (function() {
-                    var disappearanceDate = new Date("{{ person.disappearance_date.strftime('%Y-%m-%dT%H:%M:%S') }}");
-                    var isMissing = {{ (person.status == 'missing') | tojson }};
-                    function updateTimer() {
-                        var now = isMissing ? new Date() : new Date("{{ person.updated_at.strftime('%Y-%m-%dT%H:%M:%S') if person.updated_at else person.disappearance_date.strftime('%Y-%m-%dT%H:%M:%S') }}");
-                        var diff = now - disappearanceDate;
-                        if (diff < 0) diff = 0;
-                        var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                        var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        document.getElementById('timerDays').textContent = days;
-                        document.getElementById('timerHours').textContent = hours;
-                        document.getElementById('timerMinutes').textContent = minutes;
-                    }
-                    updateTimer();
-                    if (isMissing) {
-                        setInterval(updateTimer, 60000);
-                    }
-                })();
-                </script>
                 {% endif %}
                 
                 {% if person.status == 'missing' %}
@@ -456,106 +435,12 @@
         </div>
     </div>
 </section>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    const contributionSelect = document.querySelector('select[name="contribution_type"]');
-    if (contributionSelect) {
-        contributionSelect.addEventListener('change', function() {
-            const foundFields = document.getElementById('found-fields');
-            if (foundFields) {
-                foundFields.classList.toggle('hidden', this.value !== 'found');
-            }
-        });
-    }
-    
-    const map = L.map('detail-map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap'
-    }).addTo(map);
-    
-    const bounds = [];
-    const markers = [];
-    
-    const redIcon = L.divIcon({
-        className: 'custom-marker',
-        html: '<div style="background-color: #DC2626; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
-    
-    const blueIcon = L.divIcon({
-        className: 'custom-marker',
-        html: '<div style="background-color: #3B82F6; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-        iconSize: [18, 18],
-        iconAnchor: [9, 9]
-    });
-    
-    const greenIcon = L.divIcon({
-        className: 'custom-marker',
-        html: '<div style="background-color: #22C55E; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-    });
-    
-    {% if person.latitude and person.longitude %}
-    const mainMarker = L.marker([{{ person.latitude }}, {{ person.longitude }}], {icon: redIcon}).addTo(map);
-    const locLabel = {{ t("detail.location_short") | tojson }};
-    const city = {{ person.city | tojson }};
-    const country = {{ person.country | tojson }};
-    const dateStr = {{ (person.disappearance_date.strftime("%d/%m/%Y") if person.disappearance_date else "") | tojson }};
-
-    mainMarker.bindPopup(`<strong>${escapeHtml(locLabel)}</strong><br>${escapeHtml(city)}, ${escapeHtml(country)}<br>${escapeHtml(dateStr)}`);
-    bounds.push([{{ person.latitude }}, {{ person.longitude }}]);
-    markers.push(mainMarker);
-    {% endif %}
-    
-    {% for c in contributions %}
-    {% if c.latitude and c.longitude %}
-    (function() {
-        const contributionType = {{ c.contribution_type | tojson }};
-        const icon = contributionType === 'found' ? greenIcon : blueIcon;
-        const marker = L.marker([{{ c.latitude }}, {{ c.longitude }}], {icon: icon}).addTo(map);
-
-        const typeLabel = {
-            'seen': {{ t("detail.sighting") | tojson }},
-            'found': {{ t("detail.person_found") | tojson }},
-            'info': {{ t("detail.important_info") | tojson }},
-            'police': {{ t("detail.police") | tojson }},
-            'other': {{ t("detail.other") | tojson }}
-        }[contributionType] || contributionType;
-
-        const locationName = {{ (c.location_name or "") | tojson }};
-        const createdAt = {{ (c.created_at.strftime("%d/%m/%Y %H:%M") if c.created_at else "") | tojson }};
-
-        marker.bindPopup(`<strong>${escapeHtml(typeLabel)}</strong><br>${escapeHtml(locationName)}<br>${escapeHtml(createdAt)}`);
-        bounds.push([{{ c.latitude }}, {{ c.longitude }}]);
-        markers.push(marker);
-    })();
-    {% endif %}
-    {% endfor %}
-    
-    if (bounds.length > 0) {
-        if (bounds.length === 1) {
-            map.setView(bounds[0], 20);
-        } else {
-            map.fitBounds(bounds, {padding: [30, 30], maxZoom: 20});
-        }
-    } else {
-        map.setView([0, 20], 3);
-    }
-    
-    if (markers.length > 0) {
-        markers[0].openPopup();
-    }
-</script>
 
 <div id="imageModal" class="fixed inset-0 bg-black/95 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm" style="background-color: rgba(0, 0, 0, 0.95);">
-    <button onclick="closeImageModal()" class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-[101]">
+    <button id="btn-close-image-modal" class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-[101]">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
     </button>
-    <div class="w-full h-full flex items-center justify-center" onclick="closeImageModal()">
+    <div class="w-full h-full flex items-center justify-center">
         <img id="fullScreenImage" src="{{ person.photo_url }}" alt="{{ person.first_name }}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" onclick="event.stopPropagation()">
     </div>
 </div>
@@ -564,12 +449,12 @@
     <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-2xl">
             <h3 class="text-lg font-semibold text-gray-900">{{ t('detail.share') }}</h3>
-            <button onclick="closeShareModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <button id="btn-close-share" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
         <div class="p-4 grid grid-cols-4 gap-3">
-            <button onclick="copyLink()" class="flex flex-col items-center gap-2 p-3 hover:bg-gray-50 rounded-xl transition-colors">
+            <button id="btn-copy-link" class="flex flex-col items-center gap-2 p-3 hover:bg-gray-50 rounded-xl transition-colors">
                 <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                     <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                 </div>
@@ -636,53 +521,42 @@
     </div>
 </div>
 
-<script>
-function openShareModal() {
-    document.getElementById('shareModal').classList.remove('hidden');
-    document.getElementById('shareModal').classList.add('flex');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeShareModal() {
-    document.getElementById('shareModal').classList.add('hidden');
-    document.getElementById('shareModal').classList.remove('flex');
-    document.body.style.overflow = 'auto';
-}
-
-function copyLink() {
-    navigator.clipboard.writeText(window.location.href).then(function() {
-        document.getElementById('copySuccess').classList.remove('hidden');
-        setTimeout(function() {
-            document.getElementById('copySuccess').classList.add('hidden');
-        }, 2000);
-    });
-}
-
-document.getElementById('shareModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeShareModal();
+<script id="detail-data" type="application/json">
+{
+    "person": {
+        "lat": {{ person.latitude if person.latitude is not none else 'null' }},
+        "lng": {{ person.longitude if person.longitude is not none else 'null' }},
+        "city": {{ person.city | tojson }},
+        "country": {{ person.country | tojson }},
+        "date": {{ (person.disappearance_date.strftime("%d/%m/%Y") if person.disappearance_date else "") | tojson }},
+        "isoDate": "{{ person.disappearance_date.strftime('%Y-%m-%dT%H:%M:%S') if person.disappearance_date else '' }}",
+        "updatedAt": "{{ person.updated_at.strftime('%Y-%m-%dT%H:%M:%S') if person.updated_at else '' }}",
+        "status": "{{ person.status }}",
+        "isMissing": {{ (person.status == 'missing') | tojson }}
+    },
+    "contributions": [
+        {% for c in contributions %}
+        {
+            "lat": {{ c.latitude if c.latitude is not none else 'null' }},
+            "lng": {{ c.longitude if c.longitude is not none else 'null' }},
+            "type": {{ c.contribution_type | tojson }},
+            "locationName": {{ (c.location_name or "") | tojson }},
+            "date": {{ (c.created_at.strftime("%d/%m/%Y %H:%M") if c.created_at else "") | tojson }}
+        }{{ "," if not loop.last else "" }}
+        {% endfor %}
+    ],
+    "translations": {
+        "location_short": {{ t("detail.location_short") | tojson }},
+        "sighting": {{ t("detail.sighting") | tojson }},
+        "person_found": {{ t("detail.person_found") | tojson }},
+        "important_info": {{ t("detail.important_info") | tojson }},
+        "police": {{ t("detail.police") | tojson }},
+        "other": {{ t("detail.other") | tojson }}
     }
-});
-
-function openImageModal() {
-    const modal = document.getElementById('imageModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    document.body.style.overflow = 'hidden';
 }
-
-function closeImageModal() {
-    const modal = document.getElementById('imageModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    document.body.style.overflow = 'auto';
-}
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageModal();
-        closeShareModal();
-    }
-});
 </script>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/detail.js"></script>
 {% endblock %}

@@ -59,7 +59,7 @@ DEMO_DATA = [
         'clothing': 'Uniforme scolaire bleu, baskets blanches Nike',
         'objects': 'Sac a dos Spiderman rouge et bleu',
         'contacts': [{'name': 'Khadija Bennani', 'phone': '+212 6 23 45 67 89', 'relation': 'mere'}],
-        'photo_url': '/statics/uploads/demo/demo_child_male.jpg',
+        'photo_url': '/static/uploads/demo/demo_child_male.jpg',
         'is_demo': True
     },
     # MAROC - Casablanca
@@ -79,7 +79,7 @@ DEMO_DATA = [
         'clothing': 'Costume gris, chemise blanche, cravate bleue',
         'objects': 'Mallette noire en cuir, montre Casio argentee',
         'contacts': [{'name': 'Sara Alaoui', 'phone': '+212 6 34 56 78 90', 'relation': 'fille'}],
-        'photo_url': '/statics/uploads/demo/demo_adult_male.jpg',
+        'photo_url': '/static/uploads/demo/demo_adult_male.jpg',
         'is_demo': True
     },
     {
@@ -118,7 +118,7 @@ DEMO_DATA = [
         'clothing': 'Combinaison de travail orange, bottes de securite',
         'objects': 'Badge d\'acces Total, telephone Huawei',
         'contacts': [{'name': 'Marie Moussavou', 'phone': '+241 07 12 34 56', 'relation': 'epouse'}],
-        'photo_url': '/statics/uploads/demo/demo_adult_male_2.jpg',
+        'photo_url': '/static/uploads/demo/demo_adult_male_2.jpg',
         'is_demo': True
     },
     {
@@ -157,7 +157,7 @@ DEMO_DATA = [
         'clothing': 'Robe rouge, talons noirs, veste en jean',
         'objects': 'Sac a main Gucci imitation, cles de voiture Toyota',
         'contacts': [{'name': 'Estelle Nzoghe', 'phone': '+241 05 34 56 78', 'relation': 'soeur'}],
-        'photo_url': '/statics/uploads/demo/demo_adult_female.jpg',
+        'photo_url': '/static/uploads/demo/demo_adult_female.jpg',
         'is_demo': True
     },
     {

@@ -7,7 +7,7 @@ Creates simple placeholder images for demo profiles
 import os
 from PIL import Image, ImageDraw, ImageFont
 
-DEMO_FOLDER = 'statics/uploads/demo'
+DEMO_FOLDER = 'static/uploads/demo'
 
 DEMO_IMAGES = [
     {

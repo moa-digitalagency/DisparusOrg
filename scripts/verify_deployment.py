@@ -13,7 +13,7 @@ def run_verification():
         base_url = "http://localhost:3000"
 
         # Ensure output directory exists
-        os.makedirs("statics/verification", exist_ok=True)
+        os.makedirs("static/verification", exist_ok=True)
 
         print("Starting verification...")
 
@@ -38,7 +38,7 @@ def run_verification():
         try:
             page.goto(base_url)
             page.wait_for_load_state("networkidle")
-            page.screenshot(path="statics/verification/01_home.png", full_page=True)
+            page.screenshot(path="static/verification/01_home.png", full_page=True)
             print("  - Home Page loaded (200 OK)")
             check_errors("Home Page")
         except Exception as e:
@@ -49,7 +49,7 @@ def run_verification():
         try:
             page.goto(f"{base_url}/recherche")
             page.wait_for_load_state("networkidle")
-            page.screenshot(path="statics/verification/02_search.png", full_page=True)
+            page.screenshot(path="static/verification/02_search.png", full_page=True)
             print("  - Search Page loaded (200 OK)")
             check_errors("Search Page")
         except Exception as e:
@@ -60,7 +60,7 @@ def run_verification():
         try:
             page.goto(f"{base_url}/signaler")
             page.wait_for_load_state("networkidle")
-            page.screenshot(path="statics/verification/03_report.png", full_page=True)
+            page.screenshot(path="static/verification/03_report.png", full_page=True)
             print("  - Report Page loaded (200 OK)")
             check_errors("Report Page")
         except Exception as e:
@@ -71,7 +71,7 @@ def run_verification():
         try:
             page.goto(f"{base_url}/admin/login")
             page.wait_for_load_state("networkidle")
-            page.screenshot(path="statics/verification/04_admin_login.png")
+            page.screenshot(path="static/verification/04_admin_login.png")
             print("  - Admin Login loaded (200 OK)")
             check_errors("Admin Login")
 
@@ -88,7 +88,7 @@ def run_verification():
 
                 if "/admin/login" not in page.url:
                     print("  - Login Successful!")
-                    page.screenshot(path="statics/verification/05_admin_dashboard.png", full_page=True)
+                    page.screenshot(path="static/verification/05_admin_dashboard.png", full_page=True)
                     check_errors("Admin Dashboard")
 
                     # Check Map
@@ -96,7 +96,7 @@ def run_verification():
                     page.goto(f"{base_url}/admin/map")
                     page.wait_for_load_state("networkidle")
                     time.sleep(2) # Wait for tiles
-                    page.screenshot(path="statics/verification/06_admin_map.png", full_page=True)
+                    page.screenshot(path="static/verification/06_admin_map.png", full_page=True)
                     check_errors("Admin Map")
 
                 else:

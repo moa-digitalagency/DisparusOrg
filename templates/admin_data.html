@@ -21,7 +21,7 @@
                 {% if get_locale() == 'fr' %}Exporter les donnees{% else %}Export Data{% endif %}
             </h2>
         </div>
-        <form action="{{ url_for('admin.export_data') }}" method="POST" class="p-4 space-y-4">
+        <form action="{{ url_for('admin.export_data') }}" method="POST" class="p-4 space-y-4" id="form-export">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
@@ -59,7 +59,7 @@
                 {% if get_locale() == 'fr' %}Sauvegarder la base{% else %}Backup Database{% endif %}
             </h2>
         </div>
-        <form action="{{ url_for('admin.backup_data') }}" method="POST" class="p-4 space-y-4">
+        <form action="{{ url_for('admin.backup_data') }}" method="POST" class="p-4 space-y-4" id="form-backup">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
@@ -85,7 +85,7 @@
                 {% if get_locale() == 'fr' %}Restaurer la base{% else %}Restore Database{% endif %}
             </h2>
         </div>
-        <form action="{{ url_for('admin.restore_data') }}" method="POST" enctype="multipart/form-data" class="p-4 space-y-4">
+        <form action="{{ url_for('admin.restore_data') }}" method="POST" enctype="multipart/form-data" class="p-4 space-y-4" id="form-restore">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Fichier de sauvegarde (JSON){% else %}Backup file (JSON){% endif %}</label>
@@ -108,7 +108,7 @@
                 {% if get_locale() == 'fr' %}Supprimer donnees demo{% else %}Delete Demo Data{% endif %}
             </h2>
         </div>
-        <form action="{{ url_for('admin.delete_demo_data') }}" method="POST" class="p-4 space-y-4" onsubmit="return confirm('{% if get_locale() == 'fr' %}Supprimer toutes les donnees de demonstration?{% else %}Delete all demo data?{% endif %}')">
+        <form action="{{ url_for('admin.delete_demo_data') }}" method="POST" class="p-4 space-y-4" id="form-delete-demo" data-confirm-msg="{% if get_locale() == 'fr' %}Supprimer toutes les donnees de demonstration?{% else %}Delete all demo data?{% endif %}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <p class="text-sm text-gray-600">{% if get_locale() == 'fr' %}Supprime les 8 profils de demonstration (Maroc et Gabon) crees par le script init_db_demo.py{% else %}Deletes the 8 demo profiles (Morocco and Gabon) created by init_db_demo.py script{% endif %}</p>
             <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
@@ -130,7 +130,7 @@
                 {% if get_locale() == 'fr' %}Supprimer les donnees{% else %}Delete Data{% endif %}
             </h2>
         </div>
-        <form action="{{ url_for('admin.delete_data') }}" method="POST" class="p-4 space-y-4" onsubmit="return confirmDelete()">
+        <form action="{{ url_for('admin.delete_data') }}" method="POST" class="p-4 space-y-4" id="form-delete-all">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{% if get_locale() == 'fr' %}Pays{% else %}Country{% endif %}</label>
@@ -189,16 +189,14 @@
         </table>
     </div>
 </div>
+
+<div id="admin-data-config"
+     class="hidden"
+     data-msg-specific="{% if get_locale() == 'fr' %}Etes-vous SUR de vouloir supprimer TOUTES les donnees de {country}?{% else %}Are you SURE you want to delete ALL data from {country}?{% endif %}"
+     data-msg-all="{% if get_locale() == 'fr' %}Etes-vous SUR de vouloir supprimer TOUTES les donnees de TOUS les pays?{% else %}Are you SURE you want to delete ALL data from ALL countries?{% endif %}">
+</div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-function confirmDelete() {
-    const country = document.getElementById('delete-country').value;
-    const msg = country 
-        ? '{% if get_locale() == "fr" %}Etes-vous SUR de vouloir supprimer TOUTES les donnees de {% else %}Are you SURE you want to delete ALL data from {% endif %}' + country + '?'
-        : '{% if get_locale() == "fr" %}Etes-vous SUR de vouloir supprimer TOUTES les donnees de TOUS les pays?{% else %}Are you SURE you want to delete ALL data from ALL countries?{% endif %}';
-    return confirm(msg);
-}
-</script>
+<script src="/static/js/admin_data.js"></script>
 {% endblock %}

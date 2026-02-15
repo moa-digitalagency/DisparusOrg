@@ -21,7 +21,7 @@ class Config:
     BABEL_SUPPORTED_LOCALES = ['fr', 'en']
     
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
-    UPLOAD_FOLDER = 'statics/uploads'
+    UPLOAD_FOLDER = 'static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
     WHATSAPP_NUMBER = os.environ.get('WHATSAPP_NUMBER', '243860493345')
