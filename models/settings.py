@@ -7,6 +7,7 @@
 """
 from models import db
 import time
+import json
 
 # Global cache
 _settings_cache = None
@@ -33,7 +34,6 @@ def get_all_settings_dict():
         elif s.value_type == 'integer':
             result[s.key] = int(s.value) if s.value else 0
         elif s.value_type == 'json':
-            import json
             try:
                 result[s.key] = json.loads(s.value)
             except:
@@ -74,31 +74,29 @@ class SiteSetting(db.Model):
             elif setting.value_type == 'integer':
                 return int(setting.value) if setting.value else default
             elif setting.value_type == 'json':
-                import json
                 return json.loads(setting.value) if setting.value else default
             return setting.value
         return default
+
+    @staticmethod
+    def serialize_value(value, value_type):
+        if value_type == 'json':
+            return json.dumps(value)
+        return str(value)
     
     @staticmethod
     def set(key, value, value_type='string', category='general', description=None, updated_by=None):
         setting = SiteSetting.query.filter_by(key=key).first()
         if setting:
-            if value_type == 'json':
-                import json
-                setting.value = json.dumps(value)
-            else:
-                setting.value = str(value)
+            setting.value = SiteSetting.serialize_value(value, value_type)
             setting.value_type = value_type
             if description:
                 setting.description = description
             setting.updated_by = updated_by
         else:
-            if value_type == 'json':
-                import json
-                value = json.dumps(value)
             setting = SiteSetting(
                 key=key,
-                value=str(value),
+                value=SiteSetting.serialize_value(value, value_type),
                 value_type=value_type,
                 category=category,
                 description=description,
@@ -165,16 +163,27 @@ DEFAULT_SETTINGS = {
 
 
 def init_default_settings():
+    # Optimisation: fetch all keys at once to avoid N+1 queries
+    existing_keys = {s[0] for s in SiteSetting.query.with_entities(SiteSetting.key).all()}
+
+    changes_made = False
     for key, config in DEFAULT_SETTINGS.items():
-        existing = SiteSetting.query.filter_by(key=key).first()
-        if not existing:
-            SiteSetting.set(
+        if key not in existing_keys:
+            val = SiteSetting.serialize_value(config['value'], config['type'])
+
+            setting = SiteSetting(
                 key=key,
-                value=config['value'],
+                value=val,
                 value_type=config['type'],
                 category=config['category'],
                 updated_by='system'
             )
+            db.session.add(setting)
+            changes_made = True
+
+    if changes_made:
+        db.session.commit()
+        invalidate_settings_cache()
 
 
 DEFAULT_ROLES = [
