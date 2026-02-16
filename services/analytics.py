@@ -49,17 +49,23 @@ def get_stats_by_country():
 
 
 def get_stats_by_period(start_date=None, end_date=None):
-    q = Disparu.query
+    q = db.session.query(
+        db.func.count(Disparu.id).label('total'),
+        db.func.sum(db.case((Disparu.status == 'missing', 1), else_=0)).label('missing'),
+        db.func.sum(db.case((Disparu.status == 'found', 1), else_=0)).label('found'),
+    )
     
     if start_date:
         q = q.filter(Disparu.created_at >= start_date)
     if end_date:
         q = q.filter(Disparu.created_at <= end_date)
     
+    result = q.one()
+
     return {
-        'total': q.count(),
-        'missing': q.filter_by(status='missing').count(),
-        'found': q.filter_by(status='found').count(),
+        'total': result.total,
+        'missing': result.missing or 0,
+        'found': result.found or 0,
     }
 
 

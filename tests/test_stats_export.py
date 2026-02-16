@@ -25,6 +25,7 @@ class TestStatsExport(unittest.TestCase):
 
         # Update environment for the app
         os.environ['DATABASE_URL'] = 'sqlite:///' + self.db_path
+        os.environ['ADMIN_PASSWORD'] = 'admin_password'
 
         self.app = create_app('testing')
         self.app.config['WTF_CSRF_ENABLED'] = False
