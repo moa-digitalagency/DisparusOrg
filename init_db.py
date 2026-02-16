@@ -294,12 +294,58 @@ def sync_schema_columns():
         logger.error(f"  Critical error during schema sync: {e}")
 
 
+def sync_indexes():
+    """
+    Check for missing indexes and create them.
+    Ensures standard B-Tree indexes exist for optimized searches.
+    """
+    logger.info("Syncing indexes...")
+    try:
+        inspector = inspect(db.engine)
+        try:
+             # inspector.get_indexes('disparus_flask') returns list of dicts
+             existing_indexes = inspector.get_indexes('disparus_flask')
+        except Exception as e:
+            logger.warning(f"  Could not inspect indexes for disparus_flask: {e}")
+            return
+
+        # Define expected indexes: (field_name, [columns])
+        required_indexes = [
+            ('first_name', ['first_name']),
+            ('last_name', ['last_name']),
+            ('city', ['city'])
+        ]
+
+        for field, cols in required_indexes:
+            found = False
+            for idx in existing_indexes:
+                # Check for exact match on columns or if the index name suggests it matches
+                if idx['column_names'] == cols:
+                    found = True
+                    break
+
+            if not found:
+                logger.info(f"  Creating missing index for {field}...")
+                idx_name = f"ix_disparus_flask_{field}"
+                try:
+                    db.session.execute(text(f"CREATE INDEX IF NOT EXISTS {idx_name} ON disparus_flask({field})"))
+                    db.session.commit()
+                    logger.info(f"  + Created index {idx_name}")
+                except Exception as e:
+                    logger.error(f"  Failed to create index {idx_name}: {e}")
+                    db.session.rollback()
+
+    except Exception as e:
+        logger.error(f"  Error syncing indexes: {e}")
+
+
 def run_migrations():
     """Run database specific optimizations and migrations"""
     logger.info("Running specific migrations/optimizations...")
 
     # Generic Sync (Covers the manual checks previously here)
     sync_schema_columns()
+    sync_indexes()
     
     # Postgres-specific optimizations (Indexes)
     try:
