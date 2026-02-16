@@ -12,7 +12,7 @@ class Contribution(db.Model):
     __tablename__ = 'contributions_flask'
     
     id = db.Column(db.Integer, primary_key=True)
-    disparu_id = db.Column(db.Integer, db.ForeignKey('disparus_flask.id'), nullable=False)
+    disparu_id = db.Column(db.Integer, db.ForeignKey('disparus_flask.id'), nullable=False, index=True)
     
     contribution_type = db.Column(db.String(50), nullable=False)
     details = db.Column(db.Text, nullable=False)

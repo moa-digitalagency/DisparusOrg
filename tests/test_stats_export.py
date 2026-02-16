@@ -8,7 +8,11 @@ from datetime import datetime
 class TestStatsExport(unittest.TestCase):
     def setUp(self):
         basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-        self.db_path = os.path.join(basedir, 'instance', 'test_stats.db')
+        instance_dir = os.path.join(basedir, 'instance')
+        if not os.path.exists(instance_dir):
+            os.makedirs(instance_dir)
+
+        self.db_path = os.path.join(instance_dir, 'test_stats.db')
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
 
