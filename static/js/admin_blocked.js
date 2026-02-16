@@ -6,14 +6,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showDetails(jsonStr) {
         try {
-            // Replace single quotes with double quotes if needed, though usually valid JSON uses double quotes
-            // Jinja might output python dict string representation if not careful, but metadata_json suggests it's JSON.
-            // If it's single quoted from python string, we might need fix.
-            // But let's assume valid JSON first.
+            // Try standard JSON parse first
             let jsonObj = JSON.parse(jsonStr);
             content.textContent = JSON.stringify(jsonObj, null, 2);
         } catch (e) {
-            content.textContent = jsonStr;
+            // If standard parsing fails, attempt to fix common Python string representation issues
+            // (e.g. single quotes, True/False/None)
+            try {
+                if (!jsonStr) throw e;
+                let fixedStr = jsonStr
+                    .replace(/'/g, '"')
+                    .replace(/\bTrue\b/g, 'true')
+                    .replace(/\bFalse\b/g, 'false')
+                    .replace(/\bNone\b/g, 'null');
+                let jsonObj = JSON.parse(fixedStr);
+                content.textContent = JSON.stringify(jsonObj, null, 2);
+            } catch (e2) {
+                // If repair fails, fallback to raw string
+                content.textContent = jsonStr;
+            }
         }
         modal.classList.remove('hidden');
     }
