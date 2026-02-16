@@ -16,6 +16,7 @@ from utils.geo import get_countries, get_cities, COUNTRIES_CITIES, get_total_cit
 from services.signalement import create_signalement, generate_public_id
 from security.rate_limit import rate_limit
 from services.moderation import check_image_content
+from asgiref.sync import sync_to_async
 
 public_bp = Blueprint('public', __name__)
 
@@ -512,25 +513,32 @@ def download_pdf(public_id):
     )
 
 
-@public_bp.route('/disparu/<public_id>/share-image')
-async def download_share_image(public_id):
-    from flask import Response
-    from utils.pdf_gen import generate_social_media_image
+def get_disparu_sync(public_id):
+    return Disparu.query.filter_by(public_id=public_id).first_or_404()
+
+
+def log_download_sync(disparu_id, public_id, first_name, last_name, ip_address, user_agent):
+    # Log activity
+    log_public_activity(
+        'Telechargement image partage',
+        action_type='download',
+        target_type='disparu',
+        target_id=disparu_id,
+        target_name=f'{first_name} {last_name}'
+    )
     
-    disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
-    log_public_activity('Telechargement image partage', action_type='download', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
-    
+    # Log download
     try:
         from models import Download
         download = Download(
-            disparu_id=disparu.id,
+            disparu_id=disparu_id,
             disparu_public_id=public_id,
-            disparu_name=f"{disparu.first_name} {disparu.last_name}",
+            disparu_name=f"{first_name} {last_name}",
             file_type='png',
             file_name=f"disparu_{public_id}_partage.png",
             download_type='image_social',
-            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
-            user_agent=request.headers.get('User-Agent', '')[:500]
+            ip_address=ip_address,
+            user_agent=user_agent
         )
         db.session.add(download)
         db.session.commit()
@@ -538,6 +546,28 @@ async def download_share_image(public_id):
         import logging
         logging.error(f"Error logging download: {e}")
         db.session.rollback()
+
+
+@public_bp.route('/disparu/<public_id>/share-image')
+async def download_share_image(public_id):
+    from flask import Response
+    from utils.pdf_gen import generate_social_media_image
+
+    # 1. Fetch Disparu (Blocking DB Call -> Async)
+    disparu = await sync_to_async(get_disparu_sync)(public_id)
+
+    # 2. Log Activity & Download (Blocking DB Call -> Async)
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.headers.get('User-Agent', '')[:500]
+
+    await sync_to_async(log_download_sync)(
+        disparu.id,
+        public_id,
+        disparu.first_name,
+        disparu.last_name,
+        ip_address,
+        user_agent
+    )
     
     base_url = request.url_root.rstrip('/')
 
