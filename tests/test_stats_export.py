@@ -1,6 +1,13 @@
 import unittest
 import os
 import io
+
+# Set env vars before import if not already set, to avoid config import error
+if 'DATABASE_URL' not in os.environ:
+    os.environ['DATABASE_URL'] = 'sqlite:///instance/test_stats.db'
+if 'ADMIN_PASSWORD' not in os.environ:
+    os.environ['ADMIN_PASSWORD'] = 'admin_password'
+
 from app import create_app
 from models import db, User, Role, Disparu
 from datetime import datetime
@@ -16,8 +23,9 @@ class TestStatsExport(unittest.TestCase):
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
 
+        # Update environment for the app
         os.environ['DATABASE_URL'] = 'sqlite:///' + self.db_path
-        os.environ['ADMIN_PASSWORD'] = 'admin_password'
+
         self.app = create_app('testing')
         self.app.config['WTF_CSRF_ENABLED'] = False
         self.client = self.app.test_client()
@@ -53,7 +61,8 @@ class TestStatsExport(unittest.TestCase):
             age=30,
             sex='male',
             clothing='Test clothing',
-            objects='Test objects'
+            objects='Test objects',
+            view_count=100
         )
         db.session.add(d1)
         db.session.commit()
@@ -77,6 +86,19 @@ class TestStatsExport(unittest.TestCase):
         self.assertEqual(response.mimetype, 'application/pdf')
         self.assertTrue(len(response.data) > 0)
         self.assertIn(b'%PDF', response.data)
+
+    def test_export_stats_csv(self):
+        self.login()
+        response = self.client.get('/admin/statistics/export/csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'text/csv')
+
+        # Check headers
+        content = response.data.decode('utf-8')
+        self.assertIn('TEST01', content)
+        self.assertIn('John Doe', content)
+        self.assertIn('Gabon', content)
+        self.assertIn('100', content) # view count
 
 if __name__ == '__main__':
     unittest.main()
