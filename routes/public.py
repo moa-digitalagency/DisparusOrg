@@ -6,6 +6,7 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 import os
+import random
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, flash
 from werkzeug.utils import secure_filename
@@ -58,7 +59,7 @@ def allowed_file(filename, file_obj=None):
     return True
 
 
-def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None):
+def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None, commit=True):
     """Log public page views"""
     try:
         log = ActivityLog(
@@ -74,9 +75,11 @@ def log_public_activity(action, action_type='view', target_type=None, target_id=
             is_security_event=False
         )
         db.session.add(log)
-        db.session.commit()
+        if commit:
+            db.session.commit()
     except Exception:
-        db.session.rollback()
+        if commit:
+            db.session.rollback()
 
 
 def get_locale():
@@ -338,15 +341,32 @@ async def report():
 @public_bp.route('/disparu/<public_id>')
 def detail(public_id):
     disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
-    log_public_activity('Fiche disparu', target_type='disparu', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
-    try:
-        db.session.execute(
-            db.text("UPDATE disparus_flask SET view_count = COALESCE(view_count, 0) + 1 WHERE id = :id"),
-            {"id": disparu.id}
-        )
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
+
+    # PERFORMANCE OPTIMIZATION:
+    # To avoid a database write on every read operation (view count + activity log),
+    # we use a sampling mechanism. Only 1 out of 10 views will trigger a DB write.
+    sampling_rate = 10
+    if random.random() < (1.0 / sampling_rate):
+        try:
+            # We combine the activity log and the view count update into a SINGLE transaction
+            # to minimize disk I/O and improve concurrency.
+            log_public_activity(
+                'Fiche disparu',
+                target_type='disparu',
+                target_id=disparu.id,
+                target_name=f'{disparu.first_name} {disparu.last_name}',
+                commit=False
+            )
+
+            # Increment by sampling_rate to maintain statistical accuracy
+            db.session.execute(
+                db.text("UPDATE disparus_flask SET view_count = COALESCE(view_count, 0) + :rate WHERE id = :id"),
+                {"id": disparu.id, "rate": sampling_rate}
+            )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
     contributions = Contribution.query.filter_by(disparu_id=disparu.id).order_by(Contribution.created_at.desc()).all()
     return render_template('detail.html', person=disparu, contributions=contributions)
 
