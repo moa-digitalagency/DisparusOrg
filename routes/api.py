@@ -160,8 +160,29 @@ def get_nearby_disparus():
 
     # Fallback: if not enough results, search everything (preserves behavior for distant matches)
     if len(disparus) < limit:
-        disparus = get_query(None).all()
-    
+        # Optimization: Fetch only IDs and coordinates to find nearest neighbors
+        # avoid loading full objects for the entire dataset
+        q = get_query(None).with_entities(Disparu.id, Disparu.latitude, Disparu.longitude)
+        candidates = q.all()
+
+        # Calculate distance for all candidates (lightweight operation)
+        cand_dists = []
+        for cid, clat, clng in candidates:
+             dist = haversine_distance(user_lat, user_lng, clat, clng)
+             cand_dists.append((cid, dist))
+
+        # Sort by distance and keep top 'limit'
+        cand_dists.sort(key=lambda x: x[1])
+        top_candidates = cand_dists[:limit]
+        top_ids = [c[0] for c in top_candidates]
+
+        if top_ids:
+             # Fetch full objects for the closest ones
+             # We must use in_() which doesn't preserve order, so we re-sort later
+             disparus = Disparu.query.filter(Disparu.id.in_(top_ids)).all()
+        else:
+             disparus = []
+
     results = []
     for d in disparus:
         dist = haversine_distance(user_lat, user_lng, d.latitude, d.longitude)
