@@ -539,40 +539,44 @@ def export_stats_csv():
     if start_date:
         q = q.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
 
-    disparus = q.all()
-
     from utils.i18n import get_translation
     locale = request.cookies.get('locale', 'fr')
 
-    output = io.StringIO()
-    writer = csv.writer(output)
+    def generate():
+        output = io.StringIO()
+        writer = csv.writer(output)
 
-    headers = [
-        get_translation('admin.export.header.id', locale),
-        get_translation('admin.export.header.name', locale),
-        get_translation('admin.export.header.type', locale),
-        get_translation('admin.export.header.status', locale),
-        get_translation('admin.export.header.country', locale),
-        get_translation('admin.export.header.city', locale),
-        get_translation('admin.export.header.views', locale),
-        get_translation('admin.export.header.created_at', locale)
-    ]
-    writer.writerow(headers)
+        headers = [
+            get_translation('admin.export.header.id', locale),
+            get_translation('admin.export.header.name', locale),
+            get_translation('admin.export.header.type', locale),
+            get_translation('admin.export.header.status', locale),
+            get_translation('admin.export.header.country', locale),
+            get_translation('admin.export.header.city', locale),
+            get_translation('admin.export.header.views', locale),
+            get_translation('admin.export.header.created_at', locale)
+        ]
+        writer.writerow(headers)
+        yield output.getvalue()
+        output.seek(0)
+        output.truncate(0)
 
-    for d in disparus:
-        writer.writerow([
-            d.public_id,
-            f"{d.first_name} {d.last_name}",
-            d.person_type,
-            d.status,
-            d.country,
-            d.city,
-            d.view_count,
-            d.created_at.strftime('%Y-%m-%d') if d.created_at else ''
-        ])
+        for d in q.yield_per(100):
+            writer.writerow([
+                d.public_id,
+                f"{d.first_name} {d.last_name}",
+                d.person_type,
+                d.status,
+                d.country,
+                d.city,
+                d.view_count,
+                d.created_at.strftime('%Y-%m-%d') if d.created_at else ''
+            ])
+            yield output.getvalue()
+            output.seek(0)
+            output.truncate(0)
 
-    response = make_response(output.getvalue())
-    response.headers['Content-Type'] = 'text/csv'
+    response = Response(stream_with_context(generate()), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'attachment; filename=statistiques.csv'
     return response
 
