@@ -14,8 +14,25 @@ from flask_wtf.csrf import CSRFProtect
 from models import db
 from routes import register_blueprints
 from config import config
+import math
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 csrf = CSRFProtect()
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    if hasattr(dbapi_connection, 'create_function'):
+        try:
+             dbapi_connection.create_function("sin", 1, math.sin)
+             dbapi_connection.create_function("cos", 1, math.cos)
+             dbapi_connection.create_function("acos", 1, math.acos)
+             dbapi_connection.create_function("radians", 1, math.radians)
+             dbapi_connection.create_function("sqrt", 1, math.sqrt)
+             dbapi_connection.create_function("atan2", 2, math.atan2)
+        except Exception:
+             pass
 
 
 def get_locale():

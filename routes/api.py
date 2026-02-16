@@ -45,16 +45,49 @@ def get_disparus():
     if country:
         q = q.filter_by(country=country)
     
-    disparus = q.order_by(Disparu.created_at.desc()).limit(limit).all()
-    
-    result = [d.to_dict() for d in disparus]
-    
     if user_lat and user_lng:
-        for d in result:
-            d['distance'] = haversine_distance(user_lat, user_lng, d.get('latitude'), d.get('longitude'))
-        result.sort(key=lambda x: x.get('distance', float('inf')))
-    
-    return jsonify(result)
+        # Calculate distance in SQL for efficiency and pagination
+        # Use Haversine formula
+        R = 6371  # Earth radius in km
+
+        lat1 = db.func.radians(user_lat)
+        lon1 = db.func.radians(user_lng)
+        lat2 = db.func.radians(Disparu.latitude)
+        lon2 = db.func.radians(Disparu.longitude)
+
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+
+        a = db.func.sin(dlat / 2) * db.func.sin(dlat / 2) + \
+            db.func.cos(lat1) * db.func.cos(lat2) * \
+            db.func.sin(dlon / 2) * db.func.sin(dlon / 2)
+
+        c = 2 * db.func.atan2(db.func.sqrt(a), db.func.sqrt(1 - a))
+
+        distance_expr = R * c
+
+        # Filter out records without location
+        q = q.filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))
+
+        # Select Disparu and distance
+        # Order by distance
+        results = q.with_entities(Disparu, distance_expr.label('distance')) \
+                   .order_by('distance') \
+                   .limit(limit) \
+                   .all()
+
+        final_result = []
+        for d, dist in results:
+            d_dict = d.to_dict()
+            d_dict['distance'] = dist
+            final_result.append(d_dict)
+
+        return jsonify(final_result)
+
+    else:
+        disparus = q.order_by(Disparu.created_at.desc()).limit(limit).all()
+        result = [d.to_dict() for d in disparus]
+        return jsonify(result)
 
 
 @api_bp.route('/map-data')
