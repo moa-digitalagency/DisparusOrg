@@ -17,13 +17,13 @@ class Disparu(db.Model):
     person_type = db.Column(db.String(20), nullable=False)
     animal_type = db.Column(db.String(50))  # e.g., 'dog', 'cat', 'other'
     breed = db.Column(db.String(100))       # e.g., 'Labrador', 'Siamese'
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(100), nullable=False, index=True)
+    last_name = db.Column(db.String(100), nullable=False, index=True)
     age = db.Column(db.Integer, nullable=False)
     sex = db.Column(db.String(20), nullable=False)
     
     country = db.Column(db.String(100), nullable=False)
-    city = db.Column(db.String(100), nullable=False)
+    city = db.Column(db.String(100), nullable=False, index=True)
     
     physical_description = db.Column(db.Text, nullable=False)
     photo_url = db.Column(db.String(500))
