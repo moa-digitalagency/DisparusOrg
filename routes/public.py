@@ -60,9 +60,22 @@ def allowed_file(filename, file_obj=None):
     return True
 
 
-def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None, commit=True):
+def log_public_activity(action, action_type='view', target_type=None, target_id=None, target_name=None, commit=True, ip_address=None, user_agent=None):
     """Log public page views"""
     try:
+        # Fallback to request context if not provided
+        if not ip_address:
+            try:
+                ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+            except RuntimeError:
+                ip_address = 'unknown'
+
+        if not user_agent:
+            try:
+                user_agent = request.headers.get('User-Agent', '')[:500]
+            except RuntimeError:
+                user_agent = 'unknown'
+
         log = ActivityLog(
             username='visiteur',
             action=action,
@@ -70,8 +83,8 @@ def log_public_activity(action, action_type='view', target_type=None, target_id=
             target_type=target_type,
             target_id=str(target_id) if target_id else None,
             target_name=target_name,
-            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr),
-            user_agent=request.headers.get('User-Agent', '')[:500],
+            ip_address=ip_address,
+            user_agent=user_agent,
             severity='info',
             is_security_event=False
         )
@@ -236,14 +249,18 @@ def search():
 @public_bp.route('/signaler', methods=['GET', 'POST'])
 @rate_limit(max_requests=10, window=3600)
 async def report():
+    # Capture ip/ua for logging from thread
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.headers.get('User-Agent', '')[:500]
+
     if request.method == 'GET':
-        log_public_activity('Page signaler', target_type='report')
+        await sync_to_async(log_public_activity)('Page signaler', target_type='report', ip_address=ip_address, user_agent=user_agent)
     if request.method == 'POST':
         try:
             if not request.form.get('consent'):
                 raise ValueError("Vous devez accepter les conditions pour publier un signalement.")
 
-            photo_url = None
+            photo_file = None
             if 'photo' in request.files:
                 file = request.files['photo']
                 if file and file.filename:
@@ -261,74 +278,19 @@ async def report():
                                              countries_cities=COUNTRIES_CITIES,
                                              blocked_attempt=log_entry,
                                              error=f'Contenu non autorisé : {reason}')
+                    photo_file = file
 
-                    unique_name = f"{generate_public_id()}_{filename}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
-                    file.save(filepath)
-                    photo_url = f"/static/uploads/{unique_name}"
+            form_data = request.form.to_dict()
+            upload_folder = current_app.config['UPLOAD_FOLDER']
             
-            contacts = []
-            for i in range(3):
-                name = request.form.get(f'contact_name_{i}')
-                phone = request.form.get(f'contact_phone_{i}')
-                if name and phone:
-                    contacts.append({
-                        'name': name,
-                        'phone': phone,
-                        'email': request.form.get(f'contact_email_{i}', ''),
-                        'relation': request.form.get(f'contact_relation_{i}', '')
-                    })
-            
-            lat = request.form.get('latitude')
-            lng = request.form.get('longitude')
-            
-            person_type = request.form['person_type']
-            animal_type = None
-            breed = None
-            last_name = request.form.get('last_name')
-
-            circumstances = request.form.get('circumstances', '')
-            objects = request.form.get('objects', '')
-
-            if person_type == 'animal':
-                animal_type = request.form.get('animal_type')
-                breed = request.form.get('breed')
-                # Handle NOT NULL constraint for last_name
-                if not last_name:
-                    last_name = "-"
-                # Force empty strings for animal
-                circumstances = ""
-                objects = ""
-
-            disparu = Disparu(
-                public_id=generate_public_id(),
-                person_type=person_type,
-                animal_type=animal_type,
-                breed=breed,
-                first_name=request.form['first_name'],
-                last_name=last_name,
-                age=int(request.form.get('age')) if request.form.get('age') else -1,
-                sex=request.form['sex'],
-                country=request.form['country'],
-                city=request.form['city'],
-                physical_description=request.form['physical_description'],
-                photo_url=photo_url,
-                disappearance_date=datetime.fromisoformat(request.form['disappearance_date']),
-                circumstances=circumstances,
-                latitude=float(lat) if lat else None,
-                longitude=float(lng) if lng else None,
-                clothing=request.form.get('clothing', ''),
-                objects=objects,
-                contacts=contacts,
+            # Offload blocking I/O to thread pool
+            public_id = await sync_to_async(_handle_report_submission_sync)(
+                form_data, photo_file, upload_folder
             )
             
-            db.session.add(disparu)
-            db.session.commit()
-            
-            return redirect(url_for('public.detail', public_id=disparu.public_id))
+            return redirect(url_for('public.detail', public_id=public_id))
         
         except Exception as e:
-            db.session.rollback()
             return render_template('report.html', 
                                  countries=get_countries(),
                                  countries_cities=COUNTRIES_CITIES,
@@ -375,11 +337,24 @@ def detail(public_id):
 @public_bp.route('/disparu/<public_id>/contribute', methods=['POST'])
 @rate_limit(max_requests=20, window=3600)
 async def contribute(public_id):
-    disparu = Disparu.query.filter_by(public_id=public_id).first_or_404()
-    log_public_activity('Contribution ajoutee', action_type='create', target_type='contribution', target_id=disparu.id, target_name=f'{disparu.first_name} {disparu.last_name}')
+    disparu = await sync_to_async(get_disparu_sync)(public_id)
+
+    # Capture ip/ua for logging from thread
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.headers.get('User-Agent', '')[:500]
+
+    await sync_to_async(log_public_activity)(
+        'Contribution ajoutee',
+        action_type='create',
+        target_type='contribution',
+        target_id=disparu.id,
+        target_name=f'{disparu.first_name} {disparu.last_name}',
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
     
     try:
-        proof_url = None
+        proof_file = None
         if 'proof' in request.files:
             file = request.files['proof']
             if file and file.filename:
@@ -387,50 +362,20 @@ async def contribute(public_id):
                 is_safe, reason, log_entry = await check_image_content(file)
                 if not is_safe:
                     flash(f'Contenu non autorisé : {reason}', 'error')
-                    contributions = Contribution.query.filter_by(disparu_id=disparu.id).order_by(Contribution.created_at.desc()).all()
+                    contributions = await sync_to_async(get_contributions_sync)(disparu.id)
                     return render_template('detail.html', person=disparu, contributions=contributions, blocked_attempt=log_entry)
-
-                filename = secure_filename(file.filename)
-                unique_name = f"proof_{generate_public_id()}_{filename}"
-                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
-                file.save(filepath)
-                proof_url = f"/static/uploads/{unique_name}"
+                proof_file = file
         
-        lat = request.form.get('latitude')
-        lng = request.form.get('longitude')
-        obs_date = request.form.get('observation_date')
+        form_data = request.form.to_dict()
+        upload_folder = current_app.config['UPLOAD_FOLDER']
         
-        proposed_status = None
-        if request.form['contribution_type'] == 'found':
-            person_state = request.form.get('person_state')
-            if person_state == 'deceased':
-                proposed_status = 'found_deceased'
-            else:
-                proposed_status = 'found_alive'
-
-        contribution = Contribution(
-            disparu_id=disparu.id,
-            contribution_type=request.form['contribution_type'],
-            details=request.form['details'],
-            latitude=float(lat) if lat else None,
-            longitude=float(lng) if lng else None,
-            location_name=request.form.get('location_name', ''),
-            observation_date=datetime.fromisoformat(obs_date) if obs_date else None,
-            proof_url=proof_url,
-            proof_source=request.form.get('proof_source'),
-            person_state=request.form.get('person_state'),
-            proposed_status=proposed_status,
-            return_circumstances=request.form.get('return_circumstances'),
-            contact_name=request.form.get('contact_name'),
-            contact_phone=request.form.get('contact_phone'),
-            contact_email=request.form.get('contact_email'),
+        await sync_to_async(_handle_contribution_submission_sync)(
+            disparu.id, form_data, proof_file, upload_folder
         )
         
-        db.session.add(contribution)
-        db.session.commit()
-        
     except Exception as e:
-        db.session.rollback()
+        # _handle_contribution_submission_sync handles its own rollback
+        pass
     
     return redirect(url_for('public.detail', public_id=public_id))
 
@@ -513,8 +458,129 @@ def download_pdf(public_id):
     )
 
 
+def _handle_report_submission_sync(form_data, photo_file, upload_folder):
+    """Sync helper for creating a new report with photo and DB commit"""
+    try:
+        photo_url = None
+        if photo_file and photo_file.filename:
+            filename = secure_filename(photo_file.filename)
+            unique_name = f"{generate_public_id()}_{filename}"
+            filepath = os.path.join(upload_folder, unique_name)
+            photo_file.save(filepath)
+            photo_url = f"/static/uploads/{unique_name}"
+
+        person_type = form_data.get('person_type')
+        animal_type = None
+        breed = None
+        last_name = form_data.get('last_name')
+        circumstances = form_data.get('circumstances', '')
+        objects = form_data.get('objects', '')
+
+        if person_type == 'animal':
+            animal_type = form_data.get('animal_type')
+            breed = form_data.get('breed')
+            if not last_name:
+                last_name = "-"
+            circumstances = ""
+            objects = ""
+
+        contacts = []
+        for i in range(3):
+            name = form_data.get(f'contact_name_{i}')
+            phone = form_data.get(f'contact_phone_{i}')
+            if name and phone:
+                contacts.append({
+                    'name': name,
+                    'phone': phone,
+                    'email': form_data.get(f'contact_email_{i}', ''),
+                    'relation': form_data.get(f'contact_relation_{i}', '')
+                })
+
+        disparu = Disparu(
+            public_id=generate_public_id(),
+            person_type=person_type,
+            animal_type=animal_type,
+            breed=breed,
+            first_name=form_data.get('first_name'),
+            last_name=last_name,
+            age=int(form_data.get('age')) if form_data.get('age') else -1,
+            sex=form_data.get('sex'),
+            country=form_data.get('country'),
+            city=form_data.get('city'),
+            physical_description=form_data.get('physical_description'),
+            photo_url=photo_url,
+            disappearance_date=datetime.fromisoformat(form_data.get('disappearance_date')),
+            circumstances=circumstances,
+            latitude=float(form_data.get('latitude')) if form_data.get('latitude') else None,
+            longitude=float(form_data.get('longitude')) if form_data.get('longitude') else None,
+            clothing=form_data.get('clothing', ''),
+            objects=objects,
+            contacts=contacts,
+        )
+
+        db.session.add(disparu)
+        db.session.commit()
+        return disparu.public_id
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def _handle_contribution_submission_sync(disparu_id, form_data, proof_file, upload_folder):
+    """Sync helper for creating a new contribution with proof and DB commit"""
+    try:
+        proof_url = None
+        if proof_file and proof_file.filename:
+            filename = secure_filename(proof_file.filename)
+            unique_name = f"proof_{generate_public_id()}_{filename}"
+            filepath = os.path.join(upload_folder, unique_name)
+            proof_file.save(filepath)
+            proof_url = f"/static/uploads/{unique_name}"
+
+        lat = form_data.get('latitude')
+        lng = form_data.get('longitude')
+        obs_date = form_data.get('observation_date')
+
+        proposed_status = None
+        if form_data.get('contribution_type') == 'found':
+            person_state = form_data.get('person_state')
+            if person_state == 'deceased':
+                proposed_status = 'found_deceased'
+            else:
+                proposed_status = 'found_alive'
+
+        contribution = Contribution(
+            disparu_id=disparu_id,
+            contribution_type=form_data.get('contribution_type'),
+            details=form_data.get('details'),
+            latitude=float(lat) if lat else None,
+            longitude=float(lng) if lng else None,
+            location_name=form_data.get('location_name', ''),
+            observation_date=datetime.fromisoformat(obs_date) if obs_date else None,
+            proof_url=proof_url,
+            proof_source=form_data.get('proof_source'),
+            person_state=form_data.get('person_state'),
+            proposed_status=proposed_status,
+            return_circumstances=form_data.get('return_circumstances'),
+            contact_name=form_data.get('contact_name'),
+            contact_phone=form_data.get('contact_phone'),
+            contact_email=form_data.get('contact_email'),
+        )
+
+        db.session.add(contribution)
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
 def get_disparu_sync(public_id):
     return Disparu.query.filter_by(public_id=public_id).first_or_404()
+
+
+def get_contributions_sync(disparu_id):
+    return Contribution.query.filter_by(disparu_id=disparu_id).order_by(Contribution.created_at.desc()).all()
 
 
 def log_download_sync(disparu_id, public_id, first_name, last_name, ip_address, user_agent):
@@ -524,7 +590,9 @@ def log_download_sync(disparu_id, public_id, first_name, last_name, ip_address, 
         action_type='download',
         target_type='disparu',
         target_id=disparu_id,
-        target_name=f'{first_name} {last_name}'
+        target_name=f'{first_name} {last_name}',
+        ip_address=ip_address,
+        user_agent=user_agent
     )
     
     # Log download
