@@ -1,28 +1,21 @@
 """
  * Nom de l'application : DISPARUS.ORG
- * Description : Routes pour l'administration
+ * Description : Routes pour l'administration (Refactored)
  * Produit de : MOA Digital Agency, www.myoneart.com
  * Fait par : Aisance KALONJI, www.aisancekalonji.com
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 import os
-import json
-import csv
-import io
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, make_response, current_app, stream_with_context
 from werkzeug.utils import secure_filename
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
 
 from models import db, Disparu, Contribution, ModerationReport, User, Role, ActivityLog, Download, SiteSetting, ContentModerationLog
 from models.settings import invalidate_settings_cache, get_all_settings_dict, DEFAULT_SETTINGS
-from services.analytics import get_platform_stats
 from utils.geo import get_countries
 from security.rate_limit import rate_limit
+from services import stats_service, export_manager, data_manager
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -124,48 +117,13 @@ def dashboard():
     except Exception as e:
         import logging
         logging.warning(f"Could not log activity: {e}")
-    # Optimization: Fetch all Disparu stats in a single query
-    disparu_stats = db.session.query(
-        db.func.count(Disparu.id).label('total'),
-        db.func.count(db.case((Disparu.status == 'missing', 1))).label('missing'),
-        db.func.count(db.case((Disparu.status.in_(['found', 'found_alive']), 1))).label('found'),
-        db.func.count(db.case((Disparu.status.in_(['deceased', 'found_deceased']), 1))).label('deceased'),
-        db.func.count(db.case((Disparu.is_flagged == True, 1))).label('flagged'),
-        db.func.count(db.distinct(Disparu.country)).label('countries')
-    ).one()
 
-    stats = {
-        'total': disparu_stats.total,
-        'missing': disparu_stats.missing,
-        'found': disparu_stats.found,
-        'deceased': disparu_stats.deceased,
-        'flagged': disparu_stats.flagged,
-        'contributions': Contribution.query.count(),
-        'countries': disparu_stats.countries or 0,
-    }
-    # Optimization: Only fetch 5 recent for the list
-    recent_disparus = Disparu.query.order_by(Disparu.created_at.desc()).limit(5).all()
+    data = stats_service.get_dashboard_stats()
 
-    # Optimization: For map, fetch only needed fields to avoid hydrating all objects
-    # Limit to 1000 most recent for performance
-    map_data = db.session.query(
-        Disparu.latitude, Disparu.longitude, Disparu.first_name,
-        Disparu.last_name, Disparu.public_id, Disparu.status, Disparu.is_flagged
-    ).filter(Disparu.latitude.isnot(None), Disparu.longitude.isnot(None))\
-    .order_by(Disparu.created_at.desc())\
-    .limit(1000).all()
-
-    disparus_list = [{
-        'latitude': d.latitude,
-        'longitude': d.longitude,
-        'first_name': d.first_name,
-        'last_name': d.last_name,
-        'public_id': d.public_id,
-        'status': d.status,
-        'is_flagged': d.is_flagged
-    } for d in map_data]
-
-    return render_template('admin.html', stats=stats, disparus=recent_disparus, disparus_list=disparus_list)
+    return render_template('admin.html',
+                         stats=data['stats'],
+                         disparus=data['recent_disparus'],
+                         disparus_list=data['map_list'])
 
 
 @admin_bp.route('/moderation')
@@ -377,123 +335,6 @@ def contributions():
     return render_template('admin_contributions.html', contributions=contributions)
 
 
-def _get_statistics_data(period='all', start_date_str=None, end_date_str=None):
-    """Helper to gather all platform statistics with filtering"""
-    start_date = None
-    end_date = datetime.now()
-
-    if period == '1d':
-        start_date = end_date - timedelta(days=1)
-    elif period == '7d':
-        start_date = end_date - timedelta(days=7)
-    elif period == '1m':
-        start_date = end_date - timedelta(days=30)
-    elif period == 'custom' and start_date_str:
-        try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-            if end_date_str:
-                 end_date_parsed = datetime.strptime(end_date_str, '%Y-%m-%d')
-                 # Set end_date to end of that day
-                 end_date = end_date_parsed + timedelta(days=1) - timedelta(seconds=1)
-        except ValueError:
-            pass
-
-    # Base queries
-    q_disparu = Disparu.query
-
-    if start_date:
-        q_disparu = q_disparu.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-
-    # Stats Aggregation
-    aggregated_stats = q_disparu.with_entities(
-        db.func.sum(db.case((Disparu.person_type != 'animal', 1), else_=0)).label('total_persons'),
-        db.func.sum(db.case((Disparu.person_type == 'animal', 1), else_=0)).label('total_animals'),
-        db.func.sum(db.case((db.and_(Disparu.person_type != 'animal', Disparu.status.in_(['found', 'found_alive'])), 1), else_=0)).label('found_persons'),
-        db.func.sum(db.case((db.and_(Disparu.person_type == 'animal', Disparu.status.in_(['found', 'found_alive'])), 1), else_=0)).label('found_animals'),
-        db.func.sum(db.case((db.and_(Disparu.person_type != 'animal', Disparu.status.in_(['deceased', 'found_deceased'])), 1), else_=0)).label('deceased_persons'),
-        db.func.sum(db.case((db.and_(Disparu.person_type == 'animal', Disparu.status.in_(['deceased', 'found_deceased'])), 1), else_=0)).label('deceased_animals'),
-        db.func.sum(db.case((Disparu.person_type != 'animal', Disparu.view_count), else_=0)).label('views_persons'),
-        db.func.sum(db.case((Disparu.person_type == 'animal', Disparu.view_count), else_=0)).label('views_animals')
-    ).one()
-
-    total_persons = aggregated_stats.total_persons or 0
-    total_animals = aggregated_stats.total_animals or 0
-    found_persons = aggregated_stats.found_persons or 0
-    found_animals = aggregated_stats.found_animals or 0
-    deceased_persons = aggregated_stats.deceased_persons or 0
-    deceased_animals = aggregated_stats.deceased_animals or 0
-    views_persons = aggregated_stats.views_persons or 0
-    views_animals = aggregated_stats.views_animals or 0
-
-    q_downloads = db.session.query(Download).join(Disparu)
-    if start_date:
-        q_downloads = q_downloads.filter(Download.created_at >= start_date, Download.created_at <= end_date)
-
-    downloads_persons = q_downloads.filter(Disparu.person_type != 'animal').count()
-    downloads_animals = q_downloads.filter(Disparu.person_type == 'animal').count()
-    
-    stats = {
-        'total': total_persons + total_animals,
-        'total_persons': total_persons,
-        'total_animals': total_animals,
-        'found': found_persons + found_animals,
-        'found_persons': found_persons,
-        'found_animals': found_animals,
-        'deceased': deceased_persons + deceased_animals,
-        'deceased_persons': deceased_persons,
-        'deceased_animals': deceased_animals,
-        'total_views': int(views_persons + views_animals),
-        'views_persons': int(views_persons),
-        'views_animals': int(views_animals),
-        'total_downloads': downloads_persons + downloads_animals,
-        'downloads_persons': downloads_persons,
-        'downloads_animals': downloads_animals,
-        'contributions': Contribution.query.count(),
-        'flagged': Disparu.query.filter_by(is_flagged=True).count(),
-        'countries': db.session.query(db.func.count(db.distinct(Disparu.country))).scalar() or 0
-    }
-    
-    by_country = db.session.query(Disparu.country, db.func.count(Disparu.id))
-    if start_date:
-        by_country = by_country.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-    by_country = by_country.group_by(Disparu.country).order_by(db.func.count(Disparu.id).desc()).limit(10).all()
-    
-    by_status = db.session.query(Disparu.status, db.func.count(Disparu.id))
-    if start_date:
-        by_status = by_status.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-    by_status = by_status.group_by(Disparu.status).all()
-    
-    q_most_viewed = Disparu.query
-    if start_date:
-        q_most_viewed = q_most_viewed.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-    all_files_stats = q_most_viewed.order_by(Disparu.view_count.desc()).limit(100).all()
-    
-    most_downloaded = db.session.query(
-        Disparu.public_id, Disparu.first_name, Disparu.last_name, Disparu.city, Disparu.country,
-        db.func.count(Download.id).label('download_count')
-    ).join(Download, Download.disparu_public_id == Disparu.public_id)
-    if start_date:
-        most_downloaded = most_downloaded.filter(Download.created_at >= start_date, Download.created_at <= end_date)
-    most_downloaded = most_downloaded.group_by(
-        Disparu.public_id, Disparu.first_name, Disparu.last_name, Disparu.city, Disparu.country
-    ).order_by(db.func.count(Download.id).desc()).limit(10).all()
-    
-    downloads_by_type = db.session.query(Download.file_type, db.func.count(Download.id))
-    if start_date:
-        downloads_by_type = downloads_by_type.filter(Download.created_at >= start_date, Download.created_at <= end_date)
-    downloads_by_type = downloads_by_type.group_by(Download.file_type).order_by(db.func.count(Download.id).desc()).all()
-    
-    return {
-        'stats': stats,
-        'by_country': by_country,
-        'by_status': by_status,
-        'all_files_stats': all_files_stats,
-        'most_downloaded': most_downloaded,
-        'downloads_by_type': downloads_by_type,
-        'filters': {'period': period, 'start_date': start_date_str, 'end_date': end_date_str}
-    }
-
-
 @admin_bp.route('/statistics')
 @admin_required
 def statistics():
@@ -503,7 +344,7 @@ def statistics():
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
 
-    data = _get_statistics_data(period, start_date_str, end_date_str)
+    data = stats_service.get_statistics_data(period, start_date_str, end_date_str)
 
     return render_template('admin_statistics.html', 
                          stats=data['stats'],
@@ -518,93 +359,27 @@ def statistics():
 @admin_bp.route('/statistics/export/csv')
 @admin_required
 def export_stats_csv():
-    # Helper to calculate stats (duplicated logic, should ideally be refactored into a service)
-    # For now, we reuse the logic briefly or just dump the 'all_files_stats' as requested
-
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
-
-    start_date = None
-    end_date = datetime.now()
-
-    if start_date_str:
-        try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-            if end_date_str:
-                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(days=1)
-        except ValueError:
-            pass
-
-    q = Disparu.query
-    if start_date:
-        q = q.filter(Disparu.created_at >= start_date, Disparu.created_at <= end_date)
-
-    from utils.i18n import get_translation
     locale = request.cookies.get('locale', 'fr')
 
-    def generate():
-        output = io.StringIO()
-        writer = csv.writer(output)
-
-        headers = [
-            get_translation('admin.export.header.id', locale),
-            get_translation('admin.export.header.name', locale),
-            get_translation('admin.export.header.type', locale),
-            get_translation('admin.export.header.status', locale),
-            get_translation('admin.export.header.country', locale),
-            get_translation('admin.export.header.city', locale),
-            get_translation('admin.export.header.views', locale),
-            get_translation('admin.export.header.created_at', locale)
-        ]
-        writer.writerow(headers)
-        yield output.getvalue()
-        output.seek(0)
-        output.truncate(0)
-
-        for d in q.yield_per(100):
-            writer.writerow([
-                d.public_id,
-                f"{d.first_name} {d.last_name}",
-                d.person_type,
-                d.status,
-                d.country,
-                d.city,
-                d.view_count,
-                d.created_at.strftime('%Y-%m-%d') if d.created_at else ''
-            ])
-            yield output.getvalue()
-            output.seek(0)
-            output.truncate(0)
-
-    response = Response(stream_with_context(generate()), mimetype='text/csv')
+    stream = export_manager.generate_stats_csv_stream(start_date_str, end_date_str, locale)
+    response = Response(stream_with_context(stream), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'attachment; filename=statistiques.csv'
     return response
+
 
 @admin_bp.route('/statistics/export/pdf')
 @admin_required
 def export_stats_pdf():
-    from utils.pdf_gen import generate_statistics_pdf
-    from utils.i18n import get_translation
-
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
     period = request.args.get('period', 'all')
-
-    data = _get_statistics_data(period, start_date_str, end_date_str)
-
     locale = request.cookies.get('locale', 'fr')
-
-    def t(key, **kwargs):
-        text = get_translation(key, locale)
-        if kwargs:
-            try:
-                return text.format(**kwargs)
-            except:
-                return text
-        return text
-
     generated_by = session.get('admin_username', 'Admin')
-    pdf_buffer = generate_statistics_pdf(data, t, locale=locale, generated_by=generated_by)
+
+    data = stats_service.get_statistics_data(period, start_date_str, end_date_str)
+    pdf_buffer = export_manager.generate_stats_pdf(data, locale, generated_by)
 
     if not pdf_buffer:
         flash("Erreur lors de la génération du PDF", "error")
@@ -621,42 +396,9 @@ def export_stats_pdf():
 def map_view():
     log_activity('Consultation carte', action_type='view', target_type='map')
 
-    # Optimized query: select only needed fields
-    results = db.session.query(
-        Disparu.id,
-        Disparu.public_id,
-        Disparu.first_name,
-        Disparu.last_name,
-        Disparu.latitude,
-        Disparu.longitude,
-        Disparu.country,
-        Disparu.city,
-        Disparu.status,
-        Disparu.is_flagged,
-        Disparu.photo_url,
-        Disparu.disappearance_date,
-        Disparu.person_type
-    ).all()
+    data = stats_service.get_map_data()
 
-    disparus_list = []
-    for row in results:
-        disparus_list.append({
-            'id': row.id,
-            'public_id': row.public_id,
-            'first_name': row.first_name,
-            'last_name': row.last_name,
-            'latitude': row.latitude,
-            'longitude': row.longitude,
-            'country': row.country,
-            'city': row.city,
-            'status': row.status,
-            'is_flagged': row.is_flagged,
-            'photo_url': row.photo_url,
-            'disappearance_date': row.disappearance_date.isoformat() if row.disappearance_date else None,
-            'person_type': row.person_type
-        })
-
-    return render_template('admin_map.html', disparus=results, disparus_list=disparus_list)
+    return render_template('admin_map.html', disparus=data['results'], disparus_list=data['disparus_list'])
 
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
@@ -1137,80 +879,22 @@ def export_data():
     country = request.form.get('country', '')
     export_format = request.form.get('format', 'json')
     
-    q = Disparu.query
-    if country:
-        q = q.filter_by(country=country)
-    
     log_activity(f'Export donnees {export_format.upper()} - {country or "Tous"}', action_type='export', target_type='data', severity='info')
     
     filename = f"disparus_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-    def get_disparu_dict(d):
-        return {
-            'public_id': d.public_id,
-            'first_name': d.first_name,
-            'last_name': d.last_name,
-            'age': d.age,
-            'sex': d.sex,
-            'person_type': d.person_type,
-            'country': d.country,
-            'city': d.city,
-            'latitude': d.latitude,
-            'longitude': d.longitude,
-            'physical_description': d.physical_description,
-            'circumstances': d.circumstances,
-            'contacts': d.contacts,
-            'status': d.status,
-            'created_at': d.created_at.isoformat() if d.created_at else None,
-            'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None
-        }
-
     if export_format == 'csv':
-        def generate_csv():
-            output = io.StringIO()
-            fieldnames = [
-                'public_id', 'first_name', 'last_name', 'age', 'sex', 'person_type',
-                'country', 'city', 'latitude', 'longitude', 'physical_description',
-                'circumstances', 'contacts', 'status', 'created_at', 'disappearance_date'
-            ]
-            writer = csv.DictWriter(output, fieldnames=fieldnames)
-            writer.writeheader()
-            yield output.getvalue()
-            output.seek(0)
-            output.truncate(0)
-
-            for d in q.yield_per(100):
-                item = get_disparu_dict(d)
-
-                sanitized_row = {}
-                for k, v in item.items():
-                    if isinstance(v, str) and v.startswith(('=', '+', '-', '@')):
-                        sanitized_row[k] = "'" + v
-                    else:
-                        sanitized_row[k] = v
-
-                writer.writerow(sanitized_row)
-                yield output.getvalue()
-                output.seek(0)
-                output.truncate(0)
-
-        response = Response(stream_with_context(generate_csv()), mimetype='text/csv; charset=utf-8')
-        response.headers['Content-Disposition'] = f'attachment; filename={filename}.csv'
-        return response
+        stream = export_manager.generate_data_csv_stream(country)
+        mimetype = 'text/csv; charset=utf-8'
+        ext = 'csv'
     else:
-        def generate_json():
-            yield '['
-            first = True
-            for d in q.yield_per(100):
-                if not first:
-                    yield ','
-                first = False
-                yield json.dumps(get_disparu_dict(d), ensure_ascii=False)
-            yield ']'
+        stream = export_manager.generate_data_json_stream(country)
+        mimetype = 'application/json; charset=utf-8'
+        ext = 'json'
 
-        response = Response(stream_with_context(generate_json()), mimetype='application/json; charset=utf-8')
-        response.headers['Content-Disposition'] = f'attachment; filename={filename}.json'
-        return response
+    response = Response(stream_with_context(stream), mimetype=mimetype)
+    response.headers['Content-Disposition'] = f'attachment; filename={filename}.{ext}'
+    return response
 
 
 @admin_bp.route('/data/backup', methods=['POST'])
@@ -1222,113 +906,9 @@ def backup_data():
     
     filename = f"backup_{country or 'all'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
-    def generate_backup():
-        # Header
-        yield '{'
-        yield f'"version": "1.0",'
-        yield f'"created_at": "{datetime.now().isoformat()}",'
-        yield f'"country": "{country or "all"}",'
+    stream = data_manager.generate_backup_stream(country)
 
-        # Disparus
-        yield '"disparus": ['
-
-        q_disparu = Disparu.query
-        if country:
-            q_disparu = q_disparu.filter_by(country=country)
-
-        first = True
-        for d in q_disparu.yield_per(100):
-            if not first:
-                yield ','
-            first = False
-
-            d_dict = {
-                'public_id': d.public_id,
-                'first_name': d.first_name,
-                'last_name': d.last_name,
-                'age': d.age,
-                'sex': d.sex,
-                'person_type': d.person_type,
-                'country': d.country,
-                'city': d.city,
-                'latitude': d.latitude,
-                'longitude': d.longitude,
-                'physical_description': d.physical_description,
-                'circumstances': d.circumstances,
-                'disappearance_date': d.disappearance_date.isoformat() if d.disappearance_date else None,
-                'clothing': d.clothing,
-                'objects': d.objects,
-                'contacts': d.contacts,
-                'photo_url': d.photo_url,
-                'status': d.status,
-                'is_flagged': d.is_flagged,
-                'view_count': d.view_count,
-                'created_at': d.created_at.isoformat() if d.created_at else None,
-                'updated_at': d.updated_at.isoformat() if d.updated_at else None
-            }
-            yield json.dumps(d_dict, ensure_ascii=False)
-
-        yield '],'
-
-        # Contributions
-        yield '"contributions": ['
-
-        q_contrib_joined = db.session.query(Contribution, Disparu).join(Disparu)
-        if country:
-            q_contrib_joined = q_contrib_joined.filter(Disparu.country == country)
-
-        first = True
-        for c, d in q_contrib_joined.yield_per(100):
-            if not first:
-                yield ','
-            first = False
-
-            c_dict = {
-                'disparu_public_id': d.public_id if d else None,
-                'contributor_name': c.contact_name or c.contributor_name,
-                'contributor_phone': c.contact_phone,
-                'contributor_email': c.contact_email,
-                'content': c.details or c.content,
-                'location': c.location_name or c.location,
-                'latitude': c.latitude,
-                'longitude': c.longitude,
-                'sighting_date': c.observation_date.isoformat() if c.observation_date else None,
-                'is_approved': c.is_approved,
-                'created_at': c.created_at.isoformat() if c.created_at else None
-            }
-            yield json.dumps(c_dict, ensure_ascii=False)
-
-        yield '],'
-
-        # Reports
-        yield '"moderation_reports": ['
-
-        q_report = db.session.query(ModerationReport, Disparu).join(Disparu, ModerationReport.target_id == Disparu.id).filter(ModerationReport.target_type == 'disparu')
-        if country:
-            q_report = q_report.filter(Disparu.country == country)
-
-        first = True
-        for r, d in q_report.yield_per(100):
-            if not first:
-                yield ','
-            first = False
-
-            r_dict = {
-                'disparu_public_id': d.public_id if d else None,
-                'target_type': r.target_type,
-                'target_id': r.target_id,
-                'reason': r.reason,
-                'details': r.details,
-                'reporter_contact': r.reporter_contact,
-                'status': r.status,
-                'created_at': r.created_at.isoformat() if r.created_at else None
-            }
-            yield json.dumps(r_dict, ensure_ascii=False)
-
-        yield ']'
-        yield '}'
-
-    response = Response(stream_with_context(generate_backup()), mimetype='application/json; charset=utf-8')
+    response = Response(stream_with_context(stream), mimetype='application/json; charset=utf-8')
     response.headers['Content-Disposition'] = f'attachment; filename={filename}'
     return response
 
@@ -1347,59 +927,14 @@ def restore_data():
     
     try:
         content = file.read().decode('utf-8')
-        backup = json.loads(content)
+        result = data_manager.restore_from_json(content)
         
-        restored_count = 0
-        skipped_count = 0
+        msg = f'Restauration terminee: {result["restored"]} signalements ajoutes, {result["skipped"]} ignores (doublons), {result["errors"]} erreurs validation'
+        log_activity(f'Restauration base - {result["restored"]} ajoutes, {result["skipped"]} ignores', action_type='restore', target_type='data', severity='warning')
+        flash(msg, 'success')
         
-        # Optimization: Fetch all existing public_ids in a single query
-        backup_disparus = backup.get('disparus', [])
-        backup_public_ids = [d.get('public_id') for d in backup_disparus if d.get('public_id')]
-
-        existing_public_ids = set()
-        if backup_public_ids:
-             # Process in chunks to avoid hitting SQL parameter limits
-             chunk_size = 1000
-             for i in range(0, len(backup_public_ids), chunk_size):
-                 chunk = backup_public_ids[i:i + chunk_size]
-                 existing_query = Disparu.query.filter(Disparu.public_id.in_(chunk)).with_entities(Disparu.public_id).all()
-                 existing_public_ids.update(r[0] for r in existing_query)
-
-        for d_data in backup_disparus:
-            if d_data.get('public_id') in existing_public_ids:
-                skipped_count += 1
-                continue
-            
-            d = Disparu()
-            d.public_id = d_data.get('public_id')
-            d.first_name = d_data.get('first_name')
-            d.last_name = d_data.get('last_name')
-            d.age = d_data.get('age')
-            d.sex = d_data.get('sex', 'unknown')
-            d.person_type = d_data.get('person_type', 'adult')
-            d.country = d_data.get('country')
-            d.city = d_data.get('city')
-            d.latitude = d_data.get('latitude')
-            d.longitude = d_data.get('longitude')
-            d.physical_description = d_data.get('physical_description', '')
-            d.circumstances = d_data.get('circumstances', '')
-            d.disappearance_date = datetime.fromisoformat(d_data['disappearance_date']) if d_data.get('disappearance_date') else datetime.now()
-            d.clothing = d_data.get('clothing')
-            d.objects = d_data.get('objects')
-            d.contacts = d_data.get('contacts')
-            d.photo_url = d_data.get('photo_url')
-            d.status = d_data.get('status', 'missing')
-            d.is_flagged = d_data.get('is_flagged', False)
-            db.session.add(d)
-            restored_count += 1
-        
-        db.session.commit()
-        
-        log_activity(f'Restauration base - {restored_count} ajoutes, {skipped_count} ignores', action_type='restore', target_type='data', severity='warning')
-        flash(f'Restauration terminee: {restored_count} signalements ajoutes, {skipped_count} ignores (doublons)', 'success')
-        
-    except json.JSONDecodeError:
-        flash('Fichier JSON invalide', 'error')
+    except ValueError as e:
+        flash(f'Erreur validation: {str(e)}', 'error')
     except Exception as e:
         db.session.rollback()
         flash(f'Erreur lors de la restauration: {str(e)}', 'error')
@@ -1418,19 +953,7 @@ def delete_data():
         return redirect(url_for('admin.data_management'))
     
     try:
-        q = Disparu.query
-        if country:
-            q = q.filter_by(country=country)
-        
-        disparus = q.all()
-        disparu_ids = [d.id for d in disparus]
-        
-        if disparu_ids:
-            Contribution.query.filter(Contribution.disparu_id.in_(disparu_ids)).delete(synchronize_session=False)
-            ModerationReport.query.filter(ModerationReport.target_type == 'disparu', ModerationReport.target_id.in_(disparu_ids)).delete(synchronize_session=False)
-        
-        deleted_count = q.delete(synchronize_session=False)
-        db.session.commit()
+        deleted_count = data_manager.delete_data_by_country(country)
         
         log_activity(f'Suppression donnees - {country or "Tous"}: {deleted_count} signalements', action_type='delete', target_type='data', severity='critical', is_security=True)
         flash(f'{deleted_count} signalements et donnees associees supprimes', 'success')
@@ -1446,26 +969,10 @@ def delete_data():
 @admin_required
 def delete_demo_data():
     try:
-        DEMO_IDS = ['DEMO01', 'DEMO02', 'DEMO03', 'DEMO04', 'DEMO05', 'DEMO06', 'DEMO07', 'DEMO08']
+        result = data_manager.delete_demo_data()
         
-        disparus = Disparu.query.filter(Disparu.public_id.in_(DEMO_IDS)).all()
-        disparu_db_ids = [d.id for d in disparus]
-        
-        contrib_deleted = 0
-        report_deleted = 0
-        
-        if disparu_db_ids:
-            contrib_deleted = Contribution.query.filter(Contribution.disparu_id.in_(disparu_db_ids)).delete(synchronize_session=False)
-            report_deleted = ModerationReport.query.filter(
-                ModerationReport.target_type == 'disparu',
-                ModerationReport.target_id.in_(disparu_db_ids)
-            ).delete(synchronize_session=False)
-        
-        disparu_deleted = Disparu.query.filter(Disparu.public_id.in_(DEMO_IDS)).delete(synchronize_session=False)
-        db.session.commit()
-        
-        log_activity(f'Suppression donnees demo: {disparu_deleted} signalements', action_type='delete', target_type='demo_data', severity='warning')
-        flash(f'{disparu_deleted} profils demo supprimes (+ {contrib_deleted} contributions, {report_deleted} rapports)', 'success')
+        log_activity(f'Suppression donnees demo: {result["disparus"]} signalements', action_type='delete', target_type='demo_data', severity='warning')
+        flash(f'{result["disparus"]} profils demo supprimes (+ {result["contributions"]} contributions, {result["reports"]} rapports)', 'success')
         
     except Exception as e:
         db.session.rollback()
