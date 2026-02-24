@@ -194,28 +194,29 @@ def get_nearby_disparus():
 
     # Fallback: if not enough results, search everything (preserves behavior for distant matches)
     if len(disparus) < limit:
-        # Optimization: Fetch only IDs and coordinates to find nearest neighbors
-        # avoid loading full objects for the entire dataset
-        q = get_query(None).with_entities(Disparu.id, Disparu.latitude, Disparu.longitude)
-        candidates = q.all()
+        # Optimization: Use SQL Haversine calculation to find nearest neighbors
+        # Avoids loading all candidates into Python memory
+        q = get_query(None)
 
-        # Calculate distance for all candidates (lightweight operation)
-        cand_dists = []
-        for cid, clat, clng in candidates:
-             dist = haversine_distance(user_lat, user_lng, clat, clng)
-             cand_dists.append((cid, dist))
+        R = 6371  # Earth radius in km
 
-        # Sort by distance and keep top 'limit'
-        cand_dists.sort(key=lambda x: x[1])
-        top_candidates = cand_dists[:limit]
-        top_ids = [c[0] for c in top_candidates]
+        lat1 = db.func.radians(user_lat)
+        lon1 = db.func.radians(user_lng)
+        lat2 = db.func.radians(Disparu.latitude)
+        lon2 = db.func.radians(Disparu.longitude)
 
-        if top_ids:
-             # Fetch full objects for the closest ones
-             # We must use in_() which doesn't preserve order, so we re-sort later
-             disparus = Disparu.query.filter(Disparu.id.in_(top_ids)).all()
-        else:
-             disparus = []
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+
+        a = db.func.sin(dlat / 2) * db.func.sin(dlat / 2) + \
+            db.func.cos(lat1) * db.func.cos(lat2) * \
+            db.func.sin(dlon / 2) * db.func.sin(dlon / 2)
+
+        c = 2 * db.func.atan2(db.func.sqrt(a), db.func.sqrt(1 - a))
+        distance_expr = R * c
+
+        # Order by distance and limit
+        disparus = q.order_by(distance_expr).limit(limit).all()
 
     results = []
     for d in disparus:
