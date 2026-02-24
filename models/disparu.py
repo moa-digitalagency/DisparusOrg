@@ -6,6 +6,7 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 from models import db
+from sqlalchemy.orm import validates
 
 
 class Disparu(db.Model):
@@ -48,6 +49,28 @@ class Disparu(db.Model):
     
     contributions = db.relationship('Contribution', backref='disparu', lazy='dynamic')
     
+    @validates('latitude')
+    def validate_latitude(self, key, latitude):
+        if latitude is not None:
+             try:
+                 val = float(latitude)
+             except (ValueError, TypeError):
+                 raise ValueError("Latitude must be a number")
+             if not (-90 <= val <= 90):
+                 raise ValueError("Latitude must be between -90 and 90")
+        return latitude
+
+    @validates('longitude')
+    def validate_longitude(self, key, longitude):
+        if longitude is not None:
+             try:
+                 val = float(longitude)
+             except (ValueError, TypeError):
+                 raise ValueError("Longitude must be a number")
+             if not (-180 <= val <= 180):
+                 raise ValueError("Longitude must be between -180 and 180")
+        return longitude
+
     def to_dict(self):
         return {
             'id': self.id,

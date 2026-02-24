@@ -10,6 +10,7 @@ from flask import Flask, request, send_from_directory, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
 
 from models import db
 from routes import register_blueprints
@@ -62,6 +63,7 @@ def create_app(config_name=None):
     # Initialize Extensions
     db.init_app(app)
     csrf.init_app(app)
+    Migrate(app, db)
     
     babel = Babel(app, locale_selector=get_locale)
     
