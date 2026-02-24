@@ -8,8 +8,8 @@ Ce guide détaille les procédures pour installer, configurer et déployer l'app
 
 *   **Python :** Version 3.10 ou supérieure recommandée.
 *   **Base de Données :**
-    *   **Développement :** SQLite (inclus par défaut).
-    *   **Production :** PostgreSQL (recommandé pour les performances FTS et la concurrence).
+    *   **Développement / Petite Échelle :** SQLite (Support natif complet avec fonctions mathématiques étendues).
+    *   **Production (Haute Charge) :** PostgreSQL (Recommandé pour la recherche FTS avancée et la haute concurrence).
 *   **Outils :** `pip`, `virtualenv` (ou `uv`/`poetry`), `git`.
 
 ---
@@ -50,7 +50,8 @@ FLASK_ENV=development       # Passer à 'production' pour le déploiement réel
 SECRET_KEY=votre_cle_secrete_aleatoire_et_longue # Sécurise les sessions
 
 # Base de Données
-DATABASE_URL=sqlite:///instance/disparus.db # Chemin absolu recommandé en Prod
+# SQLite est nativement supporté. Pour PostgreSQL : postgresql://user:pass@localhost/dbname
+DATABASE_URL=sqlite:///instance/disparus.db
 
 # Compte Admin Initial (Créé au premier lancement via init_db.py)
 ADMIN_PASSWORD=MonMotDePasseTresSecurise123!

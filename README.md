@@ -39,11 +39,40 @@ graph TD
 3.  [Documentation Détaillée](#documentation-détaillée)
 
 ## Fonctionnalités Clés
-*   **Signalements Complets :** Animaux et Humains, avec photos et géolocalisation précise.
-*   **Recherche Intelligente :** Filtres par statut, date, et tri par distance.
-*   **Génération de Documents :** Création automatique d'affiches PDF A4 et de visuels réseaux sociaux prêts à l'emploi.
-*   **Administration :** Tableau de bord pour la modération des contenus et la gestion des utilisateurs.
-*   **API REST :** Pour l'intégration avec des applications mobiles ou tierces.
+
+### 1. Gestion des Disparitions (Disparus)
+*   **Création de Profil :** Formulaire complet pour signaler une disparition (humain ou animal).
+*   **Recherche et Filtres :** Recherche par mot-clé, filtres par statut/type/date, et tri par distance (géolocalisation).
+*   **Affichage Détails :** Page dédiée avec informations, carte de localisation, et galerie photos.
+*   **Mise à jour de Statut :** Gestion du cycle de vie (Disparu -> Retrouvé/Décédé).
+
+### 2. Génération de Documents (PDF & Images)
+*   **Affiches PDF :** Génération automatique d'affiches "Avis de Recherche" au format A4 avec QR code.
+*   **Visuels Réseaux Sociaux :** Génération d'images optimisées (Carré/Paysage) avec thèmes visuels adaptés au statut.
+
+### 3. Carte Interactive
+*   **Affichage Global :** Carte montrant tous les signalements actifs avec clustering.
+*   **Filtres Carte :** Interaction avec les filtres de recherche globaux.
+
+### 4. Espace Administration
+*   **Tableau de Bord :** Vue d'ensemble des statistiques.
+*   **Gestion des Utilisateurs :** Liste, rôles (Admin/Modérateur/Utilisateur), bannissement.
+*   **Modération des Contenus :** Validation/Rejet des signalements et commentaires.
+*   **Logs d'Activité :** Historique des actions.
+*   **Paramètres du Site :** Configuration globale sans redéploiement.
+
+### 5. API Rest
+*   **Endpoints Publics :** `GET /api/disparus` (Liste), `GET /api/disparus/<id>` (Détails).
+*   **Endpoints Sécurisés :** Gestion via tokens ou session.
+
+### 6. Sécurité & Conformité
+*   **Authentification :** Login/Register sécurisé, hachage des mots de passe.
+*   **Protection CSRF :** Sur tous les formulaires.
+*   **Gestion des Droits :** RBAC complet.
+
+### 7. Outils Divers
+*   **Analytics :** Suivi des vues.
+*   **Internationalisation (i18n) :** Support multilingue (FR/EN).
 
 ## Installation & Démarrage
 
@@ -85,9 +114,9 @@ graph TD
 ## Documentation Détaillée
 Toute la documentation technique et fonctionnelle se trouve dans le dossier `docs/`.
 
-*   [📜 Liste Complète des Fonctionnalités (Bible)](docs/disparus_org_features_full_list.md)
-*   [🏗️ Architecture Technique](docs/disparus_org_technical_architecture.md)
-*   [📘 Manuel Utilisateur](docs/disparus_org_user_manual.md)
+*   [🏗️ Architecture Technique](docs/disparus_org_architecture_technique.md)
+*   [📘 Manuel Utilisateur](docs/disparus_org_guide_utilisateur.md)
+*   [🛠️ Guide de Déploiement](docs/disparus_org_guide_deploiment.md)
 *   [🔌 Référence API](docs/disparus_org_api_reference.md)
 
 ---
