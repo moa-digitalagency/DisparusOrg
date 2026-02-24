@@ -7,6 +7,7 @@
 """
 from flask import Blueprint, jsonify, request
 from math import radians, sin, cos, sqrt, atan2
+import time
 
 from models import db, Disparu, Contribution
 from utils.geo import get_countries, get_cities
@@ -240,9 +241,22 @@ def get_disparu(public_id):
     return jsonify(data)
 
 
+# Global cache for stats
+_STATS_CACHE = None
+_STATS_CACHE_TIME = 0
+_STATS_CACHE_TTL = 300  # 5 minutes
+
 @api_bp.route('/stats')
 @rate_limit()
 def get_stats():
+    global _STATS_CACHE, _STATS_CACHE_TIME
+
+    current_time = time.time()
+
+    # Return cached response if valid
+    if _STATS_CACHE is not None and (current_time - _STATS_CACHE_TIME) < _STATS_CACHE_TTL:
+        return jsonify(_STATS_CACHE)
+
     # Subquery for contributions count
     contributions_subq = db.select(db.func.count(Contribution.id)).scalar_subquery()
 
@@ -257,13 +271,19 @@ def get_stats():
         )
     ).first()
 
-    return jsonify({
+    result = {
         'total': stats[0] or 0,
         'missing': stats[1] or 0,
         'found': stats[2] or 0,
         'countries': stats[3] or 0,
         'contributions': stats[4] or 0,
-    })
+    }
+
+    # Update cache
+    _STATS_CACHE = result
+    _STATS_CACHE_TIME = current_time
+
+    return jsonify(result)
 
 
 @api_bp.route('/countries')
