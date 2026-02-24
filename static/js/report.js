@@ -314,4 +314,56 @@ document.addEventListener('DOMContentLoaded', function() {
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         dateInput.value = now.toISOString().slice(0, 16);
     }
+
+    // --- Speech Recognition ---
+    const btnSpeech = document.getElementById('btn-speech-toggle');
+    const textarea = document.getElementById('circumstances-textarea');
+
+    if (btnSpeech && textarea && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.continuous = false;
+        recognition.lang = document.documentElement.lang || 'fr-FR';
+        recognition.interimResults = false;
+
+        let isListening = false;
+
+        btnSpeech.addEventListener('click', function() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        recognition.onstart = function() {
+            isListening = true;
+            btnSpeech.classList.add('text-red-700', 'bg-red-50', 'ring-2', 'ring-red-500');
+            btnSpeech.classList.remove('text-gray-400');
+        };
+
+        recognition.onend = function() {
+            isListening = false;
+            btnSpeech.classList.remove('text-red-700', 'bg-red-50', 'ring-2', 'ring-red-500');
+            btnSpeech.classList.add('text-gray-400');
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            if (transcript) {
+                const currentVal = textarea.value;
+                textarea.value = currentVal ? currentVal + ' ' + transcript : transcript;
+            }
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error', event.error);
+            isListening = false;
+            btnSpeech.classList.remove('text-red-700', 'bg-red-50', 'ring-2', 'ring-red-500');
+            btnSpeech.classList.add('text-gray-400');
+        };
+    } else if (btnSpeech) {
+        btnSpeech.style.display = 'none';
+    }
 });

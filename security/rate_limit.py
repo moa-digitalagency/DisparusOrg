@@ -9,6 +9,7 @@ from functools import wraps
 from flask import request, jsonify, current_app, abort, session
 import time
 import re
+from inspect import iscoroutinefunction
 
 request_counts = {}
 RATE_LIMIT_WINDOW = 60
@@ -56,62 +57,85 @@ def get_whitelisted_ips():
         return []
 
 
+def check_rate_limit_logic(max_requests, window):
+    """Core rate limit logic returning response or None"""
+    # Bypass rate limit for logged in admins
+    if session.get('admin_logged_in'):
+        return None
+
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip and ',' in client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+
+    # Check whitelist
+    whitelisted_ips = get_whitelisted_ips()
+    if client_ip in whitelisted_ips:
+        return None
+
+    # Check blacklist
+    blocked_ips = get_blocked_ips()
+    if client_ip in blocked_ips:
+        return jsonify({
+            'error': 'Access denied',
+            'message': 'Your IP has been blocked'
+        }), 403
+
+    is_enabled, db_max_requests = get_rate_limit_settings()
+
+    if not is_enabled:
+        return None
+
+    effective_max = max_requests if max_requests is not None else db_max_requests
+    current_time = time.time()
+
+    if client_ip not in request_counts:
+        request_counts[client_ip] = []
+
+    request_counts[client_ip] = [
+        t for t in request_counts[client_ip]
+        if current_time - t < window
+    ]
+
+    if len(request_counts[client_ip]) >= effective_max:
+        if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+            return jsonify({
+                'error': 'Too many requests',
+                'message': f'Rate limit exceeded. Maximum {effective_max} requests per minute.',
+                'retry_after': window
+            }), 429
+
+        abort(429, description=f'Rate limit exceeded. Maximum {effective_max} requests per minute.')
+
+    request_counts[client_ip].append(current_time)
+    return None
+
+
 def rate_limit(max_requests=None, window=60):
     """Rate limiting decorator with configurable settings from database"""
     def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            # Bypass rate limit for logged in admins
-            if session.get('admin_logged_in'):
+        if iscoroutinefunction(f):
+            @wraps(f)
+            async def async_decorated_function(*args, **kwargs):
+                error_response = check_rate_limit_logic(max_requests, window)
+                if error_response:
+                    if isinstance(error_response, tuple):
+                        return error_response
+                    # If abort was called, execution stops there in check logic?
+                    # check_rate_limit_logic calls abort(), which raises exception.
+                    # If it returns tuple (json, 403), we return it.
+                    return error_response
+                return await f(*args, **kwargs)
+            return async_decorated_function
+        else:
+            @wraps(f)
+            def sync_decorated_function(*args, **kwargs):
+                error_response = check_rate_limit_logic(max_requests, window)
+                if error_response:
+                    if isinstance(error_response, tuple):
+                        return error_response
+                    return error_response
                 return f(*args, **kwargs)
-
-            client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-            if client_ip and ',' in client_ip:
-                client_ip = client_ip.split(',')[0].strip()
-            
-            # Check whitelist
-            whitelisted_ips = get_whitelisted_ips()
-            if client_ip in whitelisted_ips:
-                return f(*args, **kwargs)
-
-            # Check blacklist
-            blocked_ips = get_blocked_ips()
-            if client_ip in blocked_ips:
-                return jsonify({
-                    'error': 'Access denied',
-                    'message': 'Your IP has been blocked'
-                }), 403
-            
-            is_enabled, db_max_requests = get_rate_limit_settings()
-            
-            if not is_enabled:
-                return f(*args, **kwargs)
-            
-            effective_max = max_requests if max_requests is not None else db_max_requests
-            current_time = time.time()
-            
-            if client_ip not in request_counts:
-                request_counts[client_ip] = []
-            
-            request_counts[client_ip] = [
-                t for t in request_counts[client_ip]
-                if current_time - t < window
-            ]
-            
-            if len(request_counts[client_ip]) >= effective_max:
-                if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
-                    return jsonify({
-                        'error': 'Too many requests',
-                        'message': f'Rate limit exceeded. Maximum {effective_max} requests per minute.',
-                        'retry_after': window
-                    }), 429
-
-                abort(429, description=f'Rate limit exceeded. Maximum {effective_max} requests per minute.')
-            
-            request_counts[client_ip].append(current_time)
-            
-            return f(*args, **kwargs)
-        return decorated_function
+            return sync_decorated_function
     return decorator
 
 
