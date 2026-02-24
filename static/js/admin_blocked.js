@@ -5,26 +5,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = document.getElementById('btn-close-modal');
 
     function showDetails(jsonStr) {
-        try {
-            // Try standard JSON parse first
-            let jsonObj = JSON.parse(jsonStr);
+        // Use robust parser from utils.js that handles Python-style strings
+        const jsonObj = robustJSONParse(jsonStr);
+        if (jsonObj !== null) {
             content.textContent = JSON.stringify(jsonObj, null, 2);
-        } catch (e) {
-            // If standard parsing fails, attempt to fix common Python string representation issues
-            // (e.g. single quotes, True/False/None)
-            try {
-                if (!jsonStr) throw e;
-                let fixedStr = jsonStr
-                    .replace(/'/g, '"')
-                    .replace(/\bTrue\b/g, 'true')
-                    .replace(/\bFalse\b/g, 'false')
-                    .replace(/\bNone\b/g, 'null');
-                let jsonObj = JSON.parse(fixedStr);
-                content.textContent = JSON.stringify(jsonObj, null, 2);
-            } catch (e2) {
-                // If repair fails, fallback to raw string
-                content.textContent = jsonStr;
-            }
+        } else {
+            content.textContent = jsonStr || '';
         }
         modal.classList.remove('hidden');
     }
