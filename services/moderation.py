@@ -4,6 +4,7 @@ import json
 import asyncio
 from flask import current_app, request
 from models import db, ContentModerationLog
+from asgiref.sync import sync_to_async
 
 class ContentModerator:
     def __init__(self):
@@ -97,10 +98,14 @@ class ContentModerator:
         if not self.nudity_api_key and not self.violence_api_key:
             return True, None, None
 
-        # Read file content
-        file_content = file_storage.read()
-        # Rewind for subsequent use
-        file_storage.seek(0)
+        # Read file content (BLOCKING I/O)
+        # Offload to thread pool
+        def read_file_sync():
+            content = file_storage.read()
+            file_storage.seek(0)
+            return content
+
+        file_content = await sync_to_async(read_file_sync)()
 
         ip_address = request.remote_addr
         # Handle proxy headers if configured (e.g. X-Forwarded-For) - optional but good for VPS
@@ -112,8 +117,12 @@ class ContentModerator:
         # Check Nudity
         if self.nudity_api_key:
             nudity_result = await self._call_api(self.nudity_api_url, self.nudity_api_key, file_content)
-            # Rewind
-            file_storage.seek(0)
+            # Rewind file_storage in thread if we needed it again, but we have content in memory now.
+            # However, file_storage pointer was reset in read_file_sync.
+            # But wait, file_storage object is shared. read_file_sync ran in thread. It modified the object state (seek).
+            # This is fine as long as main thread doesn't touch it concurrently.
+
+            # Note: file_storage is NOT thread-safe generally, but here we only read.
 
             if nudity_result:
                 # APILayer Nudity often returns 'confidence' (0-1) or 'value'.
@@ -155,15 +164,16 @@ class ContentModerator:
             metadata_json=json.dumps(details)
         )
 
-        try:
-            # Note: Using sync DB session here. In a real async setup, we'd use async session or run_in_executor.
-            # But Flask async routes handle this by running in a thread if needed, or we just block briefly.
-            # Since DB operations are fast compared to API, this is acceptable.
-            db.session.add(log)
-            db.session.commit()
-        except Exception as e:
-            current_app.logger.error(f"Failed to save moderation log: {e}")
-            db.session.rollback()
+        def save_log_sync():
+            try:
+                # Note: Using sync DB session here. Offloaded to thread.
+                db.session.add(log)
+                db.session.commit()
+            except Exception as e:
+                current_app.logger.error(f"Failed to save moderation log: {e}")
+                db.session.rollback()
+
+        await sync_to_async(save_log_sync)()
 
         reason = "Contenu pornographique détecté." if detection_type == 'nudity' else "Contenu violent détecté."
         return False, reason, log
