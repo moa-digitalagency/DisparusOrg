@@ -42,42 +42,28 @@ def get_locale():
     return request.accept_languages.best_match(['fr', 'en'], default='fr')
 
 
-def create_app(config_name='default'):
+def create_app(config_name=None):
     app = Flask(__name__)
     
-    session_secret = os.environ.get('SESSION_SECRET')
-    if not session_secret:
-        import secrets
-        session_secret = secrets.token_hex(32)
-        import logging
-        logging.warning("SESSION_SECRET not set. Using random secret. Sessions will not persist across restarts.")
-    app.config['SECRET_KEY'] = session_secret
-    
-    database_url = os.environ.get('DATABASE_URL')
-    if not database_url:
-        raise RuntimeError("DATABASE_URL environment variable is required")
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['BABEL_DEFAULT_LOCALE'] = 'fr'
-    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
-    app.config['UPLOAD_FOLDER'] = 'static/uploads'
-    
-    app.config['WHATSAPP_NUMBER'] = os.environ.get('WHATSAPP_NUMBER', '243860493345')
-    app.config['TIDYCAL_URL'] = os.environ.get('TIDYCAL_URL', 'https://tidycal.com/moamyoneart/consultation-gratuite-15-min')
+    # Determine configuration to use
+    if config_name is None:
+        if os.environ.get('FLASK_ENV') == 'production':
+            config_name = 'production'
+        else:
+            config_name = 'development'
 
-    # Secure Session Cookies
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    # Enable Secure cookie if in production
-    if os.environ.get('FLASK_ENV') == 'production':
-        app.config['SESSION_COOKIE_SECURE'] = True
+    # Load configuration
+    if config_name not in config:
+        config_name = 'default'
 
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
+
+    # Initialize Extensions
     db.init_app(app)
     csrf.init_app(app)
     
     babel = Babel(app, locale_selector=get_locale)
-    
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
     app.jinja_env.globals['get_locale'] = get_locale
     
