@@ -356,6 +356,29 @@ def run_migrations():
 
     if dialect_name == 'postgresql':
         try:
+            # Enable pg_trgm extension for substring search optimizations
+            db.session.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+            db.session.commit()
+            logger.info("  + Enabled pg_trgm extension")
+
+            # Create GIN indexes with gin_trgm_ops for efficient leading wildcard search
+            trgm_indexes = [
+                ('first_name', 'ix_disparus_flask_first_name_trgm'),
+                ('last_name', 'ix_disparus_flask_last_name_trgm'),
+                ('public_id', 'ix_disparus_flask_public_id_trgm'),
+                ('city', 'ix_disparus_flask_city_trgm')
+            ]
+
+            for col, idx_name in trgm_indexes:
+                db.session.execute(text(f"CREATE INDEX IF NOT EXISTS {idx_name} ON disparus_flask USING gin ({col} gin_trgm_ops)"))
+                logger.info(f"  + Verified/Created Postgres GIN index {idx_name}")
+
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.warning(f"  - Postgres pg_trgm optimization skipped/failed: {e}")
+
+        try:
             # Create GIN index for Full Text Search
             # Using DO block for robustness if possible, but standard IF NOT EXISTS is good
             sql = """
