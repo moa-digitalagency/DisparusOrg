@@ -26,6 +26,7 @@ ALLOWED_MIMETYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
 
 # Cache for SQLite FTS availability
 _sqlite_fts_status = {}
+_postgres_trgm_status = {}
 
 def is_sqlite_fts_available(session):
     """Check if SQLite FTS table exists, with caching"""
@@ -42,6 +43,25 @@ def is_sqlite_fts_available(session):
         result = session.execute(db.text("SELECT name FROM sqlite_master WHERE type='table' AND name='disparus_fts'")).scalar()
         available = (result is not None)
         _sqlite_fts_status[db_key] = available
+        return available
+    except Exception:
+        return False
+
+
+def is_postgres_trgm_available(session):
+    """Check if Postgres pg_trgm extension is installed, with caching"""
+    try:
+        bind = session.get_bind()
+        if bind.dialect.name != 'postgresql':
+            return False
+
+        db_key = str(bind.url)
+        if db_key in _postgres_trgm_status:
+            return _postgres_trgm_status[db_key]
+
+        result = session.execute(db.text("SELECT count(*) FROM pg_extension WHERE extname = 'pg_trgm'")).scalar()
+        available = (result > 0)
+        _postgres_trgm_status[db_key] = available
         return available
     except Exception:
         return False
@@ -156,23 +176,32 @@ def search():
     q = Disparu.query
     
     if query:
-        # Optimized search for Postgres (uses Full Text Search)
+        # Optimized search for Postgres (uses Full Text Search or pg_trgm)
         if db.session.get_bind().dialect.name == 'postgresql':
-            # Use Full Text Search with exact index matching
-            # We use db.text to ensure the SQL matches the index definition exactly (literals vs params)
-            # The index uses: to_tsvector('french', coalesce(first_name,'') || ' ' || ...)
-            # plainto_tsquery handles user input safety (e.g. spaces, special chars)
-            # Note: This performs word-based matching rather than substring matching
-
-            sql_search = db.text("""
-                to_tsvector('french',
-                    coalesce(first_name,'') || ' ' ||
-                    coalesce(last_name,'') || ' ' ||
-                    coalesce(public_id,'') || ' ' ||
-                    coalesce(city,'')
-                ) @@ plainto_tsquery('french', :query)
-            """)
-            q = q.filter(sql_search).params(query=query)
+            if is_postgres_trgm_available(db.session):
+                # Use pg_trgm for efficient substring search (Leading Wildcard Search)
+                # This fixes the inefficient fallback logic by enabling index usage for ILIKE
+                search_term = f"%{query}%"
+                q = q.filter(
+                    db.or_(
+                        Disparu.first_name.ilike(search_term),
+                        Disparu.last_name.ilike(search_term),
+                        Disparu.public_id.ilike(search_term),
+                        Disparu.city.ilike(search_term),
+                    )
+                )
+            else:
+                # Fallback to Full Text Search if pg_trgm is not available
+                # Note: This performs word-based matching rather than substring matching
+                sql_search = db.text("""
+                    to_tsvector('french',
+                        coalesce(first_name,'') || ' ' ||
+                        coalesce(last_name,'') || ' ' ||
+                        coalesce(public_id,'') || ' ' ||
+                        coalesce(city,'')
+                    ) @@ plainto_tsquery('french', :query)
+                """)
+                q = q.filter(sql_search).params(query=query)
         elif db.session.get_bind().dialect.name == 'sqlite':
             # Optimized Search for SQLite using FTS5 if available
             if is_sqlite_fts_available(db.session):
