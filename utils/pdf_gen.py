@@ -7,7 +7,10 @@
 """
 import io
 import os
+import asyncio
 from datetime import datetime
+from urllib.parse import urlparse
+from io import BytesIO
 
 try:
     from reportlab.lib.pagesizes import A4
@@ -572,14 +575,13 @@ def generate_qr_code(url, size=10):
         return None
 
 
-async def generate_social_media_image(disparu, base_url='https://disparus.org', t=None, locale='fr'):
-    """Generate a 1080x1350px portrait image for social media sharing matching the reference design."""
+def _generate_social_media_image_sync(context, photo_data, base_url, t, locale):
+    """
+    Synchronous worker for social media image generation.
+    Handles CPU-bound tasks (PIL) to be run in an executor.
+    """
     try:
         from PIL import Image, ImageDraw, ImageFont
-        from io import BytesIO
-        import os
-        import aiohttp
-        from urllib.parse import urlparse
 
         if t is None:
             from utils.i18n import get_translation
@@ -596,8 +598,8 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
         width, height = 1080, 1350
 
         # --- Theme Logic based on Status ---
-        status = getattr(disparu, 'status', 'missing')
-        person_type = getattr(disparu, 'person_type', 'adult')
+        status = context.get('status', 'missing')
+        person_type = context.get('person_type', 'adult')
         is_animal = (person_type == 'animal')
 
         # Default Theme (Missing)
@@ -732,7 +734,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
 
         # Sous-textes header (gauche/droite)
         draw.text((30, 85), t('site.name'), fill=TEXT_WHITE, font=font_small)
-        id_text = f"{t('admin.id')} : {disparu.public_id}"
+        id_text = f"{t('admin.id')} : {context.get('public_id')}"
         bbox_id = draw.textbbox((0, 0), id_text, font=font_small)
         draw.text((width - (bbox_id[2]-bbox_id[0]) - 30, 85), id_text, fill=TEXT_WHITE, font=font_small)
 
@@ -765,38 +767,12 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
 
         # Récupération image
         person_photo = None
-        if disparu.photo_url:
+        if photo_data:
             try:
-                photo_path = disparu.photo_url
-                local_path = None
-
-                # Check if it's a URL or path
-                parsed = urlparse(photo_path)
-                if parsed.scheme in ('http', 'https'):
-                    # Check if it's our own domain or local dev
-                    # We can try to extract path if it looks like a static file
-                    path = parsed.path
-                    if path.startswith('/'):
-                        path = path[1:]
-
-                    if os.path.exists(path):
-                        local_path = path
-                else:
-                    # It's a relative path
-                    if photo_path.startswith('/'):
-                        photo_path = photo_path[1:]
-                    if os.path.exists(photo_path):
-                        local_path = photo_path
-
-                if local_path:
-                    person_photo = Image.open(local_path)
-                else:
-                    timeout = aiohttp.ClientTimeout(total=5)
-                    async with aiohttp.ClientSession(timeout=timeout) as session:
-                        async with session.get(disparu.photo_url) as response:
-                            if response.status == 200:
-                                content = await response.read()
-                                person_photo = Image.open(BytesIO(content))
+                if isinstance(photo_data, bytes):
+                    person_photo = Image.open(BytesIO(photo_data))
+                elif isinstance(photo_data, str):
+                    person_photo = Image.open(photo_data)
             except:
                 pass
 
@@ -826,7 +802,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
         text_y_cursor = photo_area_y + photo_size + 30 # Marge reduite
 
         # NOM PRENOM
-        name_str = f"{disparu.first_name} {disparu.last_name}".upper()
+        name_str = f"{context.get('first_name', '')} {context.get('last_name', '')}".upper()
         # Tronquer si trop long
         if len(name_str) > 30:
             name_str = name_str[:27] + "..."
@@ -835,12 +811,12 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
         text_y_cursor += 70 # Espacement reduit
 
         # Age - Sexe
-        sex_str = t('pdf.gender.male') if disparu.sex == 'male' else t('pdf.gender.female')
-        if disparu.person_type == 'animal':
-             sex_str = t('pdf.gender.male_animal') if disparu.sex == 'male' else t('pdf.gender.female_animal')
+        sex_str = t('pdf.gender.male') if context.get('sex') == 'male' else t('pdf.gender.female')
+        if context.get('person_type') == 'animal':
+             sex_str = t('pdf.gender.male_animal') if context.get('sex') == 'male' else t('pdf.gender.female_animal')
 
-        if disparu.age != -1:
-            age_sex = f"{disparu.age} {t('detail.age_years')} - {sex_str}"
+        if context.get('age', -1) != -1:
+            age_sex = f"{context.get('age')} {t('detail.age_years')} - {sex_str}"
         else:
             age_sex = sex_str
 
@@ -849,16 +825,17 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
         text_y_cursor += 50
 
         # Ville, Pays
-        loc = f"{disparu.city}, {disparu.country}"
+        loc = f"{context.get('city', '')}, {context.get('country', '')}"
         bbox_loc = draw.textbbox((0, 0), loc, font=font_bold_large)
         draw.text(((width - (bbox_loc[2]-bbox_loc[0])) // 2, text_y_cursor), loc, fill=TEXT_GRAY, font=font_bold_large)
         text_y_cursor += 50
 
         # Date disparition
         date_str = ""
-        if disparu.disappearance_date:
-            d = disparu.disappearance_date.strftime("%d/%m/%Y")
-            h = disparu.disappearance_date.strftime("%H:%M")
+        disappearance_date = context.get('disappearance_date')
+        if disappearance_date:
+            d = disappearance_date.strftime("%d/%m/%Y")
+            h = disappearance_date.strftime("%H:%M")
             date_str = t('pdf.social.missing_since', date=d, time=h)
 
         bbox_date = draw.textbbox((0, 0), date_str, font=font_bold_large)
@@ -866,8 +843,8 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
         text_y_cursor += 50
 
         # --- 5. Description (Ajouté selon demande, entre date et contact) ---
-        if disparu.physical_description:
-            desc_text = disparu.physical_description
+        if context.get('physical_description'):
+            desc_text = context.get('physical_description')
             # Simple wrapping logic
             margin = 80
             max_desc_width = width - (2 * margin)
@@ -912,7 +889,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             draw.text(((width - (bbox_ct[2]-bbox_ct[0])) // 2, box_y + 20), c_title, fill=TEXT_WHITE, font=font_small)
 
             # Info Contact
-            contacts = getattr(disparu, 'contacts', [])
+            contacts = context.get('contacts', [])
             if contacts:
                 c = contacts[0] # Premier contact
                 c_name = c.get('name', '').upper()
@@ -929,7 +906,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
 
             # Date (Big)
             # Use updated_at or today
-            found_date = getattr(disparu, 'updated_at', datetime.now())
+            found_date = context.get('updated_at', datetime.now())
             if not found_date: found_date = datetime.now()
             line2 = found_date.strftime("%d/%m/%Y")
 
@@ -964,7 +941,7 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
             draw.text(((width - (bbox_f2[2]-bbox_f2[0])) // 2, footer_warn_y + 35), line2, fill=theme['accent_color'], font=font_reg)
 
         # --- 8. Barre URL Bas ---
-        url_text = f"{base_url}/disparu/{disparu.public_id}".upper()
+        url_text = f"{base_url}/disparu/{context.get('public_id')}".upper()
 
         draw.rectangle([0, footer_bar_y, width, height], fill=theme['footer_bar'])
         bbox_url = draw.textbbox((0, 0), url_text, font=font_small)
@@ -977,8 +954,91 @@ async def generate_social_media_image(disparu, base_url='https://disparus.org', 
 
     except Exception as e:
         import logging
+        logging.error(f"Error generating social media image (sync): {e}")
+        return None
+
+async def generate_social_media_image(disparu, base_url='https://disparus.org', t=None, locale='fr'):
+    """Generate a 1080x1350px portrait image for social media sharing matching the reference design."""
+    try:
+        import aiohttp
+        from urllib.parse import urlparse
+
+        # 1. Prepare Context (extract fields safely)
+        context = {
+            'status': getattr(disparu, 'status', 'missing'),
+            'person_type': getattr(disparu, 'person_type', 'adult'),
+            'public_id': getattr(disparu, 'public_id', ''),
+            'first_name': getattr(disparu, 'first_name', ''),
+            'last_name': getattr(disparu, 'last_name', ''),
+            'sex': getattr(disparu, 'sex', ''),
+            'age': getattr(disparu, 'age', -1),
+            'city': getattr(disparu, 'city', ''),
+            'country': getattr(disparu, 'country', ''),
+            'disappearance_date': getattr(disparu, 'disappearance_date', None),
+            'physical_description': getattr(disparu, 'physical_description', ''),
+            'updated_at': getattr(disparu, 'updated_at', None),
+            'contacts': getattr(disparu, 'contacts', []),
+        }
+
+        # 2. Resolve Photo Data (Async Fetch or Local Path)
+        photo_data = None
+        photo_url = getattr(disparu, 'photo_url', None)
+
+        if photo_url:
+            try:
+                # Check if it's a URL or path
+                parsed = urlparse(photo_url)
+                local_path = None
+
+                if parsed.scheme in ('http', 'https'):
+                    # Check if it's our own domain or local dev
+                    # We can try to extract path if it looks like a static file
+                    path = parsed.path
+                    if path.startswith('/'):
+                        path = path[1:]
+
+                    if os.path.exists(path):
+                        local_path = path
+                else:
+                    # It's a relative path
+                    if photo_url.startswith('/'):
+                        p_url = photo_url[1:]
+                    else:
+                        p_url = photo_url
+                    if os.path.exists(p_url):
+                        local_path = p_url
+
+                if local_path:
+                    photo_data = local_path
+                else:
+                    # Async fetch
+                    timeout = aiohttp.ClientTimeout(total=5)
+                    async with aiohttp.ClientSession(timeout=timeout) as session:
+                        async with session.get(photo_url) as response:
+                            if response.status == 200:
+                                photo_data = await response.read()
+            except Exception as e:
+                # import logging
+                # logging.warning(f"Failed to fetch photo for social image: {e}")
+                pass
+
+        # 3. Offload Heavy Lifting to Thread Pool
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None,
+            _generate_social_media_image_sync,
+            context,
+            photo_data,
+            base_url,
+            t,
+            locale
+        )
+
+    except Exception as e:
+        import logging
         logging.error(f"Error generating social media image: {e}")
         return None
+
 def generate_statistics_pdf(stats_data, t, locale='fr', generated_by='System'):
     """
     Génère un rapport PDF complet des statistiques de la plateforme.
