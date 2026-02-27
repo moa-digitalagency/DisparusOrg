@@ -69,7 +69,7 @@
     {% endif %}
     
     <!-- Custom Head Scripts -->
-    {{ site_settings.get('head_scripts', '')|safe }}
+    {{ site_settings.get('seo_head_scripts', '')|safe }}
     <link rel="manifest" href="/manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -221,6 +221,9 @@
     <script src="/static/js/back-to-top.js" defer></script>
 
     {% block scripts %}{% endblock %}
+
+    <!-- Custom Body Scripts -->
+    {{ site_settings.get('seo_body_scripts', '')|safe }}
 
     {% if blocked_attempt %}
     <div id="moderation-alert-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
