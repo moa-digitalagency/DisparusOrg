@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import render_template, request, redirect, url_for, session, flash, current_app
 from werkzeug.utils import secure_filename
 from models import db, User, Role, Disparu, Contribution
+from sqlalchemy.orm import joinedload
 from utils.geo import get_countries
 from . import admin_bp, admin_required, log_activity
 
@@ -310,7 +311,7 @@ def contributions():
     log_activity('Consultation contributions', action_type='view', target_type='contributions')
     page = request.args.get('page', 1, type=int)
     per_page = 20
-    contributions = Contribution.query.order_by(Contribution.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    contributions = Contribution.query.options(joinedload(Contribution.disparu)).order_by(Contribution.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('admin_contributions.html', contributions=contributions)
 
 
