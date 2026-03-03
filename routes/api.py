@@ -186,46 +186,44 @@ def get_nearby_disparus():
             q = q.filter_by(status=status)
         return q
 
+    # SQL Haversine calculation to find nearest neighbors
+    R = 6371  # Earth radius in km
+
+    lat1 = db.func.radians(user_lat)
+    lon1 = db.func.radians(user_lng)
+    lat2 = db.func.radians(Disparu.latitude)
+    lon2 = db.func.radians(Disparu.longitude)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = db.func.sin(dlat / 2) * db.func.sin(dlat / 2) + \
+        db.func.cos(lat1) * db.func.cos(lat2) * \
+        db.func.sin(dlon / 2) * db.func.sin(dlon / 2)
+
+    c = 2 * db.func.atan2(db.func.sqrt(a), db.func.sqrt(1 - a))
+    distance_expr = R * c
+
     # Optimization: Use bounding box to limit search space (approx 550km box)
     BOX_SIZE = 5.0
     bbox = (user_lat - BOX_SIZE, user_lat + BOX_SIZE, user_lng - BOX_SIZE, user_lng + BOX_SIZE)
     
-    disparus = get_query(bbox).all()
+    # Try with bounding box first to limit rows before sorting
+    q_bbox = get_query(bbox)
+    disparus_with_dist = q_bbox.with_entities(Disparu, distance_expr.label('distance')).order_by('distance').limit(limit).all()
 
     # Fallback: if not enough results, search everything (preserves behavior for distant matches)
-    if len(disparus) < limit:
-        # Optimization: Use SQL Haversine calculation to find nearest neighbors
+    if len(disparus_with_dist) < limit:
         # Avoids loading all candidates into Python memory
-        q = get_query(None)
-
-        R = 6371  # Earth radius in km
-
-        lat1 = db.func.radians(user_lat)
-        lon1 = db.func.radians(user_lng)
-        lat2 = db.func.radians(Disparu.latitude)
-        lon2 = db.func.radians(Disparu.longitude)
-
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-
-        a = db.func.sin(dlat / 2) * db.func.sin(dlat / 2) + \
-            db.func.cos(lat1) * db.func.cos(lat2) * \
-            db.func.sin(dlon / 2) * db.func.sin(dlon / 2)
-
-        c = 2 * db.func.atan2(db.func.sqrt(a), db.func.sqrt(1 - a))
-        distance_expr = R * c
-
+        q_all = get_query(None)
         # Order by distance and limit
-        disparus = q.order_by(distance_expr).limit(limit).all()
+        disparus_with_dist = q_all.with_entities(Disparu, distance_expr.label('distance')).order_by('distance').limit(limit).all()
 
     results = []
-    for d in disparus:
-        dist = haversine_distance(user_lat, user_lng, d.latitude, d.longitude)
+    for d, dist in disparus_with_dist:
         data = d.to_dict()
         data['distance'] = round(dist, 1)
         results.append(data)
-    
-    results.sort(key=lambda x: x['distance'])
     
     return jsonify(results[:limit])
 
