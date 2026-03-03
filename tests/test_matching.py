@@ -66,11 +66,15 @@ class TestMatching(unittest.TestCase):
         h3 = "0000000000000000"
         self.assertLess(compare_hashes(h1, h3), 0.8)
 
+    @patch('algorithms.matching.or_')
     @patch('algorithms.matching.Disparu')
     @patch('algorithms.matching.compute_image_hash')
-    def test_find_potential_matches(self, mock_hash, MockDisparu):
+    def test_find_potential_matches(self, mock_hash, MockDisparu, mock_or):
         mock_query = MagicMock()
         MockDisparu.query.filter.return_value = mock_query
+
+        # Ensure chained filters return the same mock query
+        mock_query.filter.return_value = mock_query
 
         d1 = MagicMock()
         d1.id = 1
