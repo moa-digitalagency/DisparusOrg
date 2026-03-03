@@ -2,6 +2,7 @@ import os
 import difflib
 import re
 from PIL import Image
+from sqlalchemy import or_
 from models import Disparu
 from flask import current_app
 
@@ -164,6 +165,27 @@ def find_potential_matches(disparu):
     # If not, return empty list (fail safe)
     try:
         query = Disparu.query.filter(Disparu.id != disparu.id)
+
+        # Performance optimization: pre-filter potential matches in database
+        if hasattr(disparu, 'person_type') and disparu.person_type:
+            query = query.filter(Disparu.person_type == disparu.person_type)
+
+        or_conditions = []
+
+        if disparu.country:
+            or_conditions.append(Disparu.country == disparu.country)
+        if disparu.city:
+            or_conditions.append(Disparu.city == disparu.city)
+        if disparu.first_name:
+            or_conditions.append(Disparu.first_name == disparu.first_name)
+        if disparu.last_name:
+            or_conditions.append(Disparu.last_name == disparu.last_name)
+        if disparu.age and disparu.age > 0:
+            or_conditions.append(Disparu.age.between(max(0, disparu.age - 5), disparu.age + 5))
+
+        if or_conditions:
+            query = query.filter(or_(*or_conditions))
+
         # Limiting to last 500
         all_disparus = query.limit(500).all()
     except Exception:
