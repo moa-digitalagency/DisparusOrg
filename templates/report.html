@@ -301,9 +301,11 @@
 </section>
 
 <!-- Page Config -->
+<script id="countries-data" type="application/json">
+{{ countries_cities|tojson|safe }}
+</script>
 <div id="report-config"
      class="hidden"
-     data-countries-cities="{{ countries_cities|tojson|safe }}"
      data-geo-error="{{ t('report_form.geo_error') }}"
      data-address-not-found="{% if get_locale() == 'fr' %}Adresse introuvable{% else %}Address not found{% endif %}"
      data-search-error="{% if get_locale() == 'fr' %}Erreur lors de la recherche{% else %}Search error{% endif %}"
