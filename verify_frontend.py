@@ -37,7 +37,7 @@ def verify():
         # 2. Verify Detail Page (Share Button)
         try:
             print("Navigating to detail page...")
-            page.goto("http://127.0.0.1:5000/disparu/TEST-001")
+            page.goto("http://127.0.0.1:5000/disparu/DEMO01")
             page.wait_for_selector("#btn-generate-story", timeout=5000)
 
             if page.locator("#btn-generate-story").is_visible():

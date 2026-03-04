@@ -2,7 +2,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const config = document.getElementById('report-config');
     if (!config) return;
 
-    const countriesCities = JSON.parse(config.dataset.countriesCities);
+    let countriesCities = {};
+    const dataScript = document.getElementById('countries-data');
+    if (dataScript) {
+        try {
+            countriesCities = JSON.parse(dataScript.textContent);
+        } catch (e) {
+            console.error('Failed to parse countries data', e);
+        }
+    }
+
     const translations = {
         geoError: config.dataset.geoError,
         addressNotFound: config.dataset.addressNotFound,
