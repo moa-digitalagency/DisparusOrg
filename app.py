@@ -6,7 +6,7 @@
  * Auditer par : La CyberConfiance, www.cyberconfiance.com
 """
 import os
-from flask import Flask, request, send_from_directory, jsonify, render_template
+from flask import Flask, request, send_from_directory, jsonify, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel
 from flask_wtf.csrf import CSRFProtect
@@ -168,7 +168,7 @@ def create_app(config_name=None):
         # Content Security Policy (CSP)
         # Permissive enough for CDNs and inline scripts used in templates
         csp = (
-            "default-src 'self' https: data:; "
+            "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; "
             "style-src 'self' 'unsafe-inline' https:; "
             "img-src 'self' data: https: blob:; "
@@ -200,7 +200,7 @@ def register_utility_routes(app):
         description = SiteSetting.get('site_description', 'Plateforme citoyenne de signalement de personnes disparues en Afrique')
         theme_color = "#b91c1c"
         background_color = "#ffffff"
-        icon_src = "/static/img/favicon.png"
+        icon_src = url_for('static', filename='img/favicon.png')
 
         # Override if custom
         if display_mode == 'custom':
@@ -219,7 +219,7 @@ def register_utility_routes(app):
         description = str(description) if description else ""
         theme_color = str(theme_color) if theme_color else "#b91c1c"
         background_color = str(background_color) if background_color else "#ffffff"
-        icon_src = str(icon_src) if icon_src else "/static/img/favicon.png"
+        icon_src = str(icon_src) if icon_src else url_for('static', filename='img/favicon.png')
 
         return jsonify({
             "name": name,
