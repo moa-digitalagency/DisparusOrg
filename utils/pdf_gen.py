@@ -148,8 +148,11 @@ def generate_missing_person_pdf(disparu, base_url='https://disparus.org', t=None
                     favicon_setting = favicon_setting[1:]
                 if not favicon_setting.startswith('static/'):
                     favicon_setting = f'static/{favicon_setting}'
-                if os.path.exists(favicon_setting):
-                    logo = ImageReader(favicon_setting)
+                # Use absolute path relative to project root to avoid CWD issues
+                project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                favicon_abs = os.path.join(project_root, favicon_setting)
+                if os.path.exists(favicon_abs):
+                    logo = ImageReader(favicon_abs)
                     p.drawImage(logo, logo_x, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
                     logo_drawn = True
             except Exception:
@@ -1102,6 +1105,8 @@ def generate_statistics_pdf(stats_data, t, locale='fr', generated_by='System'):
     if logo_path:
         if logo_path.startswith('/'): logo_path = logo_path[1:]
         if not logo_path.startswith('static/'): logo_path = f'static/{logo_path}'
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        logo_path = os.path.join(project_root, logo_path)
         if os.path.exists(logo_path):
             from reportlab.platypus import Image
             try:
